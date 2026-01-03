@@ -19,21 +19,23 @@ import {
   User,
   Plus
 } from 'lucide-react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
   Area
 } from 'recharts';
+import LoginModal from './login';
+import RegisterModal from './registered';
 
 // --- Components ---
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }> = ({ onSignInClick, onSignUpClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -48,12 +50,18 @@ const Navbar: React.FC = () => {
         <span className="text-3xl font-bold tracking-tight text-white -ml-4 -mt-2 hover:scale-110 hover:text-amber-200 transition-all duration-300 cursor-pointer">Code<span className="text-amber-400 hover:text-amber-300">Hive</span></span>
 
         <div className="flex items-center gap-4">
-          <div className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer">
+          <button
+            onClick={onSignInClick}
+            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer"
+          >
             Sign In
-          </div>
-          <div className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer">
+          </button>
+          <button
+            onClick={onSignUpClick}
+            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer"
+          >
             Sign Up
-          </div>
+          </button>
         </div>
       </div>
     </nav>
@@ -380,6 +388,8 @@ const Footer: React.FC = () => {
 
 const Home: React.FC = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -390,19 +400,35 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  const handleSignInClick = () => {
+    setIsLoginModalOpen(true);
+  };
+
+  const handleCloseLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const handleSignUpClick = () => {
+    setIsRegisterModalOpen(true);
+  };
+
+  const handleCloseRegisterModal = () => {
+    setIsRegisterModalOpen(false);
+  };
+
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
       {/* Custom Cursor/Glow Effect */}
-      <div 
+      <div
         className="fixed pointer-events-none w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 bg-amber-500/5 rounded-full blur-[100px] z-0 transition-transform duration-300 ease-out"
         style={{ left: mousePos.x, top: mousePos.y }}
       ></div>
 
-      <Navbar />
-      
+      <Navbar onSignInClick={handleSignInClick} onSignUpClick={handleSignUpClick} />
+
       <main>
         <HeroSection />
-        
+
 
 
         <FeaturesSection />
@@ -421,6 +447,9 @@ const Home: React.FC = () => {
       </main>
 
       <Footer />
+
+      <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} onSignUpClick={handleSignUpClick} />
+      <RegisterModal isOpen={isRegisterModalOpen} onClose={handleCloseRegisterModal} />
     </div>
   );
 };
