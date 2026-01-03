@@ -121,22 +121,7 @@ const HeroSection: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-12 flex items-center gap-6">
-            <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <img 
-                  key={i} 
-                  src={`https://picsum.photos/seed/${i + 10}/100/100`} 
-                  className="w-10 h-10 rounded-full border-2 border-gray-900"
-                  alt="Developer"
-                />
-              ))}
-            </div>
-            <div className="text-sm">
-              <p className="text-white font-semibold">Join 50k+ Developers</p>
-              <p className="text-gray-500">Already swarming the hive</p>
-            </div>
-          </div>
+
         </div>
 
         <div className="relative group">
@@ -226,47 +211,47 @@ const FeaturesSection: React.FC = () => {
     <section id="explore" className="py-32 relative hive-grid">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
-          <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-6">Engineered for Efficiency.</h2>
+          <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-6">Master DSA with CodeHive</h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-            Every pixel of CodeHive is designed to keep you in the flow. From low-latency collaboration to predictive intelligence.
+            Practice data structures and algorithms, create instant contests, and climb the leaderboards in our competitive coding platform designed for students.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard 
-            icon={<Cpu className="w-6 h-6 text-amber-400" />}
-            title="Hive Intelligence"
-            desc="Context-aware AI that understands your entire codebase, not just the current file. Real-time suggestions that actually make sense."
+          <FeatureCard
+            icon={<Code2 className="w-6 h-6 text-amber-400" />}
+            title="DSA Practice Hub"
+            desc="Comprehensive collection of data structures and algorithms problems with instant feedback and detailed explanations to accelerate your learning."
             color="amber"
           />
-          <FeatureCard 
+          <FeatureCard
             icon={<Zap className="w-6 h-6 text-blue-400" />}
-            title="Instant Swarm"
-            desc="Invite teammates to your session in one click. Zero-lag collaborative coding with shared terminals and state."
+            title="Instant Contest Creation"
+            desc="Generate custom coding contests in seconds with our AI-powered problem selector. Set time limits, difficulty levels, and track participation."
             color="blue"
           />
-          <FeatureCard 
-            icon={<ShieldCheck className="w-6 h-6 text-emerald-400" />}
-            title="Fortified Labs"
-            desc="Enterprise-grade security built into every workspace. Automatic secret scanning and sandboxed execution environments."
+          <FeatureCard
+            icon={<Database className="w-6 h-6 text-emerald-400" />}
+            title="Real-time Leaderboards"
+            desc="Compete globally with live rankings, detailed statistics, and performance analytics to track your progress and identify areas for improvement."
             color="emerald"
           />
-          <FeatureCard 
-            icon={<Layers className="w-6 h-6 text-purple-400" />}
-            title="Omni-Channel IDE"
-            desc="A workspace that follows you. Native app, browser extension, or web—your setup, extensions, and themes stay perfectly synced."
+          <FeatureCard
+            icon={<Terminal className="w-6 h-6 text-purple-400" />}
+            title="AI Contest Feedback"
+            desc="Receive AI-powered feedback after contests end to learn how to improve your code and enhance your problem-solving skills."
             color="purple"
           />
-          <FeatureCard 
-            icon={<Database className="w-6 h-6 text-orange-400" />}
-            title="Resource Mesh"
-            desc="Scale from a simple script to a microservice architecture. On-demand computing power right inside your editor."
+          <FeatureCard
+            icon={<Globe className="w-6 h-6 text-orange-400" />}
+            title="Company-wise DSA Filters"
+            desc="Filter DSA questions by company to practice interview-specific problems and prepare for your dream job with targeted question sets."
             color="orange"
           />
-          <FeatureCard 
-            icon={<Cloud className="w-6 h-6 text-pink-400" />}
-            title="Pulse Deployment"
-            desc="Deploy to our global edge network in seconds. Built-in CI/CD that handles the heavy lifting so you don't have to."
+          <FeatureCard
+            icon={<Sparkles className="w-6 h-6 text-pink-400" />}
+            title="Progress Analytics"
+            desc="Track your coding journey with detailed analytics, skill assessments, and personalized learning recommendations powered by AI."
             color="pink"
           />
         </div>
