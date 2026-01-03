@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Code2, 
-  Terminal, 
-  Cpu, 
-  Zap, 
-  Globe, 
-  ShieldCheck, 
-  ArrowRight, 
-  Github, 
-  Twitter, 
-  Layers, 
+import {
+  Code2,
+  Terminal,
+  Cpu,
+  Zap,
+  Globe,
+  ShieldCheck,
+  ArrowRight,
+  Github,
+  Twitter,
+  Layers,
   Hexagon,
   Sparkles,
   MousePointer2,
   ChevronRight,
   Database,
-  Cloud
+  Cloud,
+  User,
+  Plus
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -46,10 +48,12 @@ const Navbar: React.FC = () => {
         <span className="text-xl font-bold tracking-tight text-white">Code<span className="text-amber-400">Hive</span></span>
 
         <div className="flex items-center gap-4">
-          <button className="text-sm font-medium text-gray-300 hover:text-white px-4 py-2 transition-colors">Sign In</button>
-          <button className="text-sm font-bold bg-amber-400 text-black px-5 py-2.5 rounded-full hover:bg-amber-300 transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
-            Join the Hive
-          </button>
+          <div className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer">
+            Sign In
+          </div>
+          <div className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer">
+            Sign Up
+          </div>
         </div>
       </div>
     </nav>
@@ -268,17 +272,14 @@ const CTASection: React.FC = () => {
         <Hexagon className="w-24 h-24 text-amber-400/20 absolute -top-8 -left-8 animate-spin" style={{ animationDuration: '20s' }} />
         <Hexagon className="w-16 h-16 text-blue-400/20 absolute -bottom-4 -right-4 animate-spin" style={{ animationDuration: '15s' }} />
         
-        <h2 className="text-4xl lg:text-6xl font-black text-white mb-8">Ready to evolve?</h2>
+        <h2 className="text-3xl lg:text-5xl font-black text-white mb-8">Ready to outcode the swarm?</h2>
         <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-          Join the swarm of world-class developers building the future of the web. Free forever for individuals.
+          Join thousands of engineers practicing the hardest DSA challenges in a distraction-free hive.
         </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <button className="w-full sm:w-auto px-10 py-5 bg-amber-400 text-black text-lg font-bold rounded-2xl hover:bg-amber-300 transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
-            Start Coding Now
-          </button>
-          <button className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 text-white text-lg font-bold rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-            View Enterprise Solutions <ChevronRight className="w-5 h-5" />
+
+        <div className="flex items-center justify-center">
+          <button className="px-10 py-5 bg-amber-400 text-black text-lg font-bold rounded-2xl hover:bg-amber-300 transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
+            GET STARTED FREE
           </button>
         </div>
       </div>
