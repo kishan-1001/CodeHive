@@ -1,41 +1,3 @@
-// import React from 'react';
-
-// const Home: React.FC = () => {
-//   return (
-//     <div className="min-h-screen bg-gray-900 flex flex-col">
-//       {/* Header */}
-//       <header className="flex justify-between items-center p-6 bg-gray-800 shadow-lg">
-//         <h1 className="text-2xl font-bold text-white">CodeHive</h1>
-//         <div className="flex gap-4">
-//           <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">
-//             Sign In
-//           </button>
-//           <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">
-//             Sign Up
-//           </button>
-//         </div>
-//       </header>
-
-//       {/* Main Content */}
-//       <main className="flex-grow flex items-center justify-center px-4">
-//         <div className="text-center">
-//           <h2 className="text-5xl md:text-7xl font-bold text-white mb-4">
-//             Welcome to CodeHive
-//           </h2>
-//           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-//             Empower your coding journey with our interactive platform. Solve problems, compete in contests, and level up your skills.
-//           </p>
-//         </div>
-//       </main>
-
-//       {/* Footer */}
-     
-//     </div>
-//   );
-// };
-
-// export default Home;
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Code2, 
@@ -81,21 +43,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4 glass-card' : 'py-6 bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-2 group cursor-pointer">
-          <div className="relative">
-            <Hexagon className="w-8 h-8 text-amber-400 fill-amber-400/10 group-hover:rotate-90 transition-transform duration-500" />
-            <Code2 className="w-4 h-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">Code<span className="text-amber-400">Hive</span></span>
-        </div>
-        
-        <div className="hidden md:flex items-center gap-8">
-          {['Explore', 'Hives', 'Challenges', 'Pricing'].map((item) => (
-            <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
-              {item}
-            </a>
-          ))}
-        </div>
+        <span className="text-xl font-bold tracking-tight text-white">Code<span className="text-amber-400">Hive</span></span>
 
         <div className="flex items-center gap-4">
           <button className="text-sm font-medium text-gray-300 hover:text-white px-4 py-2 transition-colors">Sign In</button>
@@ -157,14 +105,11 @@ const HeroSection: React.FC = () => {
       
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-xs font-bold uppercase tracking-widest mb-6">
-            <Sparkles className="w-3 h-3" /> Reimagining Dev Collaboration
-          </div>
           <h1 className="text-5xl lg:text-7xl font-extrabold text-white leading-tight mb-8">
-            The World's Smartest <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">Coding Hive.</span>
+            AI Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">Coding Hive</span>
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
-            Connect your brain to a global network of elite developers. Build, test, and deploy with real-time AI assistance in a beautifully optimized environment.
+            Connect, code, and compete on CodeHive — a unified platform to practice DSA, run real-time coding contests, test solutions instantly, and grow as a developer in a production-grade environment.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
@@ -451,9 +396,7 @@ const Home: React.FC = () => {
       <main>
         <HeroSection />
         
-        <div className="max-w-7xl mx-auto px-6">
-          <ActivityGraph />
-        </div>
+
 
         <FeaturesSection />
 
