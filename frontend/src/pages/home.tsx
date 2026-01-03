@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4 glass-card' : 'py-6 bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <span className="text-xl font-bold tracking-tight text-white">Code<span className="text-amber-400">Hive</span></span>
+        <span className="text-3xl font-bold tracking-tight text-white -ml-4 -mt-2 hover:scale-110 hover:text-amber-200 transition-all duration-300 cursor-pointer">Code<span className="text-amber-400 hover:text-amber-300">Hive</span></span>
 
         <div className="flex items-center gap-4">
           <div className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer">
@@ -121,7 +121,7 @@ const HeroSection: React.FC = () => {
               Get Started for Free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
             <button className="flex items-center justify-center gap-2 glass-card text-white font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all border border-white/10">
-              <Terminal className="w-4 h-4" /> Try Sandbox
+              <Terminal className="w-4 h-4" /> Code Editor
             </button>
           </div>
 
@@ -145,31 +145,52 @@ const HeroSection: React.FC = () => {
               <div className="p-6 font-mono text-sm leading-relaxed overflow-x-auto">
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">1</span>
-                  <span className="text-pink-400">import</span> <span className="text-white">{"{ HiveMind }"}</span> <span className="text-pink-400">from</span> <span className="text-green-400">'@codehive/core'</span>;
+                  <span className="text-pink-400">#include</span> <span className="text-green-400">{ '<codehive/developer.hpp>' }</span>
                 </div>
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">2</span>
-                  <span className="text-gray-500">{"// Initialize collaborative swarm"}</span>
                 </div>
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">3</span>
-                  <span className="text-pink-400">const</span> <span className="text-blue-400">swarm</span> <span className="text-pink-400">=</span> <span className="text-blue-300">new</span> <span className="text-yellow-300">HiveMind</span>({"{ "}
+                  <span className="text-pink-400">int</span> <span className="text-yellow-300">main</span>() {"{"}
                 </div>
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">4</span>
-                  <span className="text-blue-300 ml-4">realtime</span><span className="text-white">:</span> <span className="text-amber-400">true</span>,
+                  <span className="text-blue-300 ml-4">Developer</span> <span className="text-blue-400">dev</span>(<span className="text-green-400">"Kishan"</span>);
                 </div>
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">5</span>
-                  <span className="text-blue-300 ml-4">ai_pair_programmer</span><span className="text-white">:</span> <span className="text-amber-400">'Gemini-3'</span>
                 </div>
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">6</span>
-                  <span className="text-white">{"}"});</span>
+                  <span className="text-pink-400 ml-4">while</span> (<span className="text-blue-400">dev</span>.<span className="text-yellow-300">isLearning</span>()) {"{"}
                 </div>
-                <div className="flex gap-4 mt-4">
+                <div className="flex gap-4">
                   <span className="text-gray-600 select-none">7</span>
-                  <span className="text-blue-400">swarm</span><span className="text-white">.</span><span className="text-yellow-300">deploy</span>(<span className="text-green-400">'production'</span>);
+                  <span className="text-blue-400 ml-8">dev</span>.<span className="text-yellow-300">solve</span>(<span className="text-blue-300">Problem</span>::<span className="text-blue-300">DSA</span>);
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-600 select-none">8</span>
+                  <span className="text-blue-400 ml-8">dev</span>.<span className="text-yellow-300">runTestCases</span>();
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-600 select-none">9</span>
+                  <span className="text-blue-400 ml-8">dev</span>.<span className="text-yellow-300">improve</span>();
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-600 select-none">10</span>
+                  <span className="text-white ml-4">{"}"}</span>
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-600 select-none">11</span>
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-600 select-none">12</span>
+                  <span className="text-blue-400">dev</span>.<span className="text-yellow-300">unlockBadge</span>(<span className="text-green-400">"Consistency Master 🏆"</span>);
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-600 select-none">13</span>
+                  <span className="text-white">{"}"}</span>
                 </div>
                 <div className="mt-6 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                   <div className="flex items-center gap-2 text-green-400 text-xs font-bold uppercase tracking-wider">
@@ -297,7 +318,7 @@ const Footer: React.FC = () => {
             <span className="text-2xl font-bold text-white tracking-tight">Code<span className="text-amber-400">Hive</span></span>
           </div>
           <p className="text-gray-500 max-w-sm leading-relaxed">
-            The first fully-decentralized AI-powered coding workspace. Empowering developers to build better, together.
+            CodeHive is a modern coding platform designed to help developers practice, test, and compete through real-time code execution, curated problems, and competitive programming contests.
           </p>
           <div className="flex items-center gap-4 mt-8">
             <a href="#" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
@@ -316,19 +337,19 @@ const Footer: React.FC = () => {
           <h4 className="text-white font-bold mb-6">Platform</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
             <li><a href="#" className="hover:text-amber-400 transition-colors">Code Editor</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Collaboration</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">API Docs</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Changelog</a></li>
+            <li><a href="#" className="hover:text-amber-400 transition-colors">Coding Contests</a></li>
+            <li><a href="#" className="hover:text-amber-400 transition-colors">Try Sandbox</a></li>
+            <li><a href="#" className="hover:text-amber-400 transition-colors">Leaderboards</a></li>
           </ul>
         </div>
         
         <div>
           <h4 className="text-white font-bold mb-6">Resources</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Tutorials</a></li>
+            <li><a href="#" className="hover:text-amber-400 transition-colors">Getting Started</a></li>
+            <li><a href="#" className="hover:text-amber-400 transition-colors">Problem Library</a></li>
+            <li><a href="#" className="hover:text-amber-400 transition-colors">Interview Prep</a></li>
             <li><a href="#" className="hover:text-amber-400 transition-colors">Community</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Plugins</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Templates</a></li>
           </ul>
         </div>
         
