@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 const HomeCodeEditor: React.FC = () => {
   const [code, setCode] = useState<string>('#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}');
@@ -6,14 +6,26 @@ const HomeCodeEditor: React.FC = () => {
   const [output, setOutput] = useState<string>('');
   const [editorWidth, setEditorWidth] = useState<number>(50);
 
+  const boilerplateCode = {
+    c: '#include <stdio.h>\n\nint main() {\n   \n // write your code here \n  \n  return 0;\n}',
+    cpp: '#include <iostream>\n\nint main() {\n    \n // write your code here \n \n    return 0;\n}',
+    python: 'print("Hello, World!")',
+    javascript: 'console.log("Hello, World!");',
+    java: 'public class Main {\n    public static void main(String[] args) {\n \t// write your code here \n    }\n}'
+  };
+
   const languages = [
     { value: 'c', label: 'C' },
     { value: 'cpp', label: 'C++' },
     { value: 'python', label: 'Python' },
      { value: 'java', label: 'Java' },
     { value: 'javascript', label: 'JavaScript' }
-   
+
   ];
+
+  useEffect(() => {
+    setCode(boilerplateCode[language as keyof typeof boilerplateCode]);
+  }, [language]);
 
   const handleRun = async () => {
     setOutput('Executing...');
