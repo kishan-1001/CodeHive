@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
-
 const HomeCodeEditor: React.FC = () => {
   const [code, setCode] = useState<string>('#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}');
   const [language, setLanguage] = useState<string>('cpp');
@@ -8,6 +7,7 @@ const HomeCodeEditor: React.FC = () => {
   const [editorWidth, setEditorWidth] = useState<number>(50);
 
   const languages = [
+    { value: 'c', label: 'C' },
     { value: 'cpp', label: 'C++' },
     { value: 'python', label: 'Python' },
     { value: 'javascript', label: 'JavaScript' },
@@ -53,33 +53,41 @@ const HomeCodeEditor: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       <div className="flex items-center p-4 bg-gray-800">
-        <div className="flex-1">
-          <h1 className="text-xl font-bold">CodeHive Editor</h1>
+        <div className="flex-1 flex items-center">
+          <img src="/logoeditor.gif" alt="Logo" className="mr-2 w-16 h-16" />
+          <h1 className="text-xl font-bold animate-pulse">CodeHive Editor</h1>
         </div>
         <div className="flex-1 flex justify-center">
           <button
             onClick={handleRun}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-full border border-gray-600 transition-colors"
           >
             ▶️ Run
           </button>
         </div>
         <div className="flex-1 flex justify-end">
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="bg-gray-700 text-white p-2 rounded"
-          >
-            {languages.map((lang) => (
-              <option key={lang.value} value={lang.value}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-gray-800 hover:bg-gray-700 text-white p-2 pr-8 rounded-full border border-gray-600 transition-colors appearance-none"
+            >
+              {languages.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex flex-1">
-        <div style={{ width: `${editorWidth}%` }} className="h-full">
+      <div className="flex flex-1 p-2">
+        <div style={{ width: `${editorWidth}%` }} className="h-full border border-gray-600 rounded-2xl">
           <Editor
             height="100%"
             language={language}
@@ -93,10 +101,10 @@ const HomeCodeEditor: React.FC = () => {
           />
         </div>
         <div
-          className="w-1 bg-gray-600 cursor-col-resize hover:bg-gray-500 transition-colors"
+          className="w-2 bg-gray-600 border border-gray-600 rounded cursor-col-resize hover:bg-gray-500 transition-colors"
           onMouseDown={handleMouseDown}
         ></div>
-        <div style={{ width: `${100 - editorWidth}%` }} className="bg-gray-800 p-4 overflow-auto h-full">
+        <div style={{ width: `${100 - editorWidth}%` }} className="bg-gray-800 p-4 overflow-auto h-full border border-gray-600 rounded-2xl">
           <h2 className="text-lg font-semibold mb-2">Output</h2>
           <pre className="bg-gray-900 p-2 rounded text-sm whitespace-pre-wrap">{output}</pre>
         </div>
