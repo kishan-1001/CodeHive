@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Code2,
   Terminal,
@@ -53,13 +54,13 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
 
 
 
-const HeroSection: React.FC = () => {
+const HeroSection: React.FC<{ onCodeEditorClick: () => void }> = ({ onCodeEditorClick }) => {
   return (
     <section className="relative pt-32 pb-20 overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] -z-10 animate-pulse"></div>
       <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] -z-10"></div>
-      
+
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
           <h1 className="text-5xl lg:text-7xl font-extrabold text-white leading-tight mb-8">
@@ -68,12 +69,12 @@ const HeroSection: React.FC = () => {
           <p className="text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
             Connect, code, and compete on CodeHive — a unified platform to practice DSA, run real-time coding contests, test solutions instantly, and grow as a developer in a production-grade environment.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4">
             <button className="flex items-center justify-center gap-2 bg-white text-black font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-lg group">
               Get Started for Free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className="flex items-center justify-center gap-2 glass-card text-white font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all border border-white/10">
+            <button onClick={onCodeEditorClick} className="flex items-center justify-center gap-2 glass-card text-white font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all border border-white/10">
               <Terminal className="w-4 h-4" /> Code Editor
             </button>
           </div>
@@ -332,6 +333,7 @@ const Footer: React.FC = () => {
 // --- Page Main ---
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -361,6 +363,10 @@ const Home: React.FC = () => {
     setIsRegisterModalOpen(false);
   };
 
+  const handleCodeEditorClick = () => {
+    navigate('/editor');
+  };
+
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
       {/* Custom Cursor/Glow Effect */}
@@ -372,7 +378,7 @@ const Home: React.FC = () => {
       <Navbar onSignInClick={handleSignInClick} onSignUpClick={handleSignUpClick} />
 
       <main>
-        <HeroSection />
+        <HeroSection onCodeEditorClick={handleCodeEditorClick} />
 
 
 
