@@ -5,7 +5,7 @@ const HomeCodeEditor: React.FC = () => {
   const [code, setCode] = useState<string>('#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}');
   const [language, setLanguage] = useState<string>('cpp');
   const [output, setOutput] = useState<string>('');
-  const [editorWidth, setEditorWidth] = useState<number>(70);
+  const [editorWidth, setEditorWidth] = useState<number>(50);
 
   const languages = [
     { value: 'cpp', label: 'C++' },
@@ -52,9 +52,19 @@ const HomeCodeEditor: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
-      <div className="flex items-center justify-between p-4 bg-gray-800">
-        <h1 className="text-xl font-bold">CodeHive Editor</h1>
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center p-4 bg-gray-800">
+        <div className="flex-1">
+          <h1 className="text-xl font-bold">CodeHive Editor</h1>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <button
+            onClick={handleRun}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
+            ▶️ Run
+          </button>
+        </div>
+        <div className="flex-1 flex justify-end">
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
@@ -66,12 +76,6 @@ const HomeCodeEditor: React.FC = () => {
               </option>
             ))}
           </select>
-          <button
-            onClick={handleRun}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            ▶️ Run
-          </button>
         </div>
       </div>
       <div className="flex flex-1">
