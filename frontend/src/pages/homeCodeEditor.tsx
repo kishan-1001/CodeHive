@@ -10,7 +10,9 @@ const HomeCodeEditor: React.FC = () => {
     { value: 'c', label: 'C' },
     { value: 'cpp', label: 'C++' },
     { value: 'python', label: 'Python' },
-    { value: 'javascript', label: 'JavaScript' },
+     { value: 'java', label: 'Java' },
+    { value: 'javascript', label: 'JavaScript' }
+   
   ];
 
   const handleRun = async () => {
