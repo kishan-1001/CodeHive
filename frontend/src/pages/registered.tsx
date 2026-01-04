@@ -6,9 +6,10 @@ import { X, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
 interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSignInClick: () => void;
 }
 
-const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
+const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignInClick }) => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -207,9 +208,15 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
         {/* Sign In Link */}
         <p className="mt-3 text-center text-gray-400">
           Already have an account?{' '}
-          <a href="#" className="text-amber-400 hover:text-amber-300 transition-colors font-medium">
+          <button
+            onClick={() => {
+              onClose();
+              onSignInClick();
+            }}
+            className="text-amber-400 hover:text-amber-300 transition-colors font-medium bg-transparent border-none cursor-pointer"
+          >
             Sign in
-          </a>
+          </button>
         </p>
       </div>
     </div>

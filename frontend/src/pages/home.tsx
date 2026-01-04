@@ -1,35 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Code2,
   Terminal,
   Cpu,
   Zap,
   Globe,
-  ShieldCheck,
   ArrowRight,
   Github,
   Twitter,
-  Layers,
   Hexagon,
   Sparkles,
-  MousePointer2,
-  ChevronRight,
-  Database,
-  Cloud,
-  User,
-  Plus
+  Database
 } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from 'recharts';
+
 import LoginModal from './login';
 import RegisterModal from './registered';
 
@@ -68,45 +51,7 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
   );
 };
 
-const ActivityGraph: React.FC = () => {
-  const data = [
-    { time: '00:00', commits: 400, builds: 240 },
-    { time: '04:00', commits: 300, builds: 139 },
-    { time: '08:00', commits: 200, builds: 980 },
-    { time: '12:00', commits: 278, builds: 390 },
-    { time: '16:00', commits: 189, builds: 480 },
-    { time: '20:00', commits: 239, builds: 380 },
-    { time: '23:59', commits: 349, builds: 430 },
-  ];
 
-  return (
-    <div className="w-full h-64 mt-8 glass-card rounded-2xl p-6 overflow-hidden">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-400" /> Platform Pulse
-        </h3>
-        <span className="text-xs text-green-400 animate-pulse flex items-center gap-1">
-          ● 12,402 Active Sessions
-        </span>
-      </div>
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id="colorCommits" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <Tooltip 
-            contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px' }}
-            itemStyle={{ color: '#fbbf24' }}
-          />
-          <Area type="monotone" dataKey="commits" stroke="#fbbf24" fillOpacity={1} fill="url(#colorCommits)" />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-};
 
 const HeroSection: React.FC = () => {
   return (
@@ -390,7 +335,7 @@ const Home: React.FC = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -449,7 +394,7 @@ const Home: React.FC = () => {
       <Footer />
 
       <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} onSignUpClick={handleSignUpClick} />
-      <RegisterModal isOpen={isRegisterModalOpen} onClose={handleCloseRegisterModal} />
+      <RegisterModal isOpen={isRegisterModalOpen} onClose={handleCloseRegisterModal} onSignInClick={handleSignInClick} />
     </div>
   );
 };
