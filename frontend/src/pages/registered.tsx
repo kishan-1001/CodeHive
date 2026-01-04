@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+ import { authAPI } from '../services/api';
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -7,6 +9,7 @@ interface RegisterModalProps {
 }
 
 const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,25 +17,35 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
     if (!acceptTerms) {
-      alert('Please accept the terms and conditions');
+      setError('Please accept the terms and conditions');
       return;
     }
     setIsLoading(true);
+    setError('');
 
-    // Simulate registration API call
-    setTimeout(() => {
+    try {
+      await authAPI.register({ name, email, password });
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setSuccess(false);
+        navigate('/landing');
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-      console.log('Registration attempt:', { name, email, password });
-      // Handle registration logic here
-    }, 2000);
+    }
   };
 
   if (!isOpen) return null;
@@ -183,6 +196,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
               'Create Account'
             )}
           </button>
+          {error && (
+            <p className="text-red-400 text-sm text-center mt-4">{error}</p>
+          )}
+          {success && (
+            <p className="text-green-400 text-sm text-center mt-4">Account created successfully!</p>
+          )}
         </form>
 
         {/* Sign In Link */}

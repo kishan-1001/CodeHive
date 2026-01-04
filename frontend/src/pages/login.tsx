@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { authAPI } from '../services/api';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -8,21 +10,27 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
 
-    // Simulate login API call
-    setTimeout(() => {
+    try {
+      const response = await authAPI.login({ email, password });
+      localStorage.setItem('token', response.token);
+      navigate('/landing');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-      console.log('Login attempt:', { email, password });
-      // Handle login logic here
-    }, 2000);
+    }
   };
 
   if (!isOpen) return null;
@@ -127,6 +135,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
               'Sign In'
             )}
           </button>
+          {error && (
+            <p className="text-red-400 text-sm text-center mt-4">{error}</p>
+          )}
         </form>
 
         {/* Social Login */}
