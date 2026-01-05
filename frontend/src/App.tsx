@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/home.tsx";
 import Landing from "./pages/landing.tsx";
 import HomeCodeEditor from "./pages/homeCodeEditor.tsx";
+import Login from "./pages/login.tsx";
 
 const App: React.FC = () => {
   return (
@@ -9,6 +10,7 @@ const App: React.FC = () => {
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/home" element={<Home />} />
       <Route path="/landing" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/editor" element={<HomeCodeEditor />} />
     </Routes>
   );

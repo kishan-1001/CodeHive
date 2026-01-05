@@ -54,7 +54,7 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
 
 
 
-const HeroSection: React.FC<{ onCodeEditorClick: () => void }> = ({ onCodeEditorClick }) => {
+const HeroSection: React.FC<{ onCodeEditorClick: () => void; onGetStartedClick: () => void }> = ({ onCodeEditorClick, onGetStartedClick }) => {
   return (
     <section className="relative pt-32 pb-20 overflow-hidden">
       {/* Background Orbs */}
@@ -71,7 +71,7 @@ const HeroSection: React.FC<{ onCodeEditorClick: () => void }> = ({ onCodeEditor
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="flex items-center justify-center gap-2 bg-white text-black font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-lg group">
+            <button onClick={onGetStartedClick} className="flex items-center justify-center gap-2 bg-white text-black font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-lg group">
               Get Started for Free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
             <button onClick={onCodeEditorClick} className="flex items-center justify-center gap-2 glass-card text-white font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all border border-white/10">
@@ -239,21 +239,24 @@ const FeaturesSection: React.FC = () => {
   );
 };
 
-const CTASection: React.FC = () => {
+const CTASection: React.FC<{ onGetStartedClick: () => void }> = ({ onGetStartedClick }) => {
   return (
     <section className="py-32 px-6">
       <div className="max-w-5xl mx-auto relative overflow-hidden rounded-[3rem] p-12 lg:p-20 border border-white/10 glass-card text-center">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-500/20 via-transparent to-blue-500/20 opacity-30 -z-10"></div>
         <Hexagon className="w-24 h-24 text-amber-400/20 absolute -top-8 -left-8 animate-spin" style={{ animationDuration: '20s' }} />
         <Hexagon className="w-16 h-16 text-blue-400/20 absolute -bottom-4 -right-4 animate-spin" style={{ animationDuration: '15s' }} />
-        
+
         <h2 className="text-3xl lg:text-5xl font-black text-white mb-8">Ready to outcode the swarm?</h2>
         <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
           Join thousands of engineers practicing the hardest DSA challenges in a distraction-free hive.
         </p>
 
         <div className="flex items-center justify-center">
-          <button className="px-10 py-5 bg-amber-400 text-black text-lg font-bold rounded-2xl hover:bg-amber-300 transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
+          <button
+            onClick={onGetStartedClick}
+            className="px-10 py-5 bg-amber-400 text-black text-lg font-bold rounded-2xl hover:bg-amber-300 transition-all transform hover:scale-105 active:scale-95 shadow-2xl"
+          >
             GET STARTED FREE
           </button>
         </div>
@@ -367,6 +370,13 @@ const Home: React.FC = () => {
     navigate('/editor');
   };
 
+  const handleGetStartedClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      setIsRegisterModalOpen(true);
+    }, 500);
+  };
+
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
       {/* Custom Cursor/Glow Effect */}
@@ -378,7 +388,7 @@ const Home: React.FC = () => {
       <Navbar onSignInClick={handleSignInClick} onSignUpClick={handleSignUpClick} />
 
       <main>
-        <HeroSection onCodeEditorClick={handleCodeEditorClick} />
+        <HeroSection onCodeEditorClick={handleCodeEditorClick} onGetStartedClick={handleGetStartedClick} />
 
 
 
@@ -394,7 +404,7 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-        <CTASection />
+        <CTASection onGetStartedClick={handleGetStartedClick} />
       </main>
 
       <Footer />
