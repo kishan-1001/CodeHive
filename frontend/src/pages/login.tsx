@@ -25,7 +25,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
     try {
       const response = await authAPI.login({ email, password });
       localStorage.setItem('token', response.token);
-      navigate('/landing');
+      navigate('/explore');
     } catch (err: any) {
       setError(err.message);
     } finally {
