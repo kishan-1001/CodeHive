@@ -10,6 +10,15 @@ interface ExecuteRequest {
   language: string;
 }
 
+async function isDockerRunning(): Promise<boolean> {
+  try {
+    await execAsync('docker ps');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 router.post('/', async (req, res) => {
   const { code, language }: ExecuteRequest = req.body;
 
@@ -25,34 +34,60 @@ router.post('/', async (req, res) => {
 
     switch (language) {
       case 'c':
-        image = 'gcc';
-        command = `echo '${encodedCode}' | base64 -d > /tmp/code.c && gcc /tmp/code.c -o /tmp/code && /tmp/code`;
+        image = 'gcc:latest';
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.c && gcc /tmp/code.c -o /tmp/code && /tmp/code`;
         break;
       case 'cpp':
-        image = 'gcc';
-        command = `echo '${encodedCode}' | base64 -d > /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code && /tmp/code`;
+        image = 'gcc:latest';
+        command = `echo 'using namespace std;' > /tmp/code.cpp && echo "${encodedCode}" | base64 -d >> /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code && /tmp/code`;
         break;
       case 'python':
-        image = 'python';
-        command = `echo '${encodedCode}' | base64 -d > /tmp/code.py && python /tmp/code.py`;
+        image = 'python:3.9-alpine';
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.py && python3 /tmp/code.py`;
         break;
       case 'javascript':
-        image = 'node';
-        command = `echo '${encodedCode}' | base64 -d > /tmp/code.js && node /tmp/code.js`;
+        image = 'node:18-alpine';
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.js && node /tmp/code.js`;
         break;
       case 'java':
-        image = 'openjdk';
-        command = `echo '${encodedCode}' | base64 -d > /tmp/Main.java && javac /tmp/Main.java && java -cp /tmp Main`;
+        image = 'openjdk:11-jdk-alpine';
+        command = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java && java -cp /tmp Main`;
         break;
       default:
         return res.status(400).json({ error: 'Unsupported language' });
+    }
+
+    // Check if Docker is running
+    if (!(await isDockerRunning())) {
+      throw new Error('Docker is not running. Please start Docker Desktop to execute code.');
     }
 
     const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
 
     const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });
 
-    const output = stdout || stderr || 'No output';
+    // Filter out Docker pull messages from stderr
+    let filteredStderr = stderr;
+    if (stderr) {
+      const lines = stderr.split('\n');
+      filteredStderr = lines.filter(line =>
+        !line.includes('Pulling fs layer') &&
+        !line.includes('Already exists') &&
+        !line.includes('Pull complete') &&
+        !line.includes('latest: Pulling from') &&
+        !line.includes('Digest:') &&
+        !line.includes('Status:') &&
+        !line.includes('Unable to find image') &&
+        !line.includes('1227bf08bd42:') &&
+        !line.includes('b1741a62ccee:') &&
+        !line.includes('add107facb26:') &&
+        !line.includes('83237d80dc43:') &&
+        !line.includes('1227bf08bd42:') &&
+        !line.includes('83237d80dc43:')
+      ).join('\n').trim();
+    }
+
+    const output = stdout || filteredStderr || 'No output';
 
     res.json({ output });
   } catch (error: any) {
