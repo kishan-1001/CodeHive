@@ -36,13 +36,13 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
         <div className="flex items-center gap-4">
           <button
             onClick={onSignInClick}
-            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer"
+            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300"
           >
             Sign In
           </button>
           <button
             onClick={onSignUpClick}
-            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer"
+            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300"
           >
             Sign Up
           </button>

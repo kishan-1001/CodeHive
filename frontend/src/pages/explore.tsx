@@ -21,7 +21,6 @@ const Explore: React.FC = () => {
   const [isKnowledgeDropOpen, setIsKnowledgeDropOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
   const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
   const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
@@ -47,13 +46,7 @@ const Explore: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+
 
   const handleLike = async (postId: number) => {
     try {
@@ -103,14 +96,7 @@ const Explore: React.FC = () => {
 
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
-      {/* Custom Cursor/Glow Effect */}
-      <div
-        className="fixed pointer-events-none w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 bg-amber-500/5 rounded-full blur-[100px] z-0 transition-transform duration-300 ease-out"
-        style={{ left: mousePos.x, top: mousePos.y }}
-      ></div>
-
       {/* Background Orbs */}
-      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] -z-10 animate-pulse"></div>
       <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] -z-10"></div>
 
       <Header
@@ -167,7 +153,7 @@ const Explore: React.FC = () => {
                     {shouldTruncate(post.content) && (
                       <button
                         onClick={() => toggleExpand(post.id)}
-                        className="flex items-center gap-1 mt-2 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium"
+                        className="flex items-center gap-1 mt-2 text-amber-400 text-sm font-medium"
                       >
                         <ChevronDown
                           className={`w-4 h-4 transition-transform ${
@@ -183,14 +169,14 @@ const Explore: React.FC = () => {
                     <div className="flex items-center gap-6">
                       <button
                         onClick={() => handleLike(post.id)}
-                        className="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors"
+                        className="flex items-center gap-2 text-gray-400"
                       >
                         <Heart className="w-4 h-4" />
                         <span className="text-sm">{post.like_count}</span>
                       </button>
                       <button
                         onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors"
+                        className="flex items-center gap-2 text-gray-400"
                       >
                         <MessageCircle className="w-4 h-4" />
                         <span className="text-sm">{post.comment_count}</span>
