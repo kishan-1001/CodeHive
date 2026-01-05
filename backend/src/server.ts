@@ -55,7 +55,7 @@ wss.on('connection', (ws) => {
             dockerCommand = `echo "${encodedCode}" | base64 -d > /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code && stdbuf -o0 /tmp/code`;
             break;
           case 'java':
-            image = 'openjdk:11-jdk-alpine';
+            image = 'eclipse-temurin:17-jdk-alpine';
             dockerCommand = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java && java -cp /tmp Main`;
             break;
           default:
