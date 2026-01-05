@@ -2,10 +2,12 @@ const API_BASE_URL = 'http://localhost:3000/api';
 
 export const api = {
   async post(endpoint: string, data: any) {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(data),
     });
@@ -44,5 +46,27 @@ export const authAPI = {
 
   async login(credentials: { email: string; password: string }) {
     return api.post('/auth/login', credentials);
+  },
+};
+
+export const postsAPI = {
+  async getPosts() {
+    return api.get('/posts');
+  },
+
+  async createPost(postData: { title: string; content: string }) {
+    return api.post('/posts', postData);
+  },
+
+  async likePost(postId: number) {
+    return api.post(`/posts/${postId}/like`, {});
+  },
+
+  async commentOnPost(postId: number, commentData: { content: string }) {
+    return api.post(`/posts/${postId}/comment`, commentData);
+  },
+
+  async getComments(postId: number) {
+    return api.get(`/posts/${postId}/comments`);
   },
 };

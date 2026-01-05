@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { X, PenTool, Type } from 'lucide-react';
+import { postsAPI } from '../services/api';
 
 interface KnowledgeDropModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-const KnowledgeDropModal: React.FC<KnowledgeDropModalProps> = ({ isOpen, onClose }) => {
+const KnowledgeDropModal: React.FC<KnowledgeDropModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -15,14 +17,18 @@ const KnowledgeDropModal: React.FC<KnowledgeDropModalProps> = ({ isOpen, onClose
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            await postsAPI.createPost({ title, content });
             setIsLoading(false);
             onClose();
             setTitle('');
             setContent('');
-            // In a real app, we would trigger a refresh or add the post to a list here
-        }, 1500);
+            onSuccess?.();
+        } catch (error) {
+            console.error('Error creating post:', error);
+            setIsLoading(false);
+            // You might want to show an error message to the user here
+        }
     };
 
     if (!isOpen) return null;
