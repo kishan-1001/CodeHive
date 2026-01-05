@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, User } from 'lucide-react';
+import { Heart, MessageCircle, User, ChevronDown } from 'lucide-react';
 import Header from '../components/Header';
 import KnowledgeDropModal from '../components/KnowledgeDropModal';
 import { postsAPI } from '../services/api';
@@ -24,6 +24,7 @@ const Explore: React.FC = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
   const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
+  const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleLogout = () => {
@@ -82,6 +83,20 @@ const Explore: React.FC = () => {
     }
   };
 
+  const shouldTruncate = (content: string): boolean => {
+    const words = content.split(' ');
+    return words.length > 50;
+  };
+
+  const getTruncatedContent = (content: string): string => {
+    const words = content.split(' ');
+    return words.slice(0, 50).join(' ') + '...';
+  };
+
+  const toggleExpand = (postId: number) => {
+    setExpandedPosts({ ...expandedPosts, [postId]: !expandedPosts[postId] });
+  };
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -112,8 +127,8 @@ const Explore: React.FC = () => {
       <div className="relative min-h-screen pt-24 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Knowledge Drop</h1>
-            <p className="text-gray-400">Share and discover coding insights from the community</p>
+            
+            <p className="text-gray-400">Discover coding insights from the community</p>
           </div>
 
           {loading ? (
@@ -143,7 +158,26 @@ const Explore: React.FC = () => {
                   </div>
 
                   <h3 className="text-xl font-bold text-white mb-3">{post.title}</h3>
-                  <p className="text-gray-300 mb-4 leading-relaxed">{post.content}</p>
+                  <div className="mb-4">
+                    <p className="text-gray-300 leading-relaxed">
+                      {expandedPosts[post.id] || !shouldTruncate(post.content)
+                        ? post.content
+                        : getTruncatedContent(post.content)}
+                    </p>
+                    {shouldTruncate(post.content) && (
+                      <button
+                        onClick={() => toggleExpand(post.id)}
+                        className="flex items-center gap-1 mt-2 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium"
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${
+                            expandedPosts[post.id] ? 'rotate-180' : ''
+                          }`}
+                        />
+                        {expandedPosts[post.id] ? 'Show Less' : 'Read More'}
+                      </button>
+                    )}
+                  </div>
 
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-6">

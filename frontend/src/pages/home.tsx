@@ -31,18 +31,18 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4 glass-card' : 'py-6 bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <span className="text-3xl font-bold tracking-tight text-white -ml-4 -mt-2 hover:scale-110 hover:text-amber-200 transition-all duration-300 cursor-pointer">Code<span className="text-amber-400 hover:text-amber-300">Hive</span></span>
+        <span className="text-3xl font-bold tracking-tight text-white -ml-4 -mt-2 cursor-pointer">Code<span className="text-amber-400">Hive</span></span>
 
         <div className="flex items-center gap-4">
           <button
             onClick={onSignInClick}
-            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer"
+            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer"
           >
             Sign In
           </button>
           <button
             onClick={onSignUpClick}
-            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer"
+            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer"
           >
             Sign Up
           </button>
@@ -379,11 +379,6 @@ const Home: React.FC = () => {
 
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
-      {/* Custom Cursor/Glow Effect */}
-      <div
-        className="fixed pointer-events-none w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 bg-amber-500/5 rounded-full blur-[100px] z-0 transition-transform duration-300 ease-out"
-        style={{ left: mousePos.x, top: mousePos.y }}
-      ></div>
 
       <Navbar onSignInClick={handleSignInClick} onSignUpClick={handleSignUpClick} />
 
