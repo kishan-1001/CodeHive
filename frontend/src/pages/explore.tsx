@@ -22,6 +22,8 @@ const Explore: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
+  const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleLogout = () => {
@@ -51,6 +53,34 @@ const Explore: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  const handleLike = async (postId: number) => {
+    try {
+      await postsAPI.likePost(postId);
+      // Refresh posts to update like count
+      fetchPosts();
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
+  const toggleComments = (postId: number) => {
+    setShowComments({ ...showComments, [postId]: !showComments[postId] });
+  };
+
+  const handleCommentSubmit = async (postId: number) => {
+    const commentContent = commentInputs[postId]?.trim();
+    if (!commentContent) return;
+
+    try {
+      await postsAPI.commentOnPost(postId, { content: commentContent });
+      // Clear the input and refresh posts to update comment count
+      setCommentInputs({ ...commentInputs, [postId]: '' });
+      fetchPosts();
+    } catch (error) {
+      console.error('Error commenting on post:', error);
+    }
+  };
 
   useEffect(() => {
     fetchPosts();
@@ -115,15 +145,44 @@ const Explore: React.FC = () => {
                   <h3 className="text-xl font-bold text-white mb-3">{post.title}</h3>
                   <p className="text-gray-300 mb-4 leading-relaxed">{post.content}</p>
 
-                  <div className="flex items-center gap-6">
-                    <button className="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors">
-                      <Heart className="w-4 h-4" />
-                      <span className="text-sm">{post.like_count}</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="text-sm">{post.comment_count}</span>
-                    </button>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-6">
+                      <button
+                        onClick={() => handleLike(post.id)}
+                        className="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors"
+                      >
+                        <Heart className="w-4 h-4" />
+                        <span className="text-sm">{post.like_count}</span>
+                      </button>
+                      <button
+                        onClick={() => toggleComments(post.id)}
+                        className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span className="text-sm">{post.comment_count}</span>
+                      </button>
+                    </div>
+
+                    {showComments[post.id] && (
+                      <div className="border-t border-gray-700 pt-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={commentInputs[post.id] || ''}
+                            onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                            onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
+                            placeholder="Write a comment..."
+                            className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                          />
+                          <button
+                            onClick={() => handleCommentSubmit(post.id)}
+                            className="bg-amber-400 text-black px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors font-medium"
+                          >
+                            Comment
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
