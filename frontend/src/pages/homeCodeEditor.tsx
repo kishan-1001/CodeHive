@@ -1,14 +1,18 @@
-import React, {useEffect, useState } from 'react';
+import React, {useEffect, useState, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 const HomeCodeEditor: React.FC = () => {
   const [code, setCode] = useState<string>('#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}');
   const [language, setLanguage] = useState<string>('cpp');
   const [output, setOutput] = useState<string>('');
+  const [input, setInput] = useState<string>('');
   const [editorWidth, setEditorWidth] = useState<number>(50);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isReady, setIsReady] = useState<boolean>(false);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const boilerplateCode = {
     c: '#include <stdio.h>\n\nint main() {\n   \n // write your code here \n  \n  return 0;\n}',
-    cpp: '#include <iostream>\n\nint main() {\n    \n // write your code here \n \n    return 0;\n}',
+    cpp: '#include <iostream>\nusing namespace std;\nint main() {\n    \n // write your code here \n \n    return 0;\n}',
     python: 'print("Hello, World!")',
     javascript: 'console.log("Hello, World!");',
     java: 'public class Main {\n    public static void main(String[] args) {\n \t// write your code here \n    }\n}'
@@ -27,21 +31,42 @@ const HomeCodeEditor: React.FC = () => {
     setCode(boilerplateCode[language as keyof typeof boilerplateCode]);
   }, [language]);
 
-  const handleRun = async () => {
-    setOutput('Executing...');
-    try {
-      const response = await fetch('http://localhost:3000/api/execute', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code, language }),
-      });
-      const result = await response.json();
-      setOutput(result.output || result.error || 'No output');
-    } catch (error: any) {
-      setOutput(`Error: ${error.message}`);
+  const handleRun = () => {
+    if (wsRef.current) {
+      wsRef.current.close();
     }
+
+    wsRef.current = new WebSocket('ws://localhost:3000');
+
+    wsRef.current.onopen = () => {
+      setIsRunning(true);
+      setIsReady(false);
+      setOutput('');
+      wsRef.current?.send(JSON.stringify({ type: 'run', code, language }));
+    };
+
+    wsRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'output') {
+        setOutput(prev => prev + data.data);
+      } else if (data.type === 'error') {
+        setOutput(prev => prev + 'Error: ' + data.data + '\n');
+      } else if (data.type === 'ready') {
+        setIsReady(true);
+      } else if (data.type === 'end') {
+        setIsRunning(false);
+        setIsReady(false);
+      }
+    };
+
+    wsRef.current.onclose = () => {
+      setIsRunning(false);
+    };
+
+    wsRef.current.onerror = (error) => {
+      setOutput('WebSocket connection failed. Make sure the backend server is running.\n');
+      setIsRunning(false);
+    };
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -119,6 +144,21 @@ const HomeCodeEditor: React.FC = () => {
           onMouseDown={handleMouseDown}
         ></div>
         <div style={{ width: `${100 - editorWidth}%` }} className="bg-gray-800 p-4 overflow-auto h-full border border-gray-600 rounded-2xl">
+          <h2 className="text-lg font-semibold mb-2">Input</h2>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && isRunning) {
+                e.preventDefault();
+                wsRef.current?.send(JSON.stringify({ type: 'input', data: input }));
+                setInput('');
+              }
+            }}
+            placeholder={isRunning ? (isReady ? "Enter input and press Enter" : "Waiting for program to start...") : "Enter input here (one per line)"}
+            className="w-full h-24 bg-gray-900 text-white p-2 rounded mb-4 text-sm resize-none"
+            disabled={!isRunning && input !== ''}
+          />
           <h2 className="text-lg font-semibold mb-2">Output</h2>
           <pre className="bg-gray-900 p-2 rounded text-sm whitespace-pre-wrap">{output}</pre>
         </div>

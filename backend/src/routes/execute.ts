@@ -8,6 +8,7 @@ const execAsync = promisify(exec);
 interface ExecuteRequest {
   code: string;
   language: string;
+  input?: string;
 }
 
 async function isDockerRunning(): Promise<boolean> {
@@ -20,7 +21,7 @@ async function isDockerRunning(): Promise<boolean> {
 }
 
 router.post('/', async (req, res) => {
-  const { code, language }: ExecuteRequest = req.body;
+  const { code, language, input }: ExecuteRequest = req.body;
 
   if (!code || !language) {
     return res.status(400).json({ error: 'Code and language are required' });
@@ -31,27 +32,53 @@ router.post('/', async (req, res) => {
     let image: string;
 
     const encodedCode = Buffer.from(code).toString('base64');
+    const encodedInput = input ? Buffer.from(input).toString('base64') : null;
 
     switch (language) {
       case 'c':
         image = 'gcc:latest';
-        command = `echo "${encodedCode}" | base64 -d > /tmp/code.c && gcc /tmp/code.c -o /tmp/code && /tmp/code`;
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.c && gcc /tmp/code.c -o /tmp/code`;
+        if (encodedInput) {
+          command += ` && echo "${encodedInput}" | base64 -d | /tmp/code`;
+        } else {
+          command += ` && /tmp/code`;
+        }
         break;
       case 'cpp':
         image = 'gcc:latest';
-        command = `echo 'using namespace std;' > /tmp/code.cpp && echo "${encodedCode}" | base64 -d >> /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code && /tmp/code`;
+        command = `echo 'using namespace std;' > /tmp/code.cpp && echo "${encodedCode}" | base64 -d >> /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code`;
+        if (encodedInput) {
+          command += ` && echo "${encodedInput}" | base64 -d | /tmp/code`;
+        } else {
+          command += ` && /tmp/code`;
+        }
         break;
       case 'python':
         image = 'python:3.9-alpine';
-        command = `echo "${encodedCode}" | base64 -d > /tmp/code.py && python3 /tmp/code.py`;
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.py`;
+        if (encodedInput) {
+          command += ` && echo "${encodedInput}" | base64 -d | python3 /tmp/code.py`;
+        } else {
+          command += ` && python3 /tmp/code.py`;
+        }
         break;
       case 'javascript':
         image = 'node:18-alpine';
-        command = `echo "${encodedCode}" | base64 -d > /tmp/code.js && node /tmp/code.js`;
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.js`;
+        if (encodedInput) {
+          command += ` && echo "${encodedInput}" | base64 -d | node /tmp/code.js`;
+        } else {
+          command += ` && node /tmp/code.js`;
+        }
         break;
       case 'java':
         image = 'openjdk:11-jdk-alpine';
-        command = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java && java -cp /tmp Main`;
+        command = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java`;
+        if (encodedInput) {
+          command += ` && echo "${encodedInput}" | base64 -d | java -cp /tmp Main`;
+        } else {
+          command += ` && java -cp /tmp Main`;
+        }
         break;
       default:
         return res.status(400).json({ error: 'Unsupported language' });
