@@ -71,7 +71,7 @@ const ProblemList: React.FC = () => {
               {problems.map((problem) => (
                 <div
                   key={problem.id}
-                  onClick={() => handleProblemClick(problem.id)}
+                  onClick={() => handleProblemClick(problem.id.toString())}
                   className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 hover:border-amber-400/50 cursor-pointer transition-colors"
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -79,9 +79,6 @@ const ProblemList: React.FC = () => {
                       <h3 className="text-xl font-semibold text-white hover:text-amber-400 transition-colors mb-2">
                         {problem.title}
                       </h3>
-                      <p className="text-gray-300 text-sm line-clamp-2">
-                        {problem.description}
-                      </p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ml-4 ${
                       problem.difficulty === 'Easy' ? 'text-green-400 bg-green-400/10' :

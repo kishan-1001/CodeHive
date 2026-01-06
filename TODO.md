@@ -1,4 +1,3 @@
-# TODO: Update Hover Animations on Explore Page Buttons
+# TODO: Hide Problem Descriptions in List View
 
-- [x] Remove existing hover animations (color changes, scale-105, shadow-lg, translate-x-2) from all 5 buttons in explore.tsx
-- [x] Add uniform hover:scale-110 animation to each button for size increase on hover
+- [ ] Remove the description display from ProblemList.tsx so descriptions are only shown when clicking on a problem (in ProblemDetail.tsx)
