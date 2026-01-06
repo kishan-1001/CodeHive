@@ -23,14 +23,13 @@ const ProblemDetail: React.FC = () => {
     // Editor State
     const [code, setCode] = useState<string>('// Loading...');
     const [language, setLanguage] = useState<string>('cpp');
-    const [output, setOutput] = useState<string>('');
-    const [input, setInput] = useState<string>('');
+    const [testResults, setTestResults] = useState<{ [key: number]: { actual: string; passed: boolean } }>({});
     const [isRunning, setIsRunning] = useState<boolean>(false);
-    const [isReady, setIsReady] = useState<boolean>(false);
     const wsRef = useRef<WebSocket | null>(null);
 
     // Layout State
     const [splitPosition, setSplitPosition] = useState<number>(50); // percentage
+    const [testCaseHeight, setTestCaseHeight] = useState<number>(33); // percentage of right panel
 
     const boilerplateCode = {
         c: '#include <stdio.h>\n\nint main() {\n   \n // write your code here \n  \n  return 0;\n}',
@@ -70,42 +69,50 @@ const ProblemDetail: React.FC = () => {
         setCode(boilerplateCode[language as keyof typeof boilerplateCode]);
     }, [language]);
 
-    const handleRun = () => {
-        if (wsRef.current) {
-            wsRef.current.close();
+    const handleRun = async () => {
+        if (!problem?.sample_test_cases || problem.sample_test_cases.length === 0) {
+            return;
         }
 
-        wsRef.current = new WebSocket('ws://localhost:3000'); // Ensure this matches user's backend port setup
+        // Run against sample test cases
+        setIsRunning(true);
+        setTestResults({});
 
-        wsRef.current.onopen = () => {
-            setIsRunning(true);
-            setIsReady(false);
-            setOutput('');
-            wsRef.current?.send(JSON.stringify({ type: 'run', code, language }));
-        };
+        const newResults: { [key: number]: { actual: string; passed: boolean } } = {};
 
-        wsRef.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'output') {
-                setOutput(prev => prev + data.data);
-            } else if (data.type === 'error') {
-                setOutput(prev => prev + 'Error: ' + data.data + '\n');
-            } else if (data.type === 'ready') {
-                setIsReady(true);
-            } else if (data.type === 'end') {
-                setIsRunning(false);
-                setIsReady(false);
+        for (let i = 0; i < problem.sample_test_cases.length; i++) {
+            const testCase = problem.sample_test_cases[i];
+            try {
+                const response = await fetch('http://localhost:3001/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code,
+                        language,
+                        input: testCase.input,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const actualOutput = data.output.trim();
+                    const expectedOutput = testCase.expected_output.trim();
+                    const passed = actualOutput === expectedOutput;
+
+                    newResults[i] = { actual: actualOutput, passed };
+                } else {
+                    newResults[i] = { actual: `Error: ${data.error}`, passed: false };
+                }
+            } catch (error) {
+                newResults[i] = { actual: 'Network error', passed: false };
             }
-        };
+        }
 
-        wsRef.current.onclose = () => {
-            setIsRunning(false);
-        };
-
-        wsRef.current.onerror = () => {
-            setOutput('WebSocket connection failed. Make sure the backend server is running.\n');
-            setIsRunning(false);
-        };
+        setTestResults(newResults);
+        setIsRunning(false);
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -119,6 +126,29 @@ const ProblemDetail: React.FC = () => {
             const deltaPercent = (deltaX / window.innerWidth) * 100;
             const newWidth = Math.max(20, Math.min(80, startWidth + deltaPercent));
             setSplitPosition(newWidth);
+        };
+
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    const handleMouseDownTestCase = (e: React.MouseEvent) => {
+        e.preventDefault();
+        const startY = e.clientY;
+        const startHeight = testCaseHeight;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            const deltaY = e.clientY - startY;
+            // Convert pixel delta to percentage of right panel height
+            const rightPanelHeight = window.innerHeight - 56; // Subtract top bar height
+            const deltaPercent = (deltaY / rightPanelHeight) * 100;
+            const newHeight = Math.max(10, Math.min(90, startHeight - deltaPercent));
+            setTestCaseHeight(newHeight);
         };
 
         const handleMouseUp = () => {
@@ -272,13 +302,16 @@ const ProblemDetail: React.FC = () => {
                     <div className="h-8 w-0.5 bg-gray-600 group-hover:bg-amber-400 rounded-full" />
                 </div>
 
-                {/* Right Panel: Editor & Output */}
+                {/* Right Panel: Editor & Test Cases */}
                 <div
                     style={{ width: `${100 - splitPosition}%` }}
                     className="h-full flex flex-col bg-gray-900 border-l border-gray-800"
                 >
                     {/* Editor */}
-                    <div className="flex-1 min-h-0">
+                    <div
+                        style={{ height: `${100 - testCaseHeight}%` }}
+                        className="min-h-0"
+                    >
                         <Editor
                             height="100%"
                             language={language}
@@ -295,39 +328,67 @@ const ProblemDetail: React.FC = () => {
                         />
                     </div>
 
-                    {/* Output / Terminal */}
-                    <div className="h-1/3 border-t border-gray-800 flex flex-col bg-gray-950">
+                    {/* Horizontal Resizer */}
+                    <div
+                        className="h-1.5 w-full bg-gray-800 hover:bg-amber-400/50 cursor-row-resize transition-colors shrink-0 z-20 flex items-center justify-center group"
+                        onMouseDown={handleMouseDownTestCase}
+                    >
+                        <div className="w-8 h-0.5 bg-gray-600 group-hover:bg-amber-400 rounded-full" />
+                    </div>
+
+                    {/* Test Cases */}
+                    <div
+                        style={{ height: `${testCaseHeight}%` }}
+                        className="flex flex-col bg-gray-950"
+                    >
                         <div className="flex items-center px-4 py-2 bg-gray-900 border-b border-gray-800 gap-2">
                             <Terminal className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm font-medium text-gray-300">Console</span>
+                            <span className="text-sm font-medium text-gray-300">Test Cases</span>
                         </div>
 
-                        <div className="flex-1 p-4 overflow-y-auto font-mono text-sm custom-scrollbar">
-                            {/* Input Area */}
-                            <div className="mb-4">
-                                <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Input</div>
-                                <textarea
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && isRunning) {
-                                            e.preventDefault();
-                                            wsRef.current?.send(JSON.stringify({ type: 'input', data: input }));
-                                            setInput('');
-                                        }
-                                    }}
-                                    placeholder={isRunning ? "Program running... Type input & press Enter" : "Standard Input (stdin)..."}
-                                    className="w-full bg-gray-900 border border-gray-800 rounded p-2 text-gray-300 focus:outline-none focus:border-amber-500/50 transition-colors resize-none h-16"
-                                />
-                            </div>
-
-                            {/* Output Area */}
-                            <div>
-                                <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Output</div>
-                                <div className={`whitespace-pre-wrap ${output ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                                    {output || 'Run your code to see output...'}
+                        <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+                            {problem?.sample_test_cases && problem.sample_test_cases.length > 0 ? (
+                                <div className="space-y-4">
+                                    {problem.sample_test_cases.map((testCase, index) => (
+                                        <div key={index} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                                            <h4 className="text-lg font-medium text-amber-400 mb-3">Test Case {index + 1}:</h4>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <div className="text-sm text-gray-400 mb-1">Input:</div>
+                                                    <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
+                                                        {testCase.input}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm text-gray-400 mb-1">Expected Output:</div>
+                                                    <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
+                                                        {testCase.expected_output}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm text-gray-400 mb-1">Your Output:</div>
+                                                    <div className={`bg-gray-900 rounded p-3 font-mono text-sm border ${
+                                                        testResults[index] ? (
+                                                            testResults[index].passed ? 'border-green-500 text-green-200' : 'border-red-500 text-red-200'
+                                                        ) : 'border-gray-600 text-gray-600 italic'
+                                                    }`}>
+                                                        {testResults[index] ? testResults[index].actual : 'Run code to see output'}
+                                                    </div>
+                                                </div>
+                                                {testResults[index] && (
+                                                    <div className={`text-sm font-medium ${
+                                                        testResults[index].passed ? 'text-green-400' : 'text-red-400'
+                                                    }`}>
+                                                        {testResults[index].passed ? '✓ Passed' : '✗ Failed'}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="text-gray-600 italic">No test cases available</div>
+                            )}
                         </div>
                     </div>
                 </div>
