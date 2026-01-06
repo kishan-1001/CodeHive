@@ -152,7 +152,8 @@ const ProblemDetail: React.FC = () => {
     return (
         <div className="flex flex-col h-screen bg-gray-900 text-white overflow-hidden">
             {/* Top Bar */}
-            <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center px-4 justify-between shrink-0 z-10">
+            <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center px-4 shrink-0 z-10">
+                {/* Left Section */}
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/problems')}
@@ -171,6 +172,25 @@ const ProblemDetail: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Center Section */}
+                <div className="flex-1 flex justify-center">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={handleRun}
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                        >
+                            <Play className="w-4 h-4 fill-current" />
+                            Run
+                        </button>
+                        <button
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </div>
+
+                {/* Right Section */}
                 <div className="flex items-center gap-4">
                     <select
                         value={language}
@@ -181,13 +201,6 @@ const ProblemDetail: React.FC = () => {
                             <option key={lang.value} value={lang.value}>{lang.label}</option>
                         ))}
                     </select>
-                    <button
-                        onClick={handleRun}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
-                    >
-                        <Play className="w-4 h-4 fill-current" />
-                        Run
-                    </button>
                 </div>
             </div>
 
