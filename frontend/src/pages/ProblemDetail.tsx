@@ -48,6 +48,18 @@ const ProblemDetail: React.FC = () => {
         { value: 'javascript', label: 'JavaScript' }
     ];
 
+    const fetchStarterCode = async (lang: string) => {
+        if (!problem) return;
+        try {
+            const data = await problemsAPI.getProblemTemplate(problem.id.toString(), lang);
+            setCode(data.starter_code);
+        } catch (error) {
+            console.error('Error fetching starter code:', error);
+            // Fallback to boilerplate if API fails
+            setCode(boilerplateCode[lang as keyof typeof boilerplateCode]);
+        }
+    };
+
     useEffect(() => {
         const fetchProblem = async () => {
             if (!id) return;
@@ -55,6 +67,8 @@ const ProblemDetail: React.FC = () => {
                 setLoading(true);
                 const data = await problemsAPI.getProblemById(id);
                 setProblem(data);
+                // Fetch starter code for the default language
+                await fetchStarterCode(language);
             } catch (error) {
                 console.error('Error fetching problem:', error);
             } finally {
@@ -66,9 +80,11 @@ const ProblemDetail: React.FC = () => {
     }, [id]);
 
     useEffect(() => {
-        // Set boilerplate when language changes or initially
-        setCode(boilerplateCode[language as keyof typeof boilerplateCode]);
-    }, [language]);
+        // Fetch starter code when language changes
+        if (problem) {
+            fetchStarterCode(language);
+        }
+    }, [language, problem]);
 
     const handleRun = async () => {
         if (!problem?.sample_test_cases || problem.sample_test_cases.length === 0) {
@@ -84,7 +100,7 @@ const ProblemDetail: React.FC = () => {
         for (let i = 0; i < problem.sample_test_cases.length; i++) {
             const testCase = problem.sample_test_cases[i];
             try {
-                const response = await fetch('http://localhost:3001/execute', {
+                const response = await fetch('http://localhost:3001/api/execute', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -93,6 +109,7 @@ const ProblemDetail: React.FC = () => {
                         code,
                         language,
                         input: testCase.input,
+                        problem_id: problem.id,
                     }),
                 });
 

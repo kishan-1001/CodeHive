@@ -109,4 +109,25 @@ router.get('/problems/slug/:slug', async (req, res) => {
     }
 });
 
+// Get starter code and wrapper code for a problem and language
+router.get('/:id/templates/:language', async (req, res) => {
+    const { id, language } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT starter_code, wrapper_code
+            FROM problem_templates
+            WHERE problem_id = $1 AND language = $2
+        `, [id, language]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Template not found for this problem and language' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 export default router;

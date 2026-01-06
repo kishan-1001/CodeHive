@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { pool } from '../config/db';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -9,6 +10,7 @@ interface ExecuteRequest {
   code: string;
   language: string;
   input?: string;
+  problem_id?: number;
 }
 
 async function isDockerRunning(): Promise<boolean> {
@@ -21,17 +23,38 @@ async function isDockerRunning(): Promise<boolean> {
 }
 
 router.post('/', async (req, res) => {
-  const { code, language, input }: ExecuteRequest = req.body;
+  const { code, language, input, problem_id }: ExecuteRequest = req.body;
 
   if (!code || !language) {
     return res.status(400).json({ error: 'Code and language are required' });
   }
 
   try {
+    // Fetch wrapper code if problem_id is provided
+    let wrapperCode = '';
+    if (problem_id) {
+      const templateResult = await pool.query(`
+        SELECT wrapper_code
+        FROM problem_templates
+        WHERE problem_id = $1 AND language = $2
+      `, [problem_id, language]);
+
+      if (templateResult.rows.length > 0) {
+        wrapperCode = templateResult.rows[0].wrapper_code;
+      }
+    }
+
+    // Combine user code with wrapper code
+    let fullCode = code;
+    if (wrapperCode) {
+      // Insert user code at the beginning of wrapper code
+      fullCode = code + '\n\n' + wrapperCode;
+    }
+
     let command: string;
     let image: string;
 
-    const encodedCode = Buffer.from(code).toString('base64');
+    const encodedCode = Buffer.from(fullCode).toString('base64');
     const encodedInput = input ? Buffer.from(input).toString('base64') : null;
 
     switch (language) {

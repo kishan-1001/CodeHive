@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const api = {
   async post(endpoint: string, data: any) {
@@ -87,5 +87,9 @@ export const problemsAPI = {
 
   async getProblemBySlug(slug: string) {
     return api.get(`/problems/problems/slug/${slug}`);
+  },
+
+  async getProblemTemplate(problemId: string, language: string) {
+    return api.get(`/problems/${problemId}/templates/${language}`);
   },
 };

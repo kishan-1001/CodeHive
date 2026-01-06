@@ -232,3 +232,16 @@ problems (1)
    ├── problem_topics → topics (1, 3)
    ├── problem_companies → companies (2, 5)
    └── test_cases → examples + hidden
+
+
+CREATE TABLE problem_templates (
+  id SERIAL PRIMARY KEY,
+  problem_id INT NOT NULL,
+  language VARCHAR(20) NOT NULL,
+  starter_code TEXT NOT NULL,
+  wrapper_code TEXT NOT NULL,
+
+  FOREIGN KEY (problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE
+);
