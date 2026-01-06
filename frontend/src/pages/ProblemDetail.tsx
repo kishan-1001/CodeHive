@@ -30,6 +30,7 @@ const ProblemDetail: React.FC = () => {
     // Layout State
     const [splitPosition, setSplitPosition] = useState<number>(50); // percentage
     const [testCaseHeight, setTestCaseHeight] = useState<number>(33); // percentage of right panel
+    const [selectedTestCase, setSelectedTestCase] = useState<number>(0); // selected test case index
 
     const boilerplateCode = {
         c: '#include <stdio.h>\n\nint main() {\n   \n // write your code here \n  \n  return 0;\n}',
@@ -346,45 +347,64 @@ const ProblemDetail: React.FC = () => {
                             <span className="text-sm font-medium text-gray-300">Test Cases</span>
                         </div>
 
+                        {/* Test Case Tabs */}
+                        {problem?.sample_test_cases && problem.sample_test_cases.length > 0 && (
+                            <div className="flex border-b border-gray-800">
+                                {problem.sample_test_cases.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setSelectedTestCase(index)}
+                                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                            selectedTestCase === index
+                                                ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800/50'
+                                                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/30'
+                                        }`}
+                                    >
+                                        Case {index + 1}
+                                        {testResults[index] && (
+                                            <span className={`ml-2 ${
+                                                testResults[index].passed ? 'text-green-400' : 'text-red-400'
+                                            }`}>
+                                                {testResults[index].passed ? '✓' : '✗'}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                             {problem?.sample_test_cases && problem.sample_test_cases.length > 0 ? (
-                                <div className="space-y-4">
-                                    {problem.sample_test_cases.map((testCase, index) => (
-                                        <div key={index} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                            <h4 className="text-lg font-medium text-amber-400 mb-3">Test Case {index + 1}:</h4>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <div className="text-sm text-gray-400 mb-1">Input:</div>
-                                                    <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
-                                                        {testCase.input}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm text-gray-400 mb-1">Expected Output:</div>
-                                                    <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
-                                                        {testCase.expected_output}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm text-gray-400 mb-1">Your Output:</div>
-                                                    <div className={`bg-gray-900 rounded p-3 font-mono text-sm border ${
-                                                        testResults[index] ? (
-                                                            testResults[index].passed ? 'border-green-500 text-green-200' : 'border-red-500 text-red-200'
-                                                        ) : 'border-gray-600 text-gray-600 italic'
-                                                    }`}>
-                                                        {testResults[index] ? testResults[index].actual : 'Run code to see output'}
-                                                    </div>
-                                                </div>
-                                                {testResults[index] && (
-                                                    <div className={`text-sm font-medium ${
-                                                        testResults[index].passed ? 'text-green-400' : 'text-red-400'
-                                                    }`}>
-                                                        {testResults[index].passed ? '✓ Passed' : '✗ Failed'}
-                                                    </div>
-                                                )}
-                                            </div>
+                                <div className="space-y-3">
+                                    <div>
+                                        <div className="text-sm text-gray-400 mb-1">Input:</div>
+                                        <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
+                                            {problem.sample_test_cases[selectedTestCase].input}
                                         </div>
-                                    ))}
+                                    </div>
+                                    <div>
+                                        <div className="text-sm text-gray-400 mb-1">Expected Output:</div>
+                                        <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
+                                            {problem.sample_test_cases[selectedTestCase].expected_output}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-sm text-gray-400 mb-1">Your Output:</div>
+                                        <div className={`bg-gray-900 rounded p-3 font-mono text-sm border ${
+                                            testResults[selectedTestCase] ? (
+                                                testResults[selectedTestCase].passed ? 'border-green-500 text-green-200' : 'border-red-500 text-red-200'
+                                            ) : 'border-gray-600 text-gray-600 italic'
+                                        }`}>
+                                            {testResults[selectedTestCase] ? testResults[selectedTestCase].actual : 'Run code to see output'}
+                                        </div>
+                                    </div>
+                                    {testResults[selectedTestCase] && (
+                                        <div className={`text-sm font-medium ${
+                                            testResults[selectedTestCase].passed ? 'text-green-400' : 'text-red-400'
+                                        }`}>
+                                            {testResults[selectedTestCase].passed ? '✓ Passed' : '✗ Failed'}
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="text-gray-600 italic">No test cases available</div>
