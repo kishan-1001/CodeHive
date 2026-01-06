@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "Backend for CodeHive application",
   "main": "dist/server.js",
-  "scripts": {
-    "dev": "ts-node src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
-  },
+"scripts": {
+  "dev": "ts-node src/server.ts",
+  "build": "tsc",
+  "start": "npm run build && node dist/server.js"
+},
+
   "dependencies": {
     "@types/ws": "^8.18.1",
     "bcrypt": "^5.1.1",
