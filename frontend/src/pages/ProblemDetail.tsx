@@ -10,6 +10,7 @@ interface Problem {
     description: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
     topics: { name: string; slug: string }[];
+    sample_test_cases?: { input: string; expected_output: string }[];
 }
 
 const ProblemDetail: React.FC = () => {
@@ -206,6 +207,32 @@ const ProblemDetail: React.FC = () => {
                                     {problem.description}
                                 </p>
                             </div>
+
+                            {/* Sample Test Cases */}
+                            {problem.sample_test_cases && problem.sample_test_cases.length > 0 && (
+                                <div className="mt-8 space-y-4">
+                                    <h3 className="text-xl font-semibold text-white mb-4">Examples</h3>
+                                    {problem.sample_test_cases!.map((testCase, index) => (
+                                        <div key={index} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                                            <h4 className="text-lg font-medium text-amber-400 mb-3">Example {index + 1}:</h4>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <div className="text-sm text-gray-400 mb-1">Input:</div>
+                                                    <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
+                                                        {testCase.input}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm text-gray-400 mb-1">Output:</div>
+                                                    <div className="bg-gray-900 rounded p-3 font-mono text-sm text-gray-200 border border-gray-600">
+                                                        {testCase.expected_output}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-6 border-t border-gray-800">

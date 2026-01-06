@@ -66,7 +66,18 @@ router.get('/problems/:id', async (req, res) => {
             return res.status(404).json({ error: 'Problem not found' });
         }
 
-        res.json(result.rows[0]);
+        // Get sample test cases
+        const testCasesResult = await pool.query(`
+            SELECT input, expected_output
+            FROM test_cases
+            WHERE problem_id = $1 AND is_sample = true
+            ORDER BY id
+        `, [id]);
+
+        const problem = result.rows[0];
+        problem.sample_test_cases = testCasesResult.rows;
+
+        res.json(problem);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
