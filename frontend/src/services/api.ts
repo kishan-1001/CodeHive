@@ -70,3 +70,22 @@ export const postsAPI = {
     return api.get(`/posts/${postId}/comments`);
   },
 };
+
+export const problemsAPI = {
+  async getTopics() {
+    return api.get('/problems/topics');
+  },
+
+  async getProblems(topic?: string) {
+    const query = topic ? `?topic=${topic}` : '';
+    return api.get(`/problems/problems${query}`);
+  },
+
+  async getProblemById(id: string) {
+    return api.get(`/problems/problems/${id}`);
+  },
+
+  async getProblemBySlug(slug: string) {
+    return api.get(`/problems/problems/slug/${slug}`);
+  },
+};

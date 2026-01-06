@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   };
 
   const navItems = [
-    { name: 'Problems', path: '/problems' },
+    { name: 'Problem', path: '/problem' },
     { name: 'Instant Arena', path: '/contest' },
     { name: 'Weekly Contest', path: '/weekly-contest' },
     { name: 'Knowledge Drop', path: '/explore', isAction: true },
