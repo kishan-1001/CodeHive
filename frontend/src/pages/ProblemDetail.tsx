@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal } from 'lucide-react';
 import { problemsAPI } from '../services/api';
@@ -16,6 +16,7 @@ interface Problem {
 const ProblemDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const [problem, setProblem] = useState<Problem | null>(null);
     const [loading, setLoading] = useState(true);
@@ -204,7 +205,10 @@ const ProblemDetail: React.FC = () => {
                 {/* Left Section */}
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/problems')}
+                        onClick={() => {
+                            const topic = searchParams.get('topic');
+                            navigate(topic ? `/problems?topic=${topic}` : '/problems');
+                        }}
                         className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
                     >
                         <ArrowLeft className="w-5 h-5" />
@@ -225,10 +229,20 @@ const ProblemDetail: React.FC = () => {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={handleRun}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                            disabled={isRunning}
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 disabled:bg-green-700 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
                         >
-                            <Play className="w-4 h-4 fill-current" />
-                            Run
+                            {isRunning ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Running...
+                                </>
+                            ) : (
+                                <>
+                                    <Play className="w-4 h-4 fill-current" />
+                                    Run
+                                </>
+                            )}
                         </button>
                         <button
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"

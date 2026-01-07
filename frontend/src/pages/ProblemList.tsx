@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import { problemsAPI } from '../services/api';
 
@@ -39,7 +40,8 @@ const ProblemList: React.FC = () => {
   }, [topicSlug]);
 
   const handleProblemClick = (problemSlug: string) => {
-    navigate(`/problems/${problemSlug}`);
+    const url = topicSlug ? `/problems/${problemSlug}?topic=${topicSlug}` : `/problems/${problemSlug}`;
+    navigate(url);
   };
 
   return (
