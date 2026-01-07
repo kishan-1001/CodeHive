@@ -475,26 +475,7 @@ const ProblemDetail: React.FC = () => {
                                 <div className="text-gray-600 italic">No test cases available</div>
                             )}
 
-                            {/* Submission Result */}
-                            {submissionResult && (
-                                <div className="mt-4 p-3 rounded-lg border bg-gray-800/50">
-                                    <div className="text-sm font-medium text-gray-300 mb-2">Submission Result:</div>
-                                    <div className={`text-sm font-medium ${
-                                        submissionResult.verdict === 'accepted' ? 'text-green-400' :
-                                        submissionResult.verdict === 'wrong_answer' ? 'text-red-400' :
-                                        submissionResult.verdict === 'time_limit_exceeded' ? 'text-yellow-400' :
-                                        submissionResult.verdict === 'runtime_error' ? 'text-orange-400' :
-                                        'text-gray-400'
-                                    }`}>
-                                        {submissionResult.verdict.replace('_', ' ').toUpperCase()}
-                                    </div>
-                                    {submissionResult.message && (
-                                        <div className="text-sm text-gray-400 mt-1">
-                                            {submissionResult.message}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+
                         </div>
                     </div>
                 </div>
