@@ -4,6 +4,7 @@ import authRoutes from './routes/auth';
 import executeRoutes from './routes/execute';
 import postsRoutes from './routes/posts';
 import problemsRoutes from './routes/problems';
+import submitRoutes from './routes/submit';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/problems', problemsRoutes);
+app.use('/api/submit', submitRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

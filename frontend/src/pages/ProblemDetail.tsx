@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal } from 'lucide-react';
-import { problemsAPI } from '../services/api';
+import { problemsAPI, submitAPI } from '../services/api';
 
 interface Problem {
     id: number;
@@ -26,6 +26,8 @@ const ProblemDetail: React.FC = () => {
     const [language, setLanguage] = useState<string>('cpp');
     const [testResults, setTestResults] = useState<{ [key: number]: { actual: string; passed: boolean } }>({});
     const [isRunning, setIsRunning] = useState<boolean>(false);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [submissionResult, setSubmissionResult] = useState<{ verdict: string; message: string } | null>(null);
     const wsRef = useRef<WebSocket | null>(null);
 
     // Layout State
@@ -132,6 +134,25 @@ const ProblemDetail: React.FC = () => {
 
         setTestResults(newResults);
         setIsRunning(false);
+    };
+
+    const handleSubmit = async () => {
+        if (!problem) return;
+
+        setIsSubmitting(true);
+        setSubmissionResult(null);
+
+        try {
+            const result = await submitAPI.submitCode(code, language, problem.id);
+            setSubmissionResult(result);
+        } catch (error: any) {
+            setSubmissionResult({
+                verdict: 'error',
+                message: error.message || 'Submission failed'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -245,9 +266,18 @@ const ProblemDetail: React.FC = () => {
                             )}
                         </button>
                         <button
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-700 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
                         >
-                            Submit
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Submitting...
+                                </>
+                            ) : (
+                                'Submit'
+                            )}
                         </button>
                     </div>
                 </div>
@@ -439,6 +469,27 @@ const ProblemDetail: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="text-gray-600 italic">No test cases available</div>
+                            )}
+
+                            {/* Submission Result */}
+                            {submissionResult && (
+                                <div className="mt-4 p-3 rounded-lg border bg-gray-800/50">
+                                    <div className="text-sm font-medium text-gray-300 mb-2">Submission Result:</div>
+                                    <div className={`text-sm font-medium ${
+                                        submissionResult.verdict === 'accepted' ? 'text-green-400' :
+                                        submissionResult.verdict === 'wrong_answer' ? 'text-red-400' :
+                                        submissionResult.verdict === 'time_limit_exceeded' ? 'text-yellow-400' :
+                                        submissionResult.verdict === 'runtime_error' ? 'text-orange-400' :
+                                        'text-gray-400'
+                                    }`}>
+                                        {submissionResult.verdict.replace('_', ' ').toUpperCase()}
+                                    </div>
+                                    {submissionResult.message && (
+                                        <div className="text-sm text-gray-400 mt-1">
+                                            {submissionResult.message}
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>

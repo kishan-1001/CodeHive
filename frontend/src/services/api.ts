@@ -93,3 +93,9 @@ export const problemsAPI = {
     return api.get(`/problems/${problemId}/templates/${language}`);
   },
 };
+
+export const submitAPI = {
+  async submitCode(code: string, language: string, problemId: number) {
+    return api.post('/submit', { code, language, problem_id: problemId });
+  },
+};
