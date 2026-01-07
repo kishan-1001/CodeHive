@@ -25,7 +25,7 @@ const ProblemDetail: React.FC = () => {
     // Editor State
     const [code, setCode] = useState<string>('// Loading...');
     const [language, setLanguage] = useState<string>('cpp');
-    const [testResults, setTestResults] = useState<{ [key: number]: { actual: string; passed: boolean } }>({});
+    const [testResults, setTestResults] = useState<{ [key: number]: { actual: string; verdict: string; passed: boolean } }>({});
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submissionResult, setSubmissionResult] = useState<{ verdict: string; message: string } | null>(null);
@@ -100,7 +100,7 @@ const ProblemDetail: React.FC = () => {
         setIsRunning(true);
         setTestResults({});
 
-        const newResults: { [key: number]: { actual: string; passed: boolean } } = {};
+        const newResults: { [key: number]: { actual: string; verdict: string; passed: boolean } } = {};
 
         for (let i = 0; i < problem.sample_test_cases.length; i++) {
             const testCase = problem.sample_test_cases[i];
@@ -124,13 +124,24 @@ const ProblemDetail: React.FC = () => {
                     const actualOutput = data.output.trim();
                     const expectedOutput = testCase.expected_output.trim();
                     const passed = actualOutput === expectedOutput;
+                    const verdict = passed ? 'ACCEPTED' : 'WRONG_ANSWER';
 
-                    newResults[i] = { actual: actualOutput, passed };
+                    newResults[i] = { actual: actualOutput, verdict, passed };
                 } else {
-                    newResults[i] = { actual: `Error: ${data.error}`, passed: false };
+                    // Handle different error types
+                    let verdict = 'RUNTIME_ERROR';
+                    let errorMessage = data.error || 'Unknown error';
+
+                    if (errorMessage.toLowerCase().includes('compilation') || errorMessage.toLowerCase().includes('syntax')) {
+                        verdict = 'COMPILATION_ERROR';
+                    } else if (errorMessage.toLowerCase().includes('timeout') || errorMessage.toLowerCase().includes('time limit')) {
+                        verdict = 'TIME_LIMIT_EXCEEDED';
+                    }
+
+                    newResults[i] = { actual: `${verdict}: ${errorMessage}`, verdict, passed: false };
                 }
             } catch (error) {
-                newResults[i] = { actual: 'Network error', passed: false };
+                newResults[i] = { actual: 'NETWORK_ERROR: Network error', verdict: 'NETWORK_ERROR', passed: false };
             }
         }
 
@@ -455,19 +466,21 @@ const ProblemDetail: React.FC = () => {
                                     </div>
                                     <div>
                                         <div className="text-sm text-gray-400 mb-1">Your Output:</div>
-                                        <div className={`bg-gray-900 rounded p-3 font-mono text-sm border ${
+                                        <div className={`bg-gray-900 rounded p-3 font-mono text-sm border overflow-x-auto max-w-full ${
                                             testResults[selectedTestCase] ? (
                                                 testResults[selectedTestCase].passed ? 'border-green-500 text-green-200' : 'border-red-500 text-red-200'
                                             ) : 'border-gray-600 text-gray-600 italic'
                                         }`}>
-                                            {testResults[selectedTestCase] ? testResults[selectedTestCase].actual : 'Run code to see output'}
+                                            <pre className="whitespace-pre-wrap break-words max-w-full">
+                                                {testResults[selectedTestCase] ? testResults[selectedTestCase].actual : 'Run code to see output'}
+                                            </pre>
                                         </div>
                                     </div>
                                     {testResults[selectedTestCase] && (
                                         <div className={`text-sm font-medium ${
                                             testResults[selectedTestCase].passed ? 'text-green-400' : 'text-red-400'
                                         }`}>
-                                            {testResults[selectedTestCase].passed ? '✓ Passed' : '✗ Failed'}
+                                            {testResults[selectedTestCase].verdict.replace('_', ' ').toUpperCase()}
                                         </div>
                                     )}
                                 </div>
