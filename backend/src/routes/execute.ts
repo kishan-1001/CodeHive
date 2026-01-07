@@ -25,6 +25,8 @@ async function isDockerRunning(): Promise<boolean> {
 router.post('/', async (req, res) => {
   const { code, language, input, problem_id }: ExecuteRequest = req.body;
 
+  console.log('Execute request received:', { code: code.substring(0, 50) + '...', language, input, problem_id });
+
   if (!code || !language) {
     return res.status(400).json({ error: 'Code and language are required' });
   }
@@ -33,29 +35,48 @@ router.post('/', async (req, res) => {
     // Fetch wrapper code if problem_id is provided
     let wrapperCode = '';
     if (problem_id) {
-      const templateResult = await pool.query(`
-        SELECT wrapper_code
-        FROM problem_templates
-        WHERE problem_id = $1 AND language = $2
-      `, [problem_id, language]);
+      try {
+        const templateResult = await pool.query(`
+          SELECT wrapper_code
+          FROM problem_templates
+          WHERE problem_id = $1 AND language = $2
+        `, [problem_id, language]);
 
-      if (templateResult.rows.length > 0) {
-        wrapperCode = templateResult.rows[0].wrapper_code;
+        if (templateResult.rows.length > 0) {
+          wrapperCode = templateResult.rows[0].wrapper_code;
+        }
+      } catch (dbError) {
+        // Ignore database errors for wrapper code - it's optional
+        console.warn('Could not fetch wrapper code:', dbError);
       }
     }
 
     // Combine user code with wrapper code
     let fullCode = code;
     if (wrapperCode) {
-      // Insert user code at the beginning of wrapper code
-      fullCode = code + '\n\n' + wrapperCode;
+      // Replace placeholder in wrapper code with user code
+      fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code);
     }
 
     let command: string;
     let image: string;
 
     const encodedCode = Buffer.from(fullCode).toString('base64');
-    const encodedInput = input ? Buffer.from(input).toString('base64') : null;
+
+    let processedInput = input;
+    if (language === 'cpp' && input) {
+      if (input.startsWith('nums = [')) {
+        const match = input.match(/nums = \[([^\]]+)\], target = (\d+)/);
+        if (match) {
+          const numsStr = match[1];
+          const target = match[2];
+          const nums = numsStr.split(',').map(s => s.trim());
+          const newInput = nums.join(' ') + '\n' + target;
+          processedInput = newInput;
+        }
+      }
+    }
+    const encodedInput = processedInput ? Buffer.from(processedInput).toString('base64') : null;
 
     switch (language) {
       case 'c':
@@ -69,7 +90,7 @@ router.post('/', async (req, res) => {
         break;
       case 'cpp':
         image = 'gcc:latest';
-        command = `echo 'using namespace std;' > /tmp/code.cpp && echo "${encodedCode}" | base64 -d >> /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code`;
+        command = `echo "${encodedCode}" | base64 -d > /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code`;
         if (encodedInput) {
           command += ` && echo "${encodedInput}" | base64 -d | /tmp/code`;
         } else {
@@ -80,18 +101,18 @@ router.post('/', async (req, res) => {
         image = 'python:3.9-alpine';
         command = `echo "${encodedCode}" | base64 -d > /tmp/code.py`;
         if (encodedInput) {
-          command += ` && echo "${encodedInput}" | base64 -d | python3 /tmp/code.py`;
+          command += ` && echo "${encodedInput}" | base64 -d | python3 -u /tmp/code.py`;
         } else {
-          command += ` && python3 /tmp/code.py`;
+          command += ` && python3 -u /tmp/code.py`;
         }
         break;
       case 'javascript':
         image = 'node:18-alpine';
         command = `echo "${encodedCode}" | base64 -d > /tmp/code.js`;
         if (encodedInput) {
-          command += ` && echo "${encodedInput}" | base64 -d | node /tmp/code.js`;
+          command += ` && echo "${encodedInput}" | base64 -d | node --input-type=module /tmp/code.js`;
         } else {
-          command += ` && node /tmp/code.js`;
+          command += ` && node --input-type=module /tmp/code.js`;
         }
         break;
       case 'java':
@@ -114,7 +135,12 @@ router.post('/', async (req, res) => {
 
     const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
 
+    console.log('Executing Docker command:', dockerCommand);
+
     const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });
+
+    console.log('Docker stdout:', stdout);
+    console.log('Docker stderr:', stderr);
 
     // Filter out Docker pull messages from stderr
     let filteredStderr = stderr;

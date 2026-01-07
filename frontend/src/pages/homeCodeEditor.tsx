@@ -42,7 +42,7 @@ const HomeCodeEditor: React.FC = () => {
       setIsRunning(true);
       setIsReady(false);
       setOutput('');
-      wsRef.current?.send(JSON.stringify({ type: 'run', code, language }));
+      wsRef.current?.send(JSON.stringify({ type: 'run', code, language, input }));
     };
 
     wsRef.current.onmessage = (event) => {
@@ -50,7 +50,7 @@ const HomeCodeEditor: React.FC = () => {
       if (data.type === 'output') {
         setOutput(prev => prev + data.data);
       } else if (data.type === 'error') {
-        setOutput(prev => prev + 'Error: ' + data.data + '\n');
+        setOutput(prev => prev + 'Error: ' + (data.message || data.data) + '\n');
       } else if (data.type === 'ready') {
         setIsReady(true);
       } else if (data.type === 'end') {
