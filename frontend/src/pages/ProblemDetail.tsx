@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal } from 'lucide-react';
 import { problemsAPI, submitAPI } from '../services/api';
+import SubmissionResultModal from '../components/SubmissionResultModal';
 
 interface Problem {
     id: number;
@@ -28,6 +29,7 @@ const ProblemDetail: React.FC = () => {
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submissionResult, setSubmissionResult] = useState<{ verdict: string; message: string } | null>(null);
+    const [showSubmissionModal, setShowSubmissionModal] = useState<boolean>(false);
     const wsRef = useRef<WebSocket | null>(null);
 
     // Layout State
@@ -145,11 +147,13 @@ const ProblemDetail: React.FC = () => {
         try {
             const result = await submitAPI.submitCode(code, language, problem.id);
             setSubmissionResult(result);
+            setShowSubmissionModal(true);
         } catch (error: any) {
             setSubmissionResult({
                 verdict: 'error',
                 message: error.message || 'Submission failed'
             });
+            setShowSubmissionModal(true);
         } finally {
             setIsSubmitting(false);
         }
@@ -496,6 +500,16 @@ const ProblemDetail: React.FC = () => {
                 </div>
 
             </div>
+
+            {/* Submission Result Modal */}
+            {submissionResult && (
+                <SubmissionResultModal
+                    isOpen={showSubmissionModal}
+                    onClose={() => setShowSubmissionModal(false)}
+                    verdict={submissionResult.verdict}
+                    message={submissionResult.message}
+                />
+            )}
         </div>
     );
 };
