@@ -36,7 +36,7 @@ const HomeCodeEditor: React.FC = () => {
       wsRef.current.close();
     }
 
-    wsRef.current = new WebSocket('ws://localhost:3000');
+    wsRef.current = new WebSocket('ws://localhost:3001');
 
     wsRef.current.onopen = () => {
       setIsRunning(true);
