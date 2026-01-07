@@ -54,16 +54,18 @@ const Problem: React.FC = () => {
 
       <div className="pt-24 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-4">DSA Topics</h1>
-            <p className="text-gray-400 mb-6">Explore problems by topic</p>
-            <div className="max-w-md">
+          <div className="mb-8 flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-4">DSA Topics</h1>
+              <p className="text-gray-400">Explore problems by topic</p>
+            </div>
+            <div className="max-w-md w-full md:w-80">
               <input
                 type="text"
                 placeholder="Search topics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                className="w-full bg-gray-800/50 border border-gray-700 rounded-full px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
               />
             </div>
           </div>
