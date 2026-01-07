@@ -262,7 +262,7 @@ const ProblemDetail: React.FC = () => {
                 >
                     <div className="max-w-3xl mx-auto space-y-6">
                         <div>
-                            <h2 className="text-2xl font-bold mb-4">{problem.title}</h2>
+                            <h2 className="text-2xl font-bold mb-4">{problem.id}. {problem.title}</h2>
                             <div className="prose prose-invert max-w-none">
                                 <p className="whitespace-pre-wrap leading-relaxed text-gray-300">
                                     {problem.description}

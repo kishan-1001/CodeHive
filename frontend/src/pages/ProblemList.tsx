@@ -77,7 +77,7 @@ const ProblemList: React.FC = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-white hover:text-amber-400 transition-colors mb-2">
-                        {problem.title}
+                        {problem.id}. {problem.title}
                       </h3>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ml-4 ${
