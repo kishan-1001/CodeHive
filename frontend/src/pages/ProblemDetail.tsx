@@ -476,10 +476,8 @@ const ProblemDetail: React.FC = () => {
                                             </pre>
                                         </div>
                                     </div>
-                                    {testResults[selectedTestCase] && (
-                                        <div className={`text-sm font-medium ${
-                                            testResults[selectedTestCase].passed ? 'text-green-400' : 'text-red-400'
-                                        }`}>
+                                    {testResults[selectedTestCase] && !testResults[selectedTestCase].passed && (
+                                        <div className="text-sm font-medium text-red-400">
                                             {testResults[selectedTestCase].verdict.replace('_', ' ').toUpperCase()}
                                         </div>
                                     )}
