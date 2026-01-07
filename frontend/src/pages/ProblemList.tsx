@@ -54,6 +54,14 @@ const ProblemList: React.FC = () => {
       <div className="pt-24 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
+            {topicSlug && (
+              <button
+                onClick={() => navigate('/problem')}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white mb-4"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
             <h1 className="text-3xl font-bold text-white mb-4">
               {topicSlug ? `Problems - ${topicSlug.replace('-', ' ')}` : 'All Problems'}
             </h1>
