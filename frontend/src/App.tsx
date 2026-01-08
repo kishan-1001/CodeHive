@@ -8,6 +8,7 @@ import ProblemDetail from "./pages/ProblemDetail.tsx";
 import InstantArena from "./pages/InstantArena.tsx";
 import WeeklyContest from "./pages/WeeklyContest.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
+import AuthCallback from "./pages/AuthCallback.tsx";
 
 
 const App: React.FC = () => {
@@ -24,6 +25,7 @@ const App: React.FC = () => {
       <Route path="/leaderboard" element={<Leaderboard />} />
 
       <Route path="/editor" element={<HomeCodeEditor />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
     </Routes>
   );
 };

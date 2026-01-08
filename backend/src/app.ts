@@ -6,11 +6,24 @@ import postsRoutes from './routes/posts';
 import problemsRoutes from './routes/problems';
 import submitRoutes from './routes/submit';
 
+import session from 'express-session';
+import passport from 'passport';
+import './config/passport';
+
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);

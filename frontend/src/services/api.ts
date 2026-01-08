@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 export const api = {
   async post(endpoint: string, data: any) {
@@ -46,6 +46,10 @@ export const authAPI = {
 
   async login(credentials: { email: string; password: string }) {
     return api.post('/auth/login', credentials);
+  },
+
+  async getMe() {
+    return api.get('/auth/me');
   },
 };
 

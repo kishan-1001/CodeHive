@@ -1,7 +1,9 @@
 import { Router } from 'express';
+import passport from 'passport';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/db';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -76,6 +78,35 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
+});
+
+// Google Auth
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication
+    const user = req.user as any;
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    // Redirect to frontend with token
+    res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
+  }
+);
+
+// Verify Token & Get User
+router.get('/me', authenticateToken, (req: any, res) => {
+  res.json(req.user);
 });
 
 export default router;

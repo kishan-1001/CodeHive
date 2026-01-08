@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import app from './app';
 import { spawn } from 'child_process';
 import { exec } from 'child_process';

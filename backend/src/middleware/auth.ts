@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
 
 export interface AuthRequest extends Request {
     user?: any;
@@ -17,11 +17,12 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
         return res.sendStatus(401);
     }
 
-    console.log('Middleware: Verifying with secret:', JWT_SECRET);
-    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+    const secret = process.env.JWT_SECRET || 'your-secret-key';
+    console.log('Middleware: Verifying with secret:', secret);
+    jwt.verify(token, secret, (err: any, user: any) => {
         if (err) {
             console.log('JWT Verify Error:', err);
-            return res.sendStatus(403);
+            return res.status(403).json({ message: 'Token verification failed: ' + err.message });
         }
         console.log('User authenticated:', user);
         req.user = user;
