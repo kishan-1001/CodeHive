@@ -35,7 +35,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
     setError('');
 
     try {
-      await authAPI.register({ name, email, password });
+      const response = await authAPI.register({ name, email, password });
+      localStorage.setItem('token', response.token);
       setSuccess(true);
       setTimeout(() => {
         onClose();

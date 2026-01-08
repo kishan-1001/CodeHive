@@ -26,7 +26,14 @@ router.post('/register', async (req, res) => {
       [name, email, hashedPassword, 'local']
     );
 
-    res.status(201).json({ message: 'User created successfully', user: result.rows[0] });
+    // Generate JWT
+    const token = jwt.sign(
+      { id: result.rows[0].id, email: result.rows[0].email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    res.status(201).json({ message: 'User created successfully', user: result.rows[0], token });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ message: 'Internal server error' });

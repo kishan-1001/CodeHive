@@ -26,8 +26,6 @@ router.get('/', async (req, res) => {
 
 // Create a post
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
-    console.log('Create Post Request Body:', req.body);
-    console.log('Create Post User:', req.user);
     const { title, content } = req.body;
     const userId = req.user.id;
 
@@ -36,7 +34,6 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
             'INSERT INTO posts (user_id, title, content) VALUES ($1, $2, $3) RETURNING *',
             [userId, title, content]
         );
-        console.log('Post created successfully:', result.rows[0]);
         res.status(201).json(result.rows[0]);
     } catch (err: any) {
         console.error('Error creating post:', err);
