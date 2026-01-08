@@ -1,3 +1,25 @@
+
+
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+
+  name VARCHAR(100),
+
+  email VARCHAR(100) UNIQUE,
+
+  password TEXT,  -- nullable for OAuth users
+
+  provider VARCHAR(20)
+    CHECK (provider IN ('local', 'google', 'github')) DEFAULT 'local',
+
+  provider_id VARCHAR(255),  -- Google/GitHub unique ID
+
+  avatar_url TEXT,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 POSTS TABLE (Blog / Public Post)
 CREATE TABLE posts (
   id SERIAL PRIMARY KEY,

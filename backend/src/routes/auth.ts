@@ -22,8 +22,8 @@ router.post('/register', async (req, res) => {
 
     // Insert user
     const result = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, hashedPassword]
+      'INSERT INTO users (name, email, password, provider) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
+      [name, email, hashedPassword, 'local']
     );
 
     res.status(201).json({ message: 'User created successfully', user: result.rows[0] });
@@ -45,6 +45,11 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+
+    // Check if user has password (local login)
+    if (!user.password) {
+      return res.status(400).json({ message: 'Please use OAuth login for this account' });
+    }
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
