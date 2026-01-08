@@ -104,6 +104,30 @@ router.get(
   }
 );
 
+// GitHub Auth
+router.get(
+  '/github',
+  passport.authenticate('github', { scope: ['user:email'] })
+);
+
+router.get(
+  '/github/callback',
+  passport.authenticate('github', { session: false, failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication
+    const user = req.user as any;
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    // Redirect to frontend with token
+    res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
+  }
+);
+
 // Verify Token & Get User
 router.get('/me', authenticateToken, (req: any, res) => {
   res.json(req.user);
