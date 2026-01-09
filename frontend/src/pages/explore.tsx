@@ -16,6 +16,15 @@ interface Post {
   comment_count: number;
 }
 
+interface Comment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  content: string;
+  created_at: string;
+  author_name: string;
+}
+
 const Explore: React.FC = () => {
   const navigate = useNavigate();
   const [isKnowledgeDropOpen, setIsKnowledgeDropOpen] = useState(false);
@@ -24,6 +33,7 @@ const Explore: React.FC = () => {
   const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
   const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
   const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
+  const [comments, setComments] = useState<{ [key: number]: Comment[] }>({});
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleLogout = () => {
@@ -58,8 +68,19 @@ const Explore: React.FC = () => {
     }
   };
 
-  const toggleComments = (postId: number) => {
-    setShowComments({ ...showComments, [postId]: !showComments[postId] });
+  const toggleComments = async (postId: number) => {
+    const newShowComments = { ...showComments, [postId]: !showComments[postId] };
+    setShowComments(newShowComments);
+
+    // Fetch comments if expanding and not already fetched
+    if (newShowComments[postId] && !comments[postId]) {
+      try {
+        const fetchedComments = await postsAPI.getComments(postId);
+        setComments({ ...comments, [postId]: fetchedComments });
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      }
+    }
   };
 
   const handleCommentSubmit = async (postId: number) => {
@@ -71,6 +92,9 @@ const Explore: React.FC = () => {
       // Clear the input and refresh posts to update comment count
       setCommentInputs({ ...commentInputs, [postId]: '' });
       fetchPosts();
+      // Refresh comments for this post
+      const updatedComments = await postsAPI.getComments(postId);
+      setComments({ ...comments, [postId]: updatedComments });
     } catch (error) {
       console.error('Error commenting on post:', error);
     }
@@ -185,6 +209,27 @@ const Explore: React.FC = () => {
 
                     {showComments[post.id] && (
                       <div className="border-t border-gray-700 pt-4">
+                        {/* Display existing comments */}
+                        {comments[post.id] && comments[post.id].length > 0 && (
+                          <div className="space-y-3 mb-4">
+                            {comments[post.id].map((comment) => (
+                              <div key={comment.id} className="bg-gray-700/30 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className="w-6 h-6 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                    <User className="w-3 h-3 text-amber-400" />
+                                  </div>
+                                  <span className="text-white font-medium text-sm">{comment.author_name}</span>
+                                  <span className="text-gray-400 text-xs">
+                                    {new Date(comment.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-gray-300 text-sm">{comment.content}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Comment input */}
                         <div className="flex gap-2">
                           <input
                             type="text"
