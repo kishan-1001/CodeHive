@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, User, ChevronDown } from 'lucide-react';
 import Header from '../components/Header';
 import KnowledgeDropModal from '../components/KnowledgeDropModal';
+import CommentModal from '../components/CommentModal';
 import { postsAPI } from '../services/api';
 
 interface Post {
@@ -28,15 +29,11 @@ interface Comment {
 const Explore: React.FC = () => {
   const navigate = useNavigate();
   const [isKnowledgeDropOpen, setIsKnowledgeDropOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<Post | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [commentInputs, setCommentInputs] = useState<{ [key: number]: string }>({});
-  const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
   const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
-  const [comments, setComments] = useState<{ [key: number]: Comment[] }>({});
-  const commentRefs = useRef<{ [key: number]: HTMLElement | null }>({});
-  const commentButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
-  const submitButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleLogout = () => {
@@ -71,47 +68,18 @@ const Explore: React.FC = () => {
     }
   };
 
-  const toggleComments = async (postId: number) => {
-    const isCurrentlyOpen = showComments[postId];
-
-    if (isCurrentlyOpen) {
-      // Close this comment section
-      setShowComments(prev => {
-        const newState = { ...prev };
-        delete newState[postId];
-        return newState;
-      });
-    } else {
-      // Close all comments and open this one
-      setShowComments({ [postId]: true });
-
-      // Fetch comments if not already fetched
-      if (!comments[postId]) {
-        try {
-          const fetchedComments = await postsAPI.getComments(postId);
-          setComments(prev => ({ ...prev, [postId]: fetchedComments }));
-        } catch (error) {
-          console.error('Error fetching comments:', error);
-        }
-      }
-    }
+  const openCommentModal = (post: Post) => {
+    setSelectedPostForComments(post);
+    setIsCommentModalOpen(true);
   };
 
-  const handleCommentSubmit = async (postId: number) => {
-    const commentContent = commentInputs[postId]?.trim();
-    if (!commentContent) return;
+  const closeCommentModal = () => {
+    setIsCommentModalOpen(false);
+    setSelectedPostForComments(null);
+  };
 
-    try {
-      await postsAPI.commentOnPost(postId, { content: commentContent });
-      // Clear the input and refresh posts to update comment count
-      setCommentInputs({ ...commentInputs, [postId]: '' });
-      fetchPosts();
-      // Refresh comments for this post
-      const updatedComments = await postsAPI.getComments(postId);
-      setComments({ ...comments, [postId]: updatedComments });
-    } catch (error) {
-      console.error('Error commenting on post:', error);
-    }
+  const handleCommentAdded = () => {
+    fetchPosts(); // Refresh posts to update comment count
   };
 
   const shouldTruncate = (content: string): boolean => {
@@ -148,6 +116,14 @@ const Explore: React.FC = () => {
         isOpen={isKnowledgeDropOpen}
         onClose={() => setIsKnowledgeDropOpen(false)}
         onSuccess={fetchPosts}
+      />
+
+      <CommentModal
+        isOpen={isCommentModalOpen}
+        onClose={closeCommentModal}
+        postId={selectedPostForComments?.id || 0}
+        postTitle={selectedPostForComments?.title || ''}
+        onCommentAdded={handleCommentAdded}
       />
 
       <div className="relative min-h-screen pt-24 px-6">
@@ -205,72 +181,21 @@ const Explore: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-6">
-                      <button
-                        onClick={() => handleLike(post.id)}
-                        className="flex items-center gap-2 text-gray-400"
-                      >
-                        <Heart className="w-4 h-4" />
-                        <span className="text-sm">{post.like_count}</span>
-                      </button>
-                      <button
-                        ref={(el) => { commentButtonRefs.current[post.id] = el; }}
-                        onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-2 text-gray-400"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span className="text-sm">{post.comment_count}</span>
-                      </button>
-                    </div>
-
-                    {showComments[post.id] && (
-                      <div className="border-t border-gray-700 pt-4">
-                        {/* Display existing comments */}
-                        {comments[post.id] && comments[post.id].length > 0 && (
-                          <div className="mb-4">
-                            <div className="max-h-60 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-                              {comments[post.id]
-                                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                                .map((comment) => (
-                                <div key={comment.id} className="bg-gray-700/30 rounded-lg p-3">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <div className="w-6 h-6 rounded-full bg-amber-400/10 flex items-center justify-center">
-                                      <User className="w-3 h-3 text-amber-400" />
-                                    </div>
-                                    <span className="text-white font-medium text-sm">{comment.author_name}</span>
-                                    <span className="text-gray-400 text-xs">
-                                      {new Date(comment.created_at).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                  <p className="text-gray-300 text-sm">{comment.content}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Comment input */}
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            ref={(el) => { commentRefs.current[post.id] = el; }}
-                            value={commentInputs[post.id] || ''}
-                            onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                            onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
-                            placeholder="Write a comment..."
-                            className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                          />
-                          <button
-                            ref={(el) => { submitButtonRefs.current[post.id] = el; }}
-                            onClick={() => handleCommentSubmit(post.id)}
-                            className="bg-amber-400 text-black px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors font-medium"
-                          >
-                            Comment
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-6">
+                    <button
+                      onClick={() => handleLike(post.id)}
+                      className="flex items-center gap-2 text-gray-400"
+                    >
+                      <Heart className="w-4 h-4" />
+                      <span className="text-sm">{post.like_count}</span>
+                    </button>
+                    <button
+                      onClick={() => openCommentModal(post)}
+                      className="flex items-center gap-2 text-gray-400"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span className="text-sm">{post.comment_count}</span>
+                    </button>
                   </div>
                 </div>
               ))}
