@@ -72,16 +72,27 @@ const Explore: React.FC = () => {
   };
 
   const toggleComments = async (postId: number) => {
-    const newShowComments = { ...showComments, [postId]: !showComments[postId] };
-    setShowComments(newShowComments);
+    const isCurrentlyOpen = showComments[postId];
 
-    // Fetch comments if expanding and not already fetched
-    if (newShowComments[postId] && !comments[postId]) {
-      try {
-        const fetchedComments = await postsAPI.getComments(postId);
-        setComments({ ...comments, [postId]: fetchedComments });
-      } catch (error) {
-        console.error('Error fetching comments:', error);
+    if (isCurrentlyOpen) {
+      // Close this comment section
+      setShowComments(prev => {
+        const newState = { ...prev };
+        delete newState[postId];
+        return newState;
+      });
+    } else {
+      // Close all comments and open this one
+      setShowComments({ [postId]: true });
+
+      // Fetch comments if not already fetched
+      if (!comments[postId]) {
+        try {
+          const fetchedComments = await postsAPI.getComments(postId);
+          setComments(prev => ({ ...prev, [postId]: fetchedComments }));
+        } catch (error) {
+          console.error('Error fetching comments:', error);
+        }
       }
     }
   };
@@ -121,25 +132,7 @@ const Explore: React.FC = () => {
     fetchPosts();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      Object.keys(showComments).forEach((postId) => {
-        const postIdNum = parseInt(postId);
-        const isClickInsideInput = commentRefs.current[postIdNum]?.contains(event.target as Node);
-        const isClickInsideToggleButton = commentButtonRefs.current[postIdNum]?.contains(event.target as Node);
-        const isClickInsideSubmitButton = submitButtonRefs.current[postIdNum]?.contains(event.target as Node);
 
-        if (showComments[postIdNum] && !isClickInsideInput && !isClickInsideToggleButton && !isClickInsideSubmitButton) {
-          setShowComments({ ...showComments, [postIdNum]: false });
-        }
-      });
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showComments]);
 
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
