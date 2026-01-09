@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, User, ChevronDown } from 'lucide-react';
 import Header from '../components/Header';
@@ -34,6 +34,9 @@ const Explore: React.FC = () => {
   const [showComments, setShowComments] = useState<{ [key: number]: boolean }>({});
   const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
   const [comments, setComments] = useState<{ [key: number]: Comment[] }>({});
+  const commentRefs = useRef<{ [key: number]: HTMLElement | null }>({});
+  const commentButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
+  const submitButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleLogout = () => {
@@ -118,6 +121,26 @@ const Explore: React.FC = () => {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.keys(showComments).forEach((postId) => {
+        const postIdNum = parseInt(postId);
+        const isClickInsideInput = commentRefs.current[postIdNum]?.contains(event.target as Node);
+        const isClickInsideToggleButton = commentButtonRefs.current[postIdNum]?.contains(event.target as Node);
+        const isClickInsideSubmitButton = submitButtonRefs.current[postIdNum]?.contains(event.target as Node);
+
+        if (showComments[postIdNum] && !isClickInsideInput && !isClickInsideToggleButton && !isClickInsideSubmitButton) {
+          setShowComments({ ...showComments, [postIdNum]: false });
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showComments]);
+
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
       {/* Background Orbs */}
@@ -199,6 +222,7 @@ const Explore: React.FC = () => {
                         <span className="text-sm">{post.like_count}</span>
                       </button>
                       <button
+                        ref={(el) => { commentButtonRefs.current[post.id] = el; }}
                         onClick={() => toggleComments(post.id)}
                         className="flex items-center gap-2 text-gray-400"
                       >
@@ -211,21 +235,25 @@ const Explore: React.FC = () => {
                       <div className="border-t border-gray-700 pt-4">
                         {/* Display existing comments */}
                         {comments[post.id] && comments[post.id].length > 0 && (
-                          <div className="space-y-3 mb-4">
-                            {comments[post.id].map((comment) => (
-                              <div key={comment.id} className="bg-gray-700/30 rounded-lg p-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-full bg-amber-400/10 flex items-center justify-center">
-                                    <User className="w-3 h-3 text-amber-400" />
+                          <div className="mb-4">
+                            <div className="max-h-60 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                              {comments[post.id]
+                                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                                .map((comment) => (
+                                <div key={comment.id} className="bg-gray-700/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-6 h-6 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                      <User className="w-3 h-3 text-amber-400" />
+                                    </div>
+                                    <span className="text-white font-medium text-sm">{comment.author_name}</span>
+                                    <span className="text-gray-400 text-xs">
+                                      {new Date(comment.created_at).toLocaleDateString()}
+                                    </span>
                                   </div>
-                                  <span className="text-white font-medium text-sm">{comment.author_name}</span>
-                                  <span className="text-gray-400 text-xs">
-                                    {new Date(comment.created_at).toLocaleDateString()}
-                                  </span>
+                                  <p className="text-gray-300 text-sm">{comment.content}</p>
                                 </div>
-                                <p className="text-gray-300 text-sm">{comment.content}</p>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
                         )}
 
@@ -233,6 +261,7 @@ const Explore: React.FC = () => {
                         <div className="flex gap-2">
                           <input
                             type="text"
+                            ref={(el) => { commentRefs.current[post.id] = el; }}
                             value={commentInputs[post.id] || ''}
                             onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                             onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
@@ -240,6 +269,7 @@ const Explore: React.FC = () => {
                             className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                           />
                           <button
+                            ref={(el) => { submitButtonRefs.current[post.id] = el; }}
                             onClick={() => handleCommentSubmit(post.id)}
                             className="bg-amber-400 text-black px-4 py-2 rounded-lg hover:bg-amber-300 transition-colors font-medium"
                           >
