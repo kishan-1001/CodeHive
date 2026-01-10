@@ -1,4 +1,9 @@
 
+inserted in table user 
+ALTER TABLE users
+ADD COLUMN is_verified BOOLEAN DEFAULT false,
+ADD COLUMN otp_code VARCHAR(10),
+ADD COLUMN otp_expires_at TIMESTAMP;
 
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
