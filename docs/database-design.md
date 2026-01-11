@@ -1,28 +1,16 @@
-
-inserted in table user 
-ALTER TABLE users
-ADD COLUMN is_verified BOOLEAN DEFAULT false,
-ADD COLUMN otp_code VARCHAR(10),
-ADD COLUMN otp_expires_at TIMESTAMP;
-
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
-
   name VARCHAR(100),
-
   email VARCHAR(100) UNIQUE,
-
-  password TEXT,  -- nullable for OAuth users
-
+  password TEXT,
   provider VARCHAR(20)
     CHECK (provider IN ('local', 'google', 'github')) DEFAULT 'local',
-
-  provider_id VARCHAR(255),  -- Google/GitHub unique ID
-
+  provider_id VARCHAR(255),
   avatar_url TEXT,
-
+  is_verified BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 POSTS TABLE (Blog / Public Post)
@@ -270,5 +258,30 @@ CREATE TABLE problem_templates (
 
   FOREIGN KEY (problem_id)
     REFERENCES problems(id)
+    ON DELETE CASCADE
+);
+
+
+
+
+otp table
+CREATE TABLE otp_verifications (
+  id SERIAL PRIMARY KEY,
+
+  user_id INT,
+  email VARCHAR(100) NOT NULL,
+
+  otp_hash TEXT NOT NULL,
+
+  purpose VARCHAR(30)
+    CHECK (purpose IN ('register', 'forgot_password')) NOT NULL,
+
+  expires_at TIMESTAMP NOT NULL,
+  used BOOLEAN DEFAULT false,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id)
+    REFERENCES users(id)
     ON DELETE CASCADE
 );
