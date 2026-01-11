@@ -3,7 +3,6 @@
 A comprehensive coding platform built with modern web technologies, featuring problem solving, code execution, contests, and leaderboards.
 
 ## Features
-
 - User authentication via GitHub and Google OAuth
 - Problem repository with various topics and difficulties
 - Real-time code editor with Monaco Editor

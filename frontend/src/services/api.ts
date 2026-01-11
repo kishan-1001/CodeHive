@@ -44,6 +44,10 @@ export const authAPI = {
     return api.post('/auth/register', userData);
   },
 
+  async verifyOTP(otpData: { email: string; otp: string }) {
+    return api.post('/auth/verify-otp', otpData);
+  },
+
   async login(credentials: { email: string; password: string }) {
     return api.post('/auth/login', credentials);
   },

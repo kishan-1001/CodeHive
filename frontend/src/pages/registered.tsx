@@ -20,6 +20,9 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showOTP, setShowOTP] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +39,23 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
 
     try {
       const response = await authAPI.register({ name, email, password });
+      setRegisteredEmail(email);
+      setShowOTP(true);
+      setError('');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOTPSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await authAPI.verifyOTP({ email: registeredEmail, otp });
       localStorage.setItem('token', response.token);
       setSuccess(true);
       setTimeout(() => {
@@ -48,6 +68,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackToRegister = () => {
+    setShowOTP(false);
+    setOtp('');
+    setError('');
   };
 
   if (!isOpen) return null;
@@ -77,7 +103,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3">
+        {!showOTP ? (
+          <form onSubmit={handleSubmit} className="space-y-3">
           {/* Name Field */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
@@ -205,6 +232,54 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
             <p className="text-green-400 text-sm text-center mt-4">Account created successfully!</p>
           )}
         </form>
+        ) : (
+          <form onSubmit={handleOTPSubmit} className="space-y-3">
+            <div className="text-center mb-4">
+              <Mail className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+              <h3 className="text-lg font-bold text-white">Check your email</h3>
+              <p className="text-gray-400 text-sm">We've sent an OTP to {registeredEmail}</p>
+            </div>
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
+                Enter OTP
+              </label>
+              <input
+                type="text"
+                id="otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all text-center text-lg tracking-widest"
+                placeholder="000000"
+                maxLength={6}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-amber-400 text-black font-bold py-2 px-4 rounded-lg hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Verifying...
+                </div>
+              ) : (
+                'Verify OTP'
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleBackToRegister}
+              className="w-full text-gray-400 hover:text-white transition-colors mt-2"
+            >
+              Back to Registration
+            </button>
+            {error && (
+              <p className="text-red-400 text-sm text-center mt-4">{error}</p>
+            )}
+          </form>
+        )}
 
         {/* Social Login */}
         <div className="mt-6">

@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/db';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { emailService } from '../services/emailService';
 
 const router = Router();
 
@@ -22,22 +23,84 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Insert user
+    // Generate OTP
+    const otp = emailService.generateOTP();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Insert user with OTP
     const result = await pool.query(
-      'INSERT INTO users (name, email, password, provider) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
-      [name, email, hashedPassword, 'local']
+      'INSERT INTO users (name, email, password, provider, otp_code, otp_expires_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email',
+      [name, email, hashedPassword, 'local', otp, otpExpiresAt]
+    );
+
+    // Send OTP email
+    try {
+      await emailService.sendOTPEmail(email, otp);
+    } catch (emailError) {
+      console.error('Failed to send OTP email:', emailError);
+      // Don't fail registration if email fails, but log it
+    }
+
+    // Log the request
+    console.log(`OTP sent to ${email} for registration`);
+
+    res.status(201).json({
+      message: 'Registration successful. Please check your email for OTP verification.',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Verify OTP
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Find user
+    const result = await pool.query(
+      'SELECT id, name, email, otp_code, otp_expires_at FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    // Check if OTP matches
+    if (user.otp_code !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    // Check if OTP is expired
+    if (new Date() > new Date(user.otp_expires_at)) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+
+    // Update user as verified and clear OTP
+    await pool.query(
+      'UPDATE users SET is_verified = true, otp_code = NULL, otp_expires_at = NULL WHERE email = $1',
+      [email]
     );
 
     // Generate JWT
     const token = jwt.sign(
-      { id: result.rows[0].id, email: result.rows[0].email },
+      { id: user.id, email: user.email },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
-    res.status(201).json({ message: 'User created successfully', user: result.rows[0], token });
+    res.json({
+      message: 'Account verified successfully',
+      token,
+      user: { id: user.id, name: user.name, email: user.email }
+    });
   } catch (error) {
-    console.error('Register error:', error);
+    console.error('Verify OTP error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
