@@ -55,6 +55,18 @@ export const authAPI = {
   async getMe() {
     return api.get('/auth/me');
   },
+
+  async forgotPassword(emailData: { email: string }) {
+    return api.post('/auth/forgot-password', emailData);
+  },
+
+  async verifyForgotPasswordOTP(otpData: { email: string; otp: string }) {
+    return api.post('/auth/verify-forgot-password-otp', otpData);
+  },
+
+  async resetPassword(passwordData: { email: string; otp: string; newPassword: string }) {
+    return api.post('/auth/reset-password', passwordData);
+  },
 };
 
 export const postsAPI = {

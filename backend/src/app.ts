@@ -5,6 +5,7 @@ import executeRoutes from './routes/execute';
 import postsRoutes from './routes/posts';
 import problemsRoutes from './routes/problems';
 import submitRoutes from './routes/submit';
+import passwordResetRoutes from './routes/passwordReset';
 
 import session from 'express-session';
 import passport from 'passport';
@@ -27,6 +28,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passwordResetRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/problems', problemsRoutes);

@@ -13,7 +13,19 @@ export class EmailService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async sendOTPEmail(email: string, otp: string): Promise<void> {
+  async sendOTPEmail(email: string, otp: string, purpose: 'register' | 'forgot_password' = 'register'): Promise<void> {
+    const subject = purpose === 'register'
+      ? "Your OTP for CodeHive Registration"
+      : "Your OTP for Password Reset";
+
+    const title = purpose === 'register'
+      ? "Welcome to CodeHive!"
+      : "Reset Your Password";
+
+    const message = purpose === 'register'
+      ? "Your OTP for account verification is:"
+      : "Your OTP for password reset is:";
+
     const emailData = {
       sender: {
         name: "CodeHive",
@@ -22,11 +34,11 @@ export class EmailService {
       to: [{
         email: email
       }],
-      subject: "Your OTP for CodeHive Registration",
+      subject: subject,
       htmlContent: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Welcome to CodeHive!</h2>
-          <p>Your OTP for account verification is:</p>
+          <h2 style="color: #333;">${title}</h2>
+          <p>${message}</p>
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 5px; margin: 20px 0;">
             <h1 style="color: #007bff; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h1>
           </div>
@@ -42,7 +54,7 @@ export class EmailService {
     };
 
     try {
-      console.log('Sending OTP email to:', email);
+      console.log(`Sending ${purpose} OTP email to:`, email);
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {

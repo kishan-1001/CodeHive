@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { authAPI } from '../services/api';
+import ForgotPasswordModal from './forgotPassword';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,9 +117,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
               />
               <span className="ml-2 text-sm text-gray-400">Remember me</span>
             </label>
-            <a href="#" className="text-sm text-amber-400 hover:text-amber-300 transition-colors">
+            <button
+              type="button"
+              onClick={() => setIsForgotPasswordOpen(true)}
+              className="text-sm text-amber-400 hover:text-amber-300 transition-colors bg-transparent border-none cursor-pointer"
+            >
               Forgot password?
-            </a>
+            </button>
           </div>
 
           {/* Submit Button */}
@@ -191,6 +197,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
           </button>
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+        onSignInClick={() => {
+          setIsForgotPasswordOpen(false);
+          // Keep login modal open
+        }}
+      />
     </div>
   );
 };
