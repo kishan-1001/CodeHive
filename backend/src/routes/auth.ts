@@ -23,14 +23,22 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Insert user
+    const userResult = await pool.query(
+      'INSERT INTO users (name, email, password, provider) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
+      [name, email, hashedPassword, 'local']
+    );
+    const user = userResult.rows[0];
+
     // Generate OTP
     const otp = emailService.generateOTP();
+    const otpHash = await bcrypt.hash(otp, saltRounds);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Insert user with OTP
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password, provider, otp_code, otp_expires_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email',
-      [name, email, hashedPassword, 'local', otp, otpExpiresAt]
+    // Insert OTP verification
+    await pool.query(
+      'INSERT INTO otp_verifications (user_id, email, otp_hash, purpose, expires_at) VALUES ($1, $2, $3, $4, $5)',
+      [user.id, email, otpHash, 'register', otpExpiresAt]
     );
 
     // Send OTP email
@@ -46,7 +54,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       message: 'Registration successful. Please check your email for OTP verification.',
-      user: result.rows[0]
+      user: user
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -59,33 +67,41 @@ router.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // Find user
-    const result = await pool.query(
-      'SELECT id, name, email, otp_code, otp_expires_at FROM users WHERE email = $1',
-      [email]
+    // Find OTP verification record
+    const otpResult = await pool.query(
+      'SELECT id, user_id, otp_hash, expires_at FROM otp_verifications WHERE email = $1 AND purpose = $2 AND used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      [email, 'register']
     );
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ message: 'User not found' });
+    if (otpResult.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
-    const user = result.rows[0];
+    const otpRecord = otpResult.rows[0];
 
     // Check if OTP matches
-    if (user.otp_code !== otp) {
+    const isValidOTP = await bcrypt.compare(otp, otpRecord.otp_hash);
+    if (!isValidOTP) {
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
-    // Check if OTP is expired
-    if (new Date() > new Date(user.otp_expires_at)) {
-      return res.status(400).json({ message: 'OTP has expired' });
+    // Mark OTP as used
+    await pool.query(
+      'UPDATE otp_verifications SET used = true WHERE id = $1',
+      [otpRecord.id]
+    );
+
+    // Find user
+    const userResult = await pool.query(
+      'SELECT id, name, email FROM users WHERE id = $1',
+      [otpRecord.user_id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ message: 'User not found' });
     }
 
-    // Update user as verified and clear OTP
-    await pool.query(
-      'UPDATE users SET is_verified = true, otp_code = NULL, otp_expires_at = NULL WHERE email = $1',
-      [email]
-    );
+    const user = userResult.rows[0];
 
     // Generate JWT
     const token = jwt.sign(

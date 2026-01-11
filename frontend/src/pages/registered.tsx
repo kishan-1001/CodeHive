@@ -61,11 +61,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
       setTimeout(() => {
         onClose();
         setSuccess(false);
+        setIsLoading(false);
         navigate('/explore');
       }, 2000);
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setIsLoading(false);
     }
   };
