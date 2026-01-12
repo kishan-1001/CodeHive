@@ -99,7 +99,7 @@ const HeroSection: React.FC<{ onCodeEditorClick: () => void; onGetStartedClick: 
               <div className="p-6 font-mono text-sm leading-relaxed overflow-x-auto">
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">1</span>
-                  <span className="text-pink-400">#include</span> <span className="text-green-400">{ '<codehive/developer.hpp>' }</span>
+                  <span className="text-pink-400">#include</span> <span className="text-green-400">{'<codehive/developer.hpp>'}</span>
                 </div>
                 <div className="flex gap-4">
                   <span className="text-gray-600 select-none">2</span>
@@ -289,7 +289,7 @@ const Footer: React.FC = () => {
             </a>
           </div>
         </div>
-        
+
         <div>
           <h4 className="text-white font-bold mb-6">Platform</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
@@ -299,7 +299,7 @@ const Footer: React.FC = () => {
             <li><a href="#" className="hover:text-amber-400 transition-colors">Leaderboards</a></li>
           </ul>
         </div>
-        
+
         <div>
           <h4 className="text-white font-bold mb-6">Resources</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
@@ -309,24 +309,24 @@ const Footer: React.FC = () => {
             <li><a href="#" className="hover:text-amber-400 transition-colors">Community</a></li>
           </ul>
         </div>
-        
+
         <div>
           <h4 className="text-white font-bold mb-6">Company</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
             <li><a href="/about" className="hover:text-amber-400 transition-colors">About Us</a></li>
             <li><a href="/career" className="hover:text-amber-400 transition-colors">Careers</a></li>
             <li><a href="#" className="hover:text-amber-400 transition-colors">Contact</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Legal</a></li>
+            <li><a href="/legal" className="hover:text-amber-400 transition-colors">Legal</a></li>
           </ul>
         </div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-10 text-xs text-gray-600">
         <p>© 2024 CodeHive Inc. Built with passion for the developer community.</p>
         <div className="flex gap-8">
-          <a href="#" className="hover:text-gray-400 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-gray-400 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-gray-400 transition-colors">Cookie Settings</a>
+          <a href="/legal#privacy" className="hover:text-gray-400 transition-colors">Privacy Policy</a>
+          <a href="/legal#terms" className="hover:text-gray-400 transition-colors">Terms of Service</a>
+          <a href="/legal#cookies" className="hover:text-gray-400 transition-colors">Cookie Settings</a>
         </div>
       </div>
     </footer>
@@ -337,18 +337,9 @@ const Footer: React.FC = () => {
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   const handleSignInClick = () => {
     setIsLoginModalOpen(true);

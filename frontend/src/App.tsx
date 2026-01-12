@@ -11,6 +11,7 @@ import InstantArena from "./pages/InstantArena.tsx";
 import WeeklyContest from "./pages/WeeklyContest.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
+import Legal from "./pages/Legal.tsx";
 
 
 const App: React.FC = () => {
@@ -27,6 +28,7 @@ const App: React.FC = () => {
       <Route path="/contest" element={<InstantArena />} />
       <Route path="/weekly-contest" element={<WeeklyContest />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/legal" element={<Legal />} />
 
       <Route path="/editor" element={<HomeCodeEditor />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
