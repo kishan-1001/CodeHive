@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
     let fullCode = code;
     if (wrapperCode) {
       // Replace placeholder in wrapper code with user code
-      fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code);
+      fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code).replace('# <<< INSERT USER CODE HERE >>>', code);
     }
 
     let command: string;
@@ -64,7 +64,7 @@ router.post('/', async (req, res) => {
     const encodedCode = Buffer.from(fullCode).toString('base64');
 
     let processedInput = input;
-    if (language === 'cpp' && input) {
+    if ((language === 'cpp' || language === 'c' || language === 'java' || language === 'python' || language === 'javascript') && input) {
       if (input.startsWith('nums = [')) {
         const match = input.match(/nums = \[([^\]]+)\], target = (\d+)/);
         if (match) {
@@ -116,7 +116,7 @@ router.post('/', async (req, res) => {
         }
         break;
       case 'java':
-        image = 'openjdk:11-jdk-alpine';
+        image = 'amazoncorretto:11';
         command = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java`;
         if (encodedInput) {
           command += ` && echo "${encodedInput}" | base64 -d | java -cp /tmp Main`;
@@ -137,7 +137,7 @@ router.post('/', async (req, res) => {
 
     console.log('Executing Docker command:', dockerCommand);
 
-    const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });
+    const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 60000 });
 
     console.log('Docker stdout:', stdout);
     console.log('Docker stderr:', stderr);

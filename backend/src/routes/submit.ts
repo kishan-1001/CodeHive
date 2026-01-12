@@ -32,7 +32,7 @@ async function runTestCase(code: string, language: string, input: string): Promi
 
   // Process input for special cases (like C++ array inputs)
   let processedInput = input;
-  if (language === 'cpp' && input) {
+  if ((language === 'cpp' || language === 'c' || language === 'java' || language === 'python' || language === 'javascript') && input) {
     if (input.startsWith('nums = [')) {
       const match = input.match(/nums = \[([^\]]+)\], target = (\d+)/);
       if (match) {
@@ -84,7 +84,7 @@ async function runTestCase(code: string, language: string, input: string): Promi
       }
       break;
     case 'java':
-      image = 'openjdk:11-jdk-alpine';
+      image = 'amazoncorretto:11';
       command = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java`;
       if (encodedInput) {
         command += ` && echo "${encodedInput}" | base64 -d | timeout 5 java -cp /tmp Main`;
@@ -98,7 +98,7 @@ async function runTestCase(code: string, language: string, input: string): Promi
 
   try {
     const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
-    const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });
+    const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 60000 });
 
     const runtime = Date.now() - startTime;
 
@@ -168,7 +168,7 @@ router.post('/', authenticateToken, async (req, res) => {
     // Combine user code with wrapper code
     let fullCode = code;
     if (wrapperCode) {
-      fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code);
+      fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code).replace('# <<< INSERT USER CODE HERE >>>', code);
     }
 
     // Fetch all test cases
