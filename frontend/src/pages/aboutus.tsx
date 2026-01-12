@@ -14,7 +14,8 @@ import {
   Database,
   Users,
   Target,
-  Award
+  Award,
+  Linkedin
 } from 'lucide-react';
 
 const AboutUs: React.FC = () => {
@@ -33,8 +34,7 @@ const AboutUs: React.FC = () => {
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 py-6 bg-transparent">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <span className="text-3xl font-bold tracking-tight text-white cursor-pointer" onClick={() => navigate('/home')}>Code<span className="text-amber-400">Hive</span></span>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-end">
           <button
             onClick={handleGetStartedClick}
             className="px-6 py-3 bg-amber-400 text-black font-bold rounded-xl hover:bg-amber-300 transition-all transform hover:scale-105"
@@ -263,29 +263,80 @@ const AboutUs: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-400 to-blue-500 flex items-center justify-center">
-                  <Code2 className="w-16 h-16 text-white" />
+            <div className="space-y-16">
+              {/* Kishan */}
+              <div className="flex flex-col lg:flex-row items-center gap-12">
+                <div className="flex-shrink-0">
+                  <img src="/kishanpic.jpg" alt="Kishan Roy" className="w-64 h-80 object-cover rounded-full" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Development Team</h3>
-                <p className="text-gray-400">Expert developers crafting the platform's core features.</p>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-white mb-4">Kishan Roy – Founder & Developer</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    CodeHive is built and maintained by Kishan Roy, a passionate software developer with a strong interest in data structures, algorithms, and full-stack development. With firsthand experience in competitive programming and technical interview preparation, Kishan identified the gaps in existing platforms — particularly the lack of actionable feedback and flexible practice environments.
+                  </p>
+                  <p className="text-gray-400 leading-relaxed mt-4">
+                    Driven by the belief that learning to code should go beyond pass/fail results, he designed CodeHive to provide AI-driven insights, real-time complexity analysis, and user-created contests that reflect real-world interview scenarios. Every feature of CodeHive is crafted with a focus on clarity, depth, and continuous improvement.
+                  </p>
+                  <div className="flex items-center gap-4 mt-6">
+                    <a href="https://www.linkedin.com/in/kishan-roy1001" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-blue-400 transition-colors">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
               </div>
 
-              <div className="text-center">
-                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                  <Database className="w-16 h-16 text-white" />
+              {/* Satyanshu */}
+              <div className="flex flex-col lg:flex-row items-center gap-12">
+                <div className="flex-shrink-0">
+                  <img src="/satyanshupic.jpeg" alt="Satyanshu" className="w-64 h-80 object-cover rounded-full" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">AI Engineers</h3>
-                <p className="text-gray-400">Innovators building intelligent systems for personalized learning.</p>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-white mb-4">Satyanshu Singh – Contributer & Developer</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Contributed significantly to the development of CodeHive by collaborating on feature implementation, improving existing functionalities, and assisting with testing and optimization. Actively involved in refining the platform's usability and ensuring a smooth and reliable experience for users.
+                  </p>
+                  <div className="flex items-center gap-4 mt-6">
+                    <a href="https://www.linkedin.com/in/satyanshu-singh" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-blue-400 transition-colors">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
               </div>
 
-              <div className="text-center">
-                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                  <Award className="w-16 h-16 text-white" />
+              {/* Avni */}
+              <div className="flex flex-col lg:flex-row items-center gap-12">
+                <div className="flex-shrink-0">
+                  <img src="/avnipic.jpeg" alt="Avni" className="w-64 h-80 object-cover rounded-full" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Educators</h3>
-                <p className="text-gray-400">Experienced mentors curating content and guiding the community.</p>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-white mb-4">Avni – Contributor & Developer</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Worked closely on the development of CodeHive, contributing to feature development, technical problem-solving, and iterative improvements based on user feedback. Helped shape the platform into a more stable and scalable learning environment.
+                  </p>
+                  <div className="flex items-center gap-4 mt-6">
+                    <a href="https://www.linkedin.com/in/avni-sharma2881/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-blue-400 transition-colors">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nayan */}
+              <div className="flex flex-col lg:flex-row items-center gap-12">
+                <div className="flex-shrink-0">
+                  <img src="/nayanpic.jpeg" alt="Nayan" className="w-64 h-80 object-cover rounded-full" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-white mb-4">Nayan – Contributor & Developer</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Supported the development of CodeHive through hands-on coding, feature enhancements, debugging, and performance improvements. Played an important role in testing new features and maintaining code quality across the platform.
+                  </p>
+                  <div className="flex items-center gap-4 mt-6">
+                    <a href="https://www.linkedin.com/in/nayan-manna-04744829b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-blue-400 transition-colors">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
