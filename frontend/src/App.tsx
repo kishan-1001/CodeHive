@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/home.tsx";
 import AboutUs from "./pages/aboutus";
-// import Career from "./pages/career.tsx";
+import Career from "./pages/career.tsx";
 import Explore from "./pages/explore.tsx";
 import HomeCodeEditor from "./pages/homeCodeEditor.tsx";
 import Problem from "./pages/Problem.tsx";
@@ -19,7 +19,7 @@ const App: React.FC = () => {
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/home" element={<Home />} />
       <Route path="/about" element={<AboutUs />} />
-      {/* <Route path="/career" element={<Career />} /> */}
+      <Route path="/career" element={<Career />} />
       <Route path="/explore" element={<Explore />} />
       <Route path="/problem" element={<Problem />} />
       <Route path="/problems" element={<ProblemList />} />
