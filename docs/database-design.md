@@ -78,11 +78,19 @@ CREATE TABLE topics (
 CREATE TABLE problems (
   id SERIAL PRIMARY KEY,
   title VARCHAR(200) NOT NULL,
+  slug VARCHAR(200) UNIQUE,
   description TEXT NOT NULL,
+  constraints TEXT,
   difficulty VARCHAR(20)
-    CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
+    CHECK (difficulty IN ('Easy', 'Medium', 'Hard')) NOT NULL,
+  time_limit_ms INT DEFAULT 2000,
+  memory_limit_mb INT DEFAULT 256,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
+
 
 🧩 3️⃣ problem_topics — Mapping (Many-to-Many)
 CREATE TABLE problem_topics (
@@ -264,6 +272,7 @@ CREATE TABLE problem_templates (
 
 
 
+
 otp table
 CREATE TABLE otp_verifications (
   id SERIAL PRIMARY KEY,
@@ -284,4 +293,32 @@ CREATE TABLE otp_verifications (
   FOREIGN KEY (user_id)
     REFERENCES users(id)
     ON DELETE CASCADE
+);
+
+
+
+
+
+CREATE TABLE problem_solutions (
+  id SERIAL PRIMARY KEY,
+
+  problem_id INT NOT NULL,
+  language VARCHAR(20) NOT NULL,
+
+  solution_type VARCHAR(20) NOT NULL
+    CHECK (solution_type IN ('brute_force', 'optimal', 'most_optimal')),
+
+  explanation TEXT NOT NULL,
+  code TEXT NOT NULL,
+
+  time_complexity VARCHAR(50),
+  space_complexity VARCHAR(50),
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE,
+
+  UNIQUE (problem_id, language, solution_type)
 );

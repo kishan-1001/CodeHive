@@ -13,6 +13,7 @@ interface Problem {
     difficulty: 'Easy' | 'Medium' | 'Hard';
     topics: { name: string; slug: string }[];
     sample_test_cases?: { input: string; expected_output: string }[];
+    constraints?: string;
 }
 
 const ProblemDetail: React.FC = () => {
@@ -388,6 +389,28 @@ const ProblemDetail: React.FC = () => {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+                            )}
+
+                            {/* Constraints */}
+                            {problem.constraints && (
+                                <div className="mt-8">
+                                    <h3 className="text-xl font-semibold text-white mb-4">Constraints</h3>
+                                    <div className="prose prose-invert max-w-none">
+                                        <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                                            <ul className="list-disc list-inside space-y-2 text-gray-300">
+                                                {problem.constraints.split('\n').map((constraint, index) => (
+                                                    constraint.trim() && (
+                                                        <li key={index} className="pl-2">
+                                                            <span className="font-mono text-sm bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700">
+                                                                {constraint.replace(/^-/, '').trim()}
+                                                            </span>
+                                                        </li>
+                                                    )
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
