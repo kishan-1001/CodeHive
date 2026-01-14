@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal } from 'lucide-react';
 import { problemsAPI, submitAPI } from '../services/api';
 import SubmissionResultModal from '../components/SubmissionResultModal';
+import SolutionModal from '../components/SolutionModal';
 
 interface Problem {
     id: number;
@@ -90,6 +91,33 @@ const ProblemDetail: React.FC = () => {
             fetchStarterCode(language);
         }
     }, [language, problem]);
+
+    // Solution Modal State
+    const [showSolutionModal, setShowSolutionModal] = useState(false);
+    const [solutionLanguage, setSolutionLanguage] = useState<string>('cpp'); // Default solution language
+    const [solutions, setSolutions] = useState<any[]>([]);
+    const [solutionLoading, setSolutionLoading] = useState(false);
+
+    // Fetch solutions when modal opens or language changes
+    useEffect(() => {
+        const fetchSolutions = async () => {
+            if (!problem || !showSolutionModal) return;
+
+            try {
+                setSolutionLoading(true);
+                const data = await problemsAPI.getProblemSolutions(problem.id.toString(), solutionLanguage);
+                setSolutions(data);
+            } catch (error) {
+                console.error('Error fetching solutions:', error);
+                setSolutions([]);
+            } finally {
+                setSolutionLoading(false);
+            }
+        };
+
+        fetchSolutions();
+    }, [showSolutionModal, solutionLanguage, problem]);
+
 
     const handleRun = async () => {
         if (!problem?.sample_test_cases || problem.sample_test_cases.length === 0) {
@@ -252,8 +280,8 @@ const ProblemDetail: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <h1 className="font-semibold text-lg max-w-[300px] truncate">{problem.title}</h1>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${problem.difficulty === 'Easy' ? 'text-green-400 bg-green-400/10' :
-                                problem.difficulty === 'Medium' ? 'text-amber-400 bg-amber-400/10' :
-                                    'text-red-400 bg-red-400/10'
+                            problem.difficulty === 'Medium' ? 'text-amber-400 bg-amber-400/10' :
+                                'text-red-400 bg-red-400/10'
                             }`}>
                             {problem.difficulty}
                         </span>
@@ -294,6 +322,7 @@ const ProblemDetail: React.FC = () => {
                                 'Submit'
                             )}
                         </button>
+
                     </div>
                 </div>
 
@@ -321,7 +350,15 @@ const ProblemDetail: React.FC = () => {
                 >
                     <div className="max-w-3xl mx-auto space-y-6">
                         <div>
-                            <h2 className="text-2xl font-bold mb-4">{problem.id}. {problem.title}</h2>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-2xl font-bold">{problem.id}. {problem.title}</h2>
+                                <button
+                                    onClick={() => setShowSolutionModal(true)}
+                                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                                >
+                                    Solution
+                                </button>
+                            </div>
                             <div className="prose prose-invert max-w-none">
                                 <p className="whitespace-pre-wrap leading-relaxed text-gray-300">
                                     {problem.description}
@@ -430,17 +467,15 @@ const ProblemDetail: React.FC = () => {
                                     <button
                                         key={index}
                                         onClick={() => setSelectedTestCase(index)}
-                                        className={`px-4 py-2 text-sm font-medium transition-colors ${
-                                            selectedTestCase === index
-                                                ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800/50'
-                                                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/30'
-                                        }`}
+                                        className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTestCase === index
+                                            ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800/50'
+                                            : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/30'
+                                            }`}
                                     >
                                         Case {index + 1}
                                         {testResults[index] && (
-                                            <span className={`ml-2 ${
-                                                testResults[index].passed ? 'text-green-400' : 'text-red-400'
-                                            }`}>
+                                            <span className={`ml-2 ${testResults[index].passed ? 'text-green-400' : 'text-red-400'
+                                                }`}>
                                                 {testResults[index].passed ? '✓' : '✗'}
                                             </span>
                                         )}
@@ -466,11 +501,10 @@ const ProblemDetail: React.FC = () => {
                                     </div>
                                     <div>
                                         <div className="text-sm text-gray-400 mb-1">Your Output:</div>
-                                        <div className={`bg-gray-900 rounded p-3 font-mono text-sm border overflow-x-auto max-w-full ${
-                                            testResults[selectedTestCase] ? (
-                                                testResults[selectedTestCase].passed ? 'border-green-500 text-green-200' : 'border-red-500 text-red-200'
-                                            ) : 'border-gray-600 text-gray-600 italic'
-                                        }`}>
+                                        <div className={`bg-gray-900 rounded p-3 font-mono text-sm border overflow-x-auto max-w-full ${testResults[selectedTestCase] ? (
+                                            testResults[selectedTestCase].passed ? 'border-green-500 text-green-200' : 'border-red-500 text-red-200'
+                                        ) : 'border-gray-600 text-gray-600 italic'
+                                            }`}>
                                             <pre className="whitespace-pre-wrap break-words max-w-full">
                                                 {testResults[selectedTestCase] ? testResults[selectedTestCase].actual : 'Run code to see output'}
                                             </pre>
@@ -502,6 +536,15 @@ const ProblemDetail: React.FC = () => {
                     message={submissionResult.message}
                 />
             )}
+
+            <SolutionModal
+                isOpen={showSolutionModal}
+                onClose={() => setShowSolutionModal(false)}
+                solutions={solutions}
+                loading={solutionLoading}
+                selectedLanguage={solutionLanguage}
+                onLanguageChange={setSolutionLanguage}
+            />
         </div>
     );
 };

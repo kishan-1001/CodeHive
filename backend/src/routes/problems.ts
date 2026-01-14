@@ -130,4 +130,22 @@ router.get('/:id/templates/:language', async (req, res) => {
     }
 });
 
+// Get solutions for a problem and language
+router.get('/:id/solutions/:language', async (req, res) => {
+    const { id, language } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT id, problem_id, language, solution_type, explanation, code, time_complexity, space_complexity
+            FROM problem_solutions
+            WHERE problem_id = $1 AND language = $2
+        `, [id, language]);
+
+        // Return empty array if no solutions found (which is valid, just means none exist yet)
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 export default router;

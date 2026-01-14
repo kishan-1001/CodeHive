@@ -112,6 +112,9 @@ export const problemsAPI = {
   async getProblemTemplate(problemId: string, language: string) {
     return api.get(`/problems/${problemId}/templates/${language}`);
   },
+  async getProblemSolutions(id: string, language: string) {
+    return api.get(`/problems/${id}/solutions/${language}`);
+  },
 };
 
 export const submitAPI = {
