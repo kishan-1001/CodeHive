@@ -5,6 +5,7 @@ import executeRoutes from './routes/execute';
 import postsRoutes from './routes/posts';
 import problemsRoutes from './routes/problems';
 import submitRoutes from './routes/submit';
+import submissionsRoutes from './routes/submissions';
 import passwordResetRoutes from './routes/passwordReset';
 
 import session from 'express-session';
@@ -33,6 +34,7 @@ app.use('/api/execute', executeRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/problems', problemsRoutes);
 app.use('/api/submit', submitRoutes);
+app.use('/api/submissions', submissionsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

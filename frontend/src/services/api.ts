@@ -122,3 +122,10 @@ export const submitAPI = {
     return api.post('/submit', { code, language, problem_id: problemId });
   },
 };
+
+export const submissionsAPI = {
+  async getProblemSubmissions(problemId: string) {
+    return api.get(`/submissions/${problemId}`);
+  },
+};
+

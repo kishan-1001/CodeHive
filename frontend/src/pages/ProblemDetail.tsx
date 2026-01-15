@@ -2,9 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal } from 'lucide-react';
-import { problemsAPI, submitAPI } from '../services/api';
+import { problemsAPI, submitAPI, submissionsAPI } from '../services/api';
 import SubmissionResultModal from '../components/SubmissionResultModal';
 import SolutionModal from '../components/SolutionModal';
+import SubmissionsModal from '../components/SubmissionsModal';
 
 interface Problem {
     id: number;
@@ -32,7 +33,11 @@ const ProblemDetail: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submissionResult, setSubmissionResult] = useState<{ verdict: string; message: string } | null>(null);
     const [showSubmissionModal, setShowSubmissionModal] = useState<boolean>(false);
-    const wsRef = useRef<WebSocket | null>(null);
+
+    // Submissions Modal State
+    const [showSubmissionsModal, setShowSubmissionsModal] = useState<boolean>(false);
+    const [submissions, setSubmissions] = useState<any[]>([]);
+    const [submissionsLoading, setSubmissionsLoading] = useState<boolean>(false);
 
     // Layout State
     const [splitPosition, setSplitPosition] = useState<number>(50); // percentage
@@ -119,6 +124,22 @@ const ProblemDetail: React.FC = () => {
         fetchSolutions();
     }, [showSolutionModal, solutionLanguage, problem]);
 
+    // Fetch Submissions
+    useEffect(() => {
+        const fetchSubmissions = async () => {
+            if (!problem || !showSubmissionsModal) return;
+            try {
+                setSubmissionsLoading(true);
+                const data = await submissionsAPI.getProblemSubmissions(problem.id.toString());
+                setSubmissions(data);
+            } catch (error) {
+                console.error('Error fetching submissions:', error);
+            } finally {
+                setSubmissionsLoading(false);
+            }
+        };
+        fetchSubmissions();
+    }, [showSubmissionsModal, problem]);
 
     const editorRef = useRef<any>(null);
     const monacoRef = useRef<any>(null);
@@ -154,6 +175,7 @@ const ProblemDetail: React.FC = () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
                         code,
@@ -237,7 +259,7 @@ const ProblemDetail: React.FC = () => {
         setSubmissionResult(null);
 
         try {
-            const result = await submitAPI.submitCode(code, language, problem.id);
+            const result: any = await submitAPI.submitCode(code, language, problem.id);
             setSubmissionResult(result);
             setShowSubmissionModal(true);
         } catch (error: any) {
@@ -405,12 +427,20 @@ const ProblemDetail: React.FC = () => {
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-2xl font-bold">{problem.id}. {problem.title}</h2>
-                                <button
-                                    onClick={() => setShowSolutionModal(true)}
-                                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
-                                >
-                                    Solution
-                                </button>
+                                <div className='flex gap-2'>
+                                    <button
+                                        onClick={() => setShowSubmissionsModal(true)}
+                                        className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                                    >
+                                        Submissions
+                                    </button>
+                                    <button
+                                        onClick={() => setShowSolutionModal(true)}
+                                        className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                                    >
+                                        Solution
+                                    </button>
+                                </div>
                             </div>
                             <div className="prose prose-invert max-w-none">
                                 <p className="whitespace-pre-wrap leading-relaxed text-gray-300">
@@ -620,6 +650,13 @@ const ProblemDetail: React.FC = () => {
                 loading={solutionLoading}
                 selectedLanguage={solutionLanguage}
                 onLanguageChange={setSolutionLanguage}
+            />
+
+            <SubmissionsModal
+                isOpen={showSubmissionsModal}
+                onClose={() => setShowSubmissionsModal(false)}
+                submissions={submissions}
+                loading={submissionsLoading}
             />
         </div>
     );

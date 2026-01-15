@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { pool } from '../config/db';
 import { authenticateToken } from '../middleware/auth';
+import { StaticAnalyzerService } from '../services/staticAnalyzer';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -123,14 +124,37 @@ async function runTestCase(code: string, language: string, input: string): Promi
       ).join('\n').trim();
     }
 
+    // Check for Compilation Errors in compiled languages
+    if (['c', 'cpp', 'java'].includes(language) && filteredStderr && filteredStderr.toLowerCase().includes('error')) {
+      return { output: filteredStderr, error: 'CE', runtime };
+    }
+    // For interpreted languages (heuristic)
+    if (['python', 'javascript'].includes(language) && filteredStderr && (filteredStderr.includes('SyntaxError') || filteredStderr.includes('IndentationError'))) {
+      return { output: filteredStderr, error: 'CE', runtime };
+    }
+
     const output = stdout || filteredStderr || '';
 
     return { output: output.trim(), runtime };
   } catch (error: any) {
     const runtime = Date.now() - startTime;
-    if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
+
+    // Check stderr for Compilation Errors first (g++ exit code 1)
+    const stderr = error.stderr || '';
+    if (['c', 'cpp', 'java'].includes(language) && stderr.toLowerCase().includes('error')) {
+      return { output: stderr, error: 'CE', runtime };
+    }
+    if (['python', 'javascript'].includes(language) && (stderr.includes('SyntaxError') || stderr.includes('IndentationError'))) {
+      return { output: stderr, error: 'CE', runtime };
+    }
+
+    // Check for Time Limit Exceeded
+    // 124 is the exit code for the Linux 'timeout' command
+    // 'ETIMEDOUT' is from Node's exec timeout
+    if (error.code === 'ETIMEDOUT' || error.code === 124) {
       return { output: '', error: 'TLE', runtime };
     }
+
     return { output: '', error: error.message || 'RE', runtime };
   }
 }
@@ -192,48 +216,93 @@ router.post('/', authenticateToken, async (req, res) => {
     for (const testCase of testCases) {
       const result = await runTestCase(fullCode, language, testCase.input);
 
+      if (result.error === 'CE') {
+        // Compilation Error
+        await pool.query(`
+            INSERT INTO submissions (
+              user_id, problem_id, language, code, verdict, 
+              runtime_ms, memory_kb, complexity_source
+            )
+            VALUES ($1, $2, $3, $4, 'CE', 0, 0, 'unknown')
+          `, [user_id, problem_id, language, code]);
+
+        return res.json({ verdict: 'compilation_error', message: 'Compilation Error', output: result.output });
+      }
+
       if (result.error === 'TLE') {
         // Time Limit Exceeded
         await pool.query(`
-          INSERT INTO submissions (user_id, problem_id, language, code, verdict, runtime_ms, memory_kb)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [user_id, problem_id, language, code, 'TLE', result.runtime || 0, maxMemory]);
+          INSERT INTO submissions (user_id, problem_id, language, code, verdict, runtime_ms, memory_kb, complexity_source)
+          VALUES ($1, $2, $3, $4, 'TLE', $5, $6, 'unknown')
+        `, [user_id, problem_id, language, code, result.runtime || 0, maxMemory]);
 
         return res.json({ verdict: 'time_limit_exceeded', message: 'Time Limit Exceeded' });
       } else if (result.error === 'RE') {
         // Runtime Error
         await pool.query(`
-          INSERT INTO submissions (user_id, problem_id, language, code, verdict, runtime_ms, memory_kb)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [user_id, problem_id, language, code, 'RE', result.runtime || 0, maxMemory]);
+          INSERT INTO submissions (user_id, problem_id, language, code, verdict, runtime_ms, memory_kb, complexity_source)
+          VALUES ($1, $2, $3, $4, 'RE', $5, $6, 'unknown')
+        `, [user_id, problem_id, language, code, result.runtime || 0, maxMemory]);
 
-        return res.json({ verdict: 'runtime_error', message: 'Runtime Error' });
+        return res.json({ verdict: 'runtime_error', message: 'Runtime Error', output: result.output });
       } else if (result.output !== testCase.expected_output.trim()) {
         // Wrong Answer
         allPassed = false;
         totalRuntime += result.runtime || 0;
+
+        await pool.query(`
+          INSERT INTO submissions (user_id, problem_id, language, code, verdict, runtime_ms, memory_kb, complexity_source)
+          VALUES ($1, $2, $3, $4, 'WA', $5, $6, 'unknown')
+        `, [user_id, problem_id, language, code, result.runtime || 0, maxMemory]);
+
+        // Stop execution on first wrong answer to save resources
         break;
       } else {
         totalRuntime += result.runtime || 0;
       }
     }
 
+    // Check if loop broke early due to WA
+    if (!allPassed) {
+      return res.json({ verdict: 'wrong_answer', message: 'Wrong Answer' });
+    }
+
     // Determine final verdict
-    const verdict = allPassed ? 'AC' : 'WA';
+    const verdict = 'AC';
     const averageRuntime = Math.round(totalRuntime / testCases.length);
 
-    // Save submission to database
+    // 🟢 STATIC ANALYSIS (Only if AC)
+    let timeComplexity = 'N/A';
+    let spaceComplexity = 'N/A';
+
+    try {
+      const analysis = await StaticAnalyzerService.analyze(code, language);
+      timeComplexity = analysis.timeComplexity;
+      spaceComplexity = analysis.spaceComplexity;
+    } catch (err) {
+      console.error("Static Analysis Failed:", err);
+    }
+
+    // Save submission to database with Static Metrics
     await pool.query(`
-      INSERT INTO submissions (user_id, problem_id, language, code, verdict, runtime_ms, memory_kb)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `, [user_id, problem_id, language, code, verdict, averageRuntime, maxMemory]);
+      INSERT INTO submissions (
+        user_id, problem_id, language, code, verdict, 
+        runtime_ms, memory_kb, 
+        time_complexity_static, space_complexity_static,
+        complexity_source
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'static')
+    `, [user_id, problem_id, language, code, verdict, averageRuntime, maxMemory, timeComplexity, spaceComplexity]);
 
     // Return result to frontend
-    if (verdict === 'AC') {
-      res.json({ verdict: 'accepted', message: 'All test cases passed!' });
-    } else {
-      res.json({ verdict: 'wrong_answer', message: 'Wrong Answer' });
-    }
+    res.json({
+      verdict: 'accepted',
+      message: 'All test cases passed!',
+      analysis: {
+        time: timeComplexity,
+        space: spaceComplexity
+      }
+    });
 
   } catch (error: any) {
     console.error('Submission error:', error);
