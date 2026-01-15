@@ -120,6 +120,15 @@ const ProblemDetail: React.FC = () => {
     }, [showSolutionModal, solutionLanguage, problem]);
 
 
+    const editorRef = useRef<any>(null);
+    const monacoRef = useRef<any>(null);
+    const decorationsRef = useRef<string[]>([]);
+
+    const handleEditorDidMount = (editor: any, monaco: any) => {
+        editorRef.current = editor;
+        monacoRef.current = monaco;
+    };
+
     const handleRun = async () => {
         if (!problem?.sample_test_cases || problem.sample_test_cases.length === 0) {
             return;
@@ -128,6 +137,13 @@ const ProblemDetail: React.FC = () => {
         // Run against sample test cases
         setIsRunning(true);
         setTestResults({});
+
+        // Clear editor markers and decorations
+        if (monacoRef.current && editorRef.current) {
+            const model = editorRef.current.getModel();
+            monacoRef.current.editor.setModelMarkers(model, 'owner', []);
+            decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
+        }
 
         const newResults: { [key: number]: { actual: string; verdict: string; passed: boolean } } = {};
 
@@ -149,7 +165,7 @@ const ProblemDetail: React.FC = () => {
 
                 const data = await response.json();
 
-                if (response.ok) {
+                if (response.ok && !data.error) {
                     const actualOutput = data.output.trim();
                     const expectedOutput = testCase.expected_output.trim();
                     const passed = actualOutput === expectedOutput;
@@ -158,16 +174,52 @@ const ProblemDetail: React.FC = () => {
                     newResults[i] = { actual: actualOutput, verdict, passed };
                 } else {
                     // Handle different error types
-                    let verdict = 'RUNTIME_ERROR';
-                    let errorMessage = data.error || 'Unknown error';
+                    const error = data.error || {};
+                    let verdict = error.type || 'RUNTIME_ERROR';
+                    let errorMessage = error.message || data.error || 'Unknown error';
 
-                    if (errorMessage.toLowerCase().includes('compilation') || errorMessage.toLowerCase().includes('syntax')) {
-                        verdict = 'COMPILATION_ERROR';
-                    } else if (errorMessage.toLowerCase().includes('timeout') || errorMessage.toLowerCase().includes('time limit')) {
-                        verdict = 'TIME_LIMIT_EXCEEDED';
+                    // Map legacy error messages or backend types
+                    if (typeof errorMessage === 'string') {
+                        if (errorMessage.toLowerCase().includes('compilation') || errorMessage.toLowerCase().includes('syntax')) {
+                            verdict = 'COMPILATION_ERROR';
+                        } else if (errorMessage.toLowerCase().includes('timeout') || errorMessage.toLowerCase().includes('time limit')) {
+                            verdict = 'TIME_LIMIT_EXCEEDED';
+                        }
                     }
 
                     newResults[i] = { actual: `${verdict}: ${errorMessage}`, verdict, passed: false };
+
+                    // Highlight line if available
+                    if (error.line && monacoRef.current && editorRef.current) {
+                        const model = editorRef.current.getModel();
+
+                        // Set Markers (Squiggly)
+                        monacoRef.current.editor.setModelMarkers(model, 'owner', [
+                            {
+                                startLineNumber: error.line,
+                                startColumn: 1,
+                                endLineNumber: error.line,
+                                endColumn: 1000,
+                                message: errorMessage,
+                                severity: monacoRef.current.MarkerSeverity.Error,
+                            },
+                        ]);
+
+                        // Set Decorations (Background)
+                        decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, [
+                            {
+                                range: new monacoRef.current.Range(error.line, 1, error.line, 1),
+                                options: {
+                                    isWholeLine: true,
+                                    className: 'error-line-highlight',
+                                    glyphMarginClassName: 'error-glyph-margin'
+                                }
+                            }
+                        ]);
+
+                        // Reveal line
+                        editorRef.current.revealLineInCenter(error.line);
+                    }
                 }
             } catch (error) {
                 newResults[i] = { actual: 'NETWORK_ERROR: Network error', verdict: 'NETWORK_ERROR', passed: false };
@@ -454,6 +506,7 @@ const ProblemDetail: React.FC = () => {
                             language={language}
                             value={code}
                             onChange={(value) => setCode(value || '')}
+                            onMount={handleEditorDidMount}
                             theme="vs-dark"
                             options={{
                                 minimap: { enabled: false },

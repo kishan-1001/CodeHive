@@ -92,3 +92,6 @@ body {
   background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
   background-size: 32px 32px;
 }
+.error-line-highlight {
+  background-color: rgba(255, 0, 0, 0.2);
+}
