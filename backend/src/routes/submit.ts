@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import { pool } from '../config/db';
 import { authenticateToken } from '../middleware/auth';
@@ -23,15 +23,15 @@ async function isDockerRunning(): Promise<boolean> {
   }
 }
 
-async function runTestCase(code: string, language: string, input: string): Promise<{ output: string; error?: string; runtime?: number }> {
-  const startTime = Date.now();
 
-  let command: string;
-  let image: string;
+
+async function runTestCase(code: string, language: string, input: string, timeLimitMs: number = 2000): Promise<{ output: string; error?: string; runtime?: number }> {
+  const startTime = Date.now();
+  const timeLimitSec = Math.max(1, Math.ceil(timeLimitMs / 1000));
 
   const encodedCode = Buffer.from(code).toString('base64');
 
-  // Process input for special cases (like C++ array inputs)
+  // Process input for special cases
   let processedInput = input;
   if ((language === 'cpp' || language === 'c' || language === 'java' || language === 'python' || language === 'javascript') && input) {
     if (input.startsWith('nums = [')) {
@@ -45,118 +45,121 @@ async function runTestCase(code: string, language: string, input: string): Promi
       }
     }
   }
-  const encodedInput = processedInput ? Buffer.from(processedInput).toString('base64') : null;
+  const encodedInput = (processedInput !== undefined && processedInput !== null) ? Buffer.from(processedInput).toString('base64') : null;
+
+  let image: string;
+  let script: string;
+
+  // Construct the shell script to run inside the container
+  // We use "cat <<EOF" or simple echo pipes. 
+  // Using pipes with base64 ensures safe handling of special chars and large sizes.
 
   switch (language) {
     case 'c':
       image = 'gcc:latest';
-      command = `echo "${encodedCode}" | base64 -d > /tmp/code.c && gcc /tmp/code.c -o /tmp/code`;
-      if (encodedInput) {
-        command += ` && echo "${encodedInput}" | base64 -d | timeout 5 /tmp/code`;
-      } else {
-        command += ` && timeout 5 /tmp/code`;
-      }
+      script = `
+        echo "${encodedCode}" | base64 -d > /tmp/code.c
+        gcc /tmp/code.c -o /tmp/code || exit 1
+        ${encodedInput !== null ? `echo "${encodedInput}" | base64 -d > /tmp/input.txt` : 'touch /tmp/input.txt'}
+        timeout ${timeLimitSec}s /tmp/code < /tmp/input.txt
+      `;
       break;
     case 'cpp':
       image = 'gcc:latest';
-      command = `echo "${encodedCode}" | base64 -d > /tmp/code.cpp && g++ /tmp/code.cpp -o /tmp/code`;
-      if (encodedInput) {
-        command += ` && echo "${encodedInput}" | base64 -d | timeout 5 /tmp/code`;
-      } else {
-        command += ` && timeout 5 /tmp/code`;
-      }
+      script = `
+        echo "${encodedCode}" | base64 -d > /tmp/code.cpp
+        g++ -O3 /tmp/code.cpp -o /tmp/code || exit 1
+        ${encodedInput !== null ? `echo "${encodedInput}" | base64 -d > /tmp/input.txt` : 'touch /tmp/input.txt'}
+        timeout ${timeLimitSec}s /tmp/code < /tmp/input.txt
+      `;
       break;
     case 'python':
       image = 'python:3.9-alpine';
-      command = `echo "${encodedCode}" | base64 -d > /tmp/code.py`;
-      if (encodedInput) {
-        command += ` && echo "${encodedInput}" | base64 -d | timeout 5 python3 -u /tmp/code.py`;
-      } else {
-        command += ` && timeout 5 python3 -u /tmp/code.py`;
-      }
+      script = `
+        echo "${encodedCode}" | base64 -d > /tmp/code.py
+        ${encodedInput !== null ? `echo "${encodedInput}" | base64 -d > /tmp/input.txt` : 'touch /tmp/input.txt'}
+        timeout ${timeLimitSec}s python3 -u /tmp/code.py < /tmp/input.txt
+      `;
       break;
     case 'javascript':
       image = 'node:18-alpine';
-      command = `echo "${encodedCode}" | base64 -d > /tmp/code.js`;
-      if (encodedInput) {
-        command += ` && echo "${encodedInput}" | base64 -d | timeout 5 node --input-type=module /tmp/code.js`;
-      } else {
-        command += ` && timeout 5 node --input-type=module /tmp/code.js`;
-      }
+      script = `
+        echo "${encodedCode}" | base64 -d > /tmp/code.js
+        ${encodedInput !== null ? `echo "${encodedInput}" | base64 -d > /tmp/input.txt` : 'touch /tmp/input.txt'}
+        timeout ${timeLimitSec}s node --input-type=module /tmp/code.js < /tmp/input.txt
+      `;
       break;
     case 'java':
       image = 'amazoncorretto:11';
-      command = `echo "${encodedCode}" | base64 -d > /tmp/Main.java && javac /tmp/Main.java`;
-      if (encodedInput) {
-        command += ` && echo "${encodedInput}" | base64 -d | timeout 5 java -cp /tmp Main`;
-      } else {
-        command += ` && timeout 5 java -cp /tmp Main`;
-      }
+      script = `
+        echo "${encodedCode}" | base64 -d > /tmp/Main.java
+        javac /tmp/Main.java || exit 1
+        ${encodedInput !== null ? `echo "${encodedInput}" | base64 -d > /tmp/input.txt` : 'touch /tmp/input.txt'}
+        timeout ${timeLimitSec}s java -cp /tmp Main < /tmp/input.txt
+      `;
       break;
     default:
       throw new Error('Unsupported language');
   }
 
-  try {
-    const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
-    const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 60000 });
+  return new Promise((resolve, reject) => {
+    const child = spawn('docker', ['run', '--rm', '-i', image, 'sh']);
 
-    const runtime = Date.now() - startTime;
+    let stdoutData = '';
+    let stderrData = '';
 
-    // Filter out Docker pull messages from stderr
-    let filteredStderr = stderr;
-    if (stderr) {
-      const lines = stderr.split('\n');
-      filteredStderr = lines.filter(line =>
-        !line.includes('Pulling fs layer') &&
-        !line.includes('Already exists') &&
-        !line.includes('Pull complete') &&
-        !line.includes('latest: Pulling from') &&
-        !line.includes('Digest:') &&
-        !line.includes('Status:') &&
-        !line.includes('Unable to find image') &&
-        !line.includes('1227bf08bd42:') &&
-        !line.includes('b1741a62ccee:') &&
-        !line.includes('add107facb26:') &&
-        !line.includes('83237d80dc43:') &&
-        !line.includes('1227bf08bd42:') &&
-        !line.includes('83237d80dc43:')
-      ).join('\n').trim();
-    }
+    child.stdout.on('data', (data) => {
+      stdoutData += data.toString();
+    });
 
-    // Check for Compilation Errors in compiled languages
-    if (['c', 'cpp', 'java'].includes(language) && filteredStderr && filteredStderr.toLowerCase().includes('error')) {
-      return { output: filteredStderr, error: 'CE', runtime };
-    }
-    // For interpreted languages (heuristic)
-    if (['python', 'javascript'].includes(language) && filteredStderr && (filteredStderr.includes('SyntaxError') || filteredStderr.includes('IndentationError'))) {
-      return { output: filteredStderr, error: 'CE', runtime };
-    }
+    child.stderr.on('data', (data) => {
+      stderrData += data.toString();
+    });
 
-    const output = stdout || filteredStderr || '';
+    child.on('close', (code) => {
+      const runtime = Date.now() - startTime;
 
-    return { output: output.trim(), runtime };
-  } catch (error: any) {
-    const runtime = Date.now() - startTime;
+      // Filter stderr noise
+      let filteredStderr = stderrData;
+      if (stderrData) {
+        const lines = stderrData.split('\n');
+        filteredStderr = lines.filter(line =>
+          !line.includes('Pulling') && !line.includes('Digest') && !line.includes('Status') && !line.includes('Waiting')
+        ).join('\n').trim();
+      }
 
-    // Check stderr for Compilation Errors first (g++ exit code 1)
-    const stderr = error.stderr || '';
-    if (['c', 'cpp', 'java'].includes(language) && stderr.toLowerCase().includes('error')) {
-      return { output: stderr, error: 'CE', runtime };
-    }
-    if (['python', 'javascript'].includes(language) && (stderr.includes('SyntaxError') || stderr.includes('IndentationError'))) {
-      return { output: stderr, error: 'CE', runtime };
-    }
+      // Check exit codes
+      if (code === 124) { // Timeout specific exit code
+        resolve({ output: stdoutData.trim(), error: 'TLE', runtime });
+        return;
+      }
 
-    // Check for Time Limit Exceeded
-    // 124 is the exit code for the Linux 'timeout' command
-    // 'ETIMEDOUT' is from Node's exec timeout
-    if (error.code === 'ETIMEDOUT' || error.code === 124) {
-      return { output: '', error: 'TLE', runtime };
-    }
+      // Compilation Error detection (non-zero exit + error message)
+      if (code !== 0) {
+        if (['c', 'cpp', 'java'].includes(language) && filteredStderr.toLowerCase().includes('error')) {
+          resolve({ output: filteredStderr, error: 'CE', runtime });
+          return;
+        }
+        if (['python', 'javascript'].includes(language) && (filteredStderr.includes('SyntaxError') || filteredStderr.includes('IndentationError'))) {
+          resolve({ output: filteredStderr, error: 'CE', runtime });
+          return;
+        }
+        // General Runtime Error if not TLE or CE
+        resolve({ output: stdoutData.trim(), error: 'RE', runtime });
+        return;
+      }
 
-    return { output: '', error: error.message || 'RE', runtime };
-  }
+      resolve({ output: stdoutData.trim(), runtime });
+    });
+
+    child.on('error', (err) => {
+      reject(err);
+    });
+
+    // Write the script to stdin and close it
+    child.stdin.write(script);
+    child.stdin.end();
+  });
 }
 
 router.post('/', authenticateToken, async (req, res) => {
@@ -212,9 +215,44 @@ router.post('/', authenticateToken, async (req, res) => {
     let totalRuntime = 0;
     let maxMemory = 0; // We'll track this later if needed
 
+    // Fetch problem details for time limit
+    let baseTimeLimitMs = 2000;
+    try {
+      console.log(`[DEBUG] Fetching time_limit_ms for problem ${problem_id}`);
+      const problemResult = await pool.query('SELECT time_limit_ms FROM problems WHERE id = $1', [problem_id]);
+      if (problemResult.rows.length > 0 && problemResult.rows[0].time_limit_ms) {
+        baseTimeLimitMs = Number(problemResult.rows[0].time_limit_ms);
+      }
+      console.log(`[DEBUG] Base time limit: ${baseTimeLimitMs}ms`);
+    } catch (err) {
+      console.warn('[DEBUG] Failed to fetch time_limit_ms, using default 2000ms:', err);
+    }
+
+    // Apply language-specific multipliers
+    let timeMultiplier = 1.0;
+    switch (language) {
+      case 'java':
+        timeMultiplier = 2.0;
+        break;
+      case 'python':
+      case 'javascript':
+        timeMultiplier = 3.0;
+        break;
+      case 'c':
+      case 'cpp':
+      default:
+        timeMultiplier = 1.0;
+        break;
+    }
+
+    const finalTimeLimitMs = Math.ceil(baseTimeLimitMs * timeMultiplier);
+    console.log(`[DEBUG] Applied ${timeMultiplier}x multiplier for ${language}. Final limit: ${finalTimeLimitMs}ms`);
+
     // Run code against each test case
     for (const testCase of testCases) {
-      const result = await runTestCase(fullCode, language, testCase.input);
+      console.log(`[DEBUG] executing test case input: ${testCase.input}`);
+      console.log(`[DEBUG] Full Code being executed:\n${fullCode}`);
+      const result = await runTestCase(fullCode, language, testCase.input, finalTimeLimitMs);
 
       if (result.error === 'CE') {
         // Compilation Error

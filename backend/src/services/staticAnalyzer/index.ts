@@ -1,14 +1,14 @@
 import { IStaticAnalyzer, StaticAnalysisResult } from './analyzers/interface';
-import { PythonAnalyzer } from './analyzers/python/analyzer';
-import { JavaScriptAnalyzer } from './analyzers/javascript/analyzer';
-import { CppAnalyzer } from './analyzers/cpp/analyzer';
-import { JavaAnalyzer } from './analyzers/java/analyzer';
+import { PythonAnalyzer } from './analyzers/python/PythonParser';
+import { AcornAnalyzer } from './analyzers/javascript/AcornAnalyzer';
+import { CppAnalyzer } from './analyzers/cpp/CppParser';
+import { JavaAnalyzer } from './analyzers/java/JavaParser';
 
 export class StaticAnalyzerService {
     private static analyzers: Record<string, IStaticAnalyzer> = {
         python: new PythonAnalyzer(),
-        javascript: new JavaScriptAnalyzer(),
-        c: new CppAnalyzer(), // C and C++ share similar structure for this simple heuristic
+        javascript: new AcornAnalyzer(),
+        c: new CppAnalyzer(),
         cpp: new CppAnalyzer(),
         java: new JavaAnalyzer(),
     };
