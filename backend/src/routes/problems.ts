@@ -15,9 +15,9 @@ router.get('/topics', async (req, res) => {
     }
 });
 
-// Get all problems (optionally filtered by topic slug)
+// Get all problems (optionally filtered by topic slug and difficulty)
 router.get('/problems', async (req, res) => {
-    const { topic } = req.query; // topic slug
+    const { topic, difficulty } = req.query; // topic slug, difficulty
     try {
         let query = `
       SELECT p.id, p.title, p.difficulty, p.description, 
@@ -27,15 +27,27 @@ router.get('/problems', async (req, res) => {
       LEFT JOIN topics t ON pt.topic_id = t.id
     `;
 
-        // If filtering by topic
         const params: any[] = [];
+        const conditions: string[] = [];
+
+        // Filter by topic
         if (topic) {
-            query += ` WHERE EXISTS (
+            conditions.push(`EXISTS (
         SELECT 1 FROM problem_topics pt2
         JOIN topics t2 ON pt2.topic_id = t2.id
-        WHERE pt2.problem_id = p.id AND t2.slug = $1
-      )`;
+        WHERE pt2.problem_id = p.id AND t2.slug = $${params.length + 1}
+      )`);
             params.push(topic);
+        }
+
+        // Filter by difficulty
+        if (difficulty && difficulty !== 'All') {
+            conditions.push(`p.difficulty = $${params.length + 1}`);
+            params.push(difficulty);
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
         }
 
         query += ` GROUP BY p.id ORDER BY p.id`;

@@ -18,6 +18,7 @@ const ProblemList: React.FC = () => {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchId, setSearchId] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const topicSlug = searchParams.get('topic');
 
   const handleLogout = () => {
@@ -28,7 +29,10 @@ const ProblemList: React.FC = () => {
   useEffect(() => {
     const fetchProblems = async () => {
       try {
-        const data = await problemsAPI.getProblems(topicSlug || undefined);
+        const data = await problemsAPI.getProblems(
+          topicSlug || undefined,
+          selectedDifficulty === 'All' ? undefined : selectedDifficulty
+        );
         setProblems(data);
       } catch (error) {
         console.error('Error fetching problems:', error);
@@ -38,7 +42,7 @@ const ProblemList: React.FC = () => {
     };
 
     fetchProblems();
-  }, [topicSlug]);
+  }, [topicSlug, selectedDifficulty]);
 
   const handleProblemClick = (problemSlug: string) => {
     const url = topicSlug ? `/problems/${problemSlug}?topic=${topicSlug}` : `/problems/${problemSlug}`;
@@ -78,17 +82,31 @@ const ProblemList: React.FC = () => {
                 {topicSlug ? `Problems - ${topicSlug.replace('-', ' ')}` : 'All Problems'}
               </h1>
 
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="number"
-                  placeholder="Search by ID..."
-                  value={searchId}
-                  onChange={(e) => setSearchId(e.target.value)}
-                  className="bg-gray-800 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none w-full md:w-64 transition-colors"
-                />
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              </form>
+              <div className="flex flex-col md:flex-row gap-4">
+                <form onSubmit={handleSearch} className="relative">
+                  <input
+                    type="number"
+                    placeholder="Search by ID..."
+                    value={searchId}
+                    onChange={(e) => setSearchId(e.target.value)}
+                    className="bg-gray-800 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none w-full md:w-64 transition-colors"
+                  />
+                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                </form>
+
+                <select
+                  value={selectedDifficulty}
+                  onChange={(e) => setSelectedDifficulty(e.target.value)}
+                  className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none transition-colors"
+                >
+                  <option value="All">All Difficulty</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
             </div>
+
             <p className="text-gray-400">Solve coding problems to improve your skills</p>
           </div>
 
