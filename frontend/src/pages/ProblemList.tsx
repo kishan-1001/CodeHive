@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import Header from '../components/Header';
 import { problemsAPI } from '../services/api';
 
@@ -17,6 +17,7 @@ const ProblemList: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchId, setSearchId] = useState('');
   const topicSlug = searchParams.get('topic');
 
   const handleLogout = () => {
@@ -44,6 +45,16 @@ const ProblemList: React.FC = () => {
     navigate(url);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchId.trim()) {
+      const url = topicSlug
+        ? `/problems/${searchId.trim()}?topic=${topicSlug}`
+        : `/problems/${searchId.trim()}`;
+      navigate(url);
+    }
+  };
+
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
       {/* Background Orbs */}
@@ -62,9 +73,22 @@ const ProblemList: React.FC = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
-            <h1 className="text-3xl font-bold text-white mb-4">
-              {topicSlug ? `Problems - ${topicSlug.replace('-', ' ')}` : 'All Problems'}
-            </h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+              <h1 className="text-3xl font-bold text-white">
+                {topicSlug ? `Problems - ${topicSlug.replace('-', ' ')}` : 'All Problems'}
+              </h1>
+
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="number"
+                  placeholder="Search by ID..."
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  className="bg-gray-800 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none w-full md:w-64 transition-colors"
+                />
+                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              </form>
+            </div>
             <p className="text-gray-400">Solve coding problems to improve your skills</p>
           </div>
 
@@ -90,11 +114,10 @@ const ProblemList: React.FC = () => {
                         {problem.id}. {problem.title}
                       </h3>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ml-4 ${
-                      problem.difficulty === 'Easy' ? 'text-green-400 bg-green-400/10' :
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ml-4 ${problem.difficulty === 'Easy' ? 'text-green-400 bg-green-400/10' :
                       problem.difficulty === 'Medium' ? 'text-amber-400 bg-amber-400/10' :
-                      'text-red-400 bg-red-400/10'
-                    }`}>
+                        'text-red-400 bg-red-400/10'
+                      }`}>
                       {problem.difficulty}
                     </span>
                   </div>

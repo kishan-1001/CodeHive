@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal } from 'lucide-react';
 import { problemsAPI, submitAPI, submissionsAPI } from '../services/api';
@@ -21,6 +21,7 @@ const ProblemDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
 
     const [problem, setProblem] = useState<Problem | null>(null);
     const [loading, setLoading] = useState(true);
@@ -345,6 +346,11 @@ const ProblemDetail: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
+                            const state = location.state as { from?: string };
+                            if (state?.from) {
+                                navigate(state.from);
+                                return;
+                            }
                             const topic = searchParams.get('topic');
                             navigate(topic ? `/problems?topic=${topic}` : '/problems');
                         }}

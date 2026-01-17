@@ -15,6 +15,7 @@ const Problem: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchId, setSearchId] = useState<string>('');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -41,6 +42,12 @@ const Problem: React.FC = () => {
     navigate(`/problems?topic=${topicSlug}`);
   };
 
+  const handleIdSearch = () => {
+    if (searchId.trim()) {
+      navigate(`/problems/${searchId.trim()}`, { state: { from: '/problem' } });
+    }
+  };
+
   const filteredTopics = topics.filter((topic) =>
     topic.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -54,19 +61,35 @@ const Problem: React.FC = () => {
 
       <div className="pt-24 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8 flex justify-between items-start">
+          <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-4">DSA Topics</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">DSA Topics</h1>
               <p className="text-gray-400">Explore problems by topic</p>
             </div>
-            <div className="max-w-md w-full md:w-80">
-              <input
-                type="text"
-                placeholder="Search topics..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-full px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-              />
+
+            <div className="flex gap-4 w-full md:w-auto">
+              {/* Search by ID */}
+              <div className="w-32">
+                <input
+                  type="number"
+                  placeholder="ID..."
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleIdSearch()}
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-full px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent text-center"
+                />
+              </div>
+
+              {/* Search Topics */}
+              <div className="max-w-md w-full md:w-80">
+                <input
+                  type="text"
+                  placeholder="Search topics..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-full px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                />
+              </div>
             </div>
           </div>
 
