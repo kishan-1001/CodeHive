@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
 const Leaderboard: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     localStorage.removeItem('token');
-    // navigate('/home'); // Assuming useNavigate is not needed here
+    navigate('/home');
   };
 
   return (
