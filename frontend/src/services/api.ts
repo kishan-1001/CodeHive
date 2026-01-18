@@ -96,10 +96,11 @@ export const problemsAPI = {
     return api.get('/problems/topics');
   },
 
-  async getProblems(topic?: string, difficulty?: string) {
+  async getProblems(topic?: string, difficulty?: string, search?: string) {
     const params = new URLSearchParams();
     if (topic) params.append('topic', topic);
     if (difficulty) params.append('difficulty', difficulty);
+    if (search) params.append('search', search);
     return api.get(`/problems/problems?${params.toString()}`);
   },
 

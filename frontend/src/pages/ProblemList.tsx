@@ -18,6 +18,8 @@ const ProblemList: React.FC = () => {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchId, setSearchId] = useState('');
+  const [searchTitle, setSearchTitle] = useState('');
+  const [activeSearchTitle, setActiveSearchTitle] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const topicSlug = searchParams.get('topic');
 
@@ -31,7 +33,8 @@ const ProblemList: React.FC = () => {
       try {
         const data = await problemsAPI.getProblems(
           topicSlug || undefined,
-          selectedDifficulty === 'All' ? undefined : selectedDifficulty
+          selectedDifficulty === 'All' ? undefined : selectedDifficulty,
+          activeSearchTitle || undefined
         );
         setProblems(data);
       } catch (error) {
@@ -42,7 +45,7 @@ const ProblemList: React.FC = () => {
     };
 
     fetchProblems();
-  }, [topicSlug, selectedDifficulty]);
+  }, [topicSlug, selectedDifficulty, activeSearchTitle]);
 
   const handleProblemClick = (problemSlug: string) => {
     const url = topicSlug ? `/problems/${problemSlug}?topic=${topicSlug}` : `/problems/${problemSlug}`;
@@ -56,6 +59,34 @@ const ProblemList: React.FC = () => {
         ? `/problems/${searchId.trim()}?topic=${topicSlug}`
         : `/problems/${searchId.trim()}`;
       navigate(url);
+    }
+  };
+
+  const handleTitleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTitle.trim()) return;
+
+    try {
+      // Search globally (ignore current filters) to find the problem
+      const results = await problemsAPI.getProblems(undefined, undefined, searchTitle.trim());
+
+      if (results && results.length > 0) {
+        // Navigate to the first matching problem
+        // We prefer exact match if possible, but the API returns strict ILIKE matches so the first one is likely relevant
+        // If we want to be smarter, we could find an exact match string in results, but for now taking the first one is standard "I'm Feeling Lucky" behavior
+        const problem = results[0];
+        const url = topicSlug
+          ? `/problems/${problem.id}?topic=${topicSlug}`
+          : `/problems/${problem.id}`;
+        navigate(url);
+      } else {
+        // Optional: Show feedback that no problem was found
+        // For now, we can just clear the search or maybe set the filter as a fallback?
+        // Let's fallback to filtering the list so the user sees "No results" in the UI
+        setActiveSearchTitle(searchTitle);
+      }
+    } catch (error) {
+      console.error('Error searching for problem:', error);
     }
   };
 
@@ -89,6 +120,17 @@ const ProblemList: React.FC = () => {
                     placeholder="Search by ID..."
                     value={searchId}
                     onChange={(e) => setSearchId(e.target.value)}
+                    className="bg-gray-800 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none w-full md:w-32 transition-colors"
+                  />
+                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                </form>
+
+                <form onSubmit={handleTitleSearch} className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by Title..."
+                    value={searchTitle}
+                    onChange={(e) => setSearchTitle(e.target.value)}
                     className="bg-gray-800 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none w-full md:w-64 transition-colors"
                   />
                   <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />

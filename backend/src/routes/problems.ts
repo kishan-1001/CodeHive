@@ -15,9 +15,9 @@ router.get('/topics', async (req, res) => {
     }
 });
 
-// Get all problems (optionally filtered by topic slug and difficulty)
+// Get all problems (optionally filtered by topic slug, difficulty, and search term)
 router.get('/problems', async (req, res) => {
-    const { topic, difficulty } = req.query; // topic slug, difficulty
+    const { topic, difficulty, search } = req.query; // topic slug, difficulty, search term
     try {
         let query = `
       SELECT p.id, p.title, p.difficulty, p.description, 
@@ -44,6 +44,12 @@ router.get('/problems', async (req, res) => {
         if (difficulty && difficulty !== 'All') {
             conditions.push(`p.difficulty = $${params.length + 1}`);
             params.push(difficulty);
+        }
+
+        // Filter by search term (title)
+        if (search) {
+            conditions.push(`p.title ILIKE $${params.length + 1}`);
+            params.push(`%${search}%`);
         }
 
         if (conditions.length > 0) {
