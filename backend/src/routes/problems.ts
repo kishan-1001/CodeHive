@@ -1,6 +1,7 @@
 
 import { Router } from 'express';
 import { pool } from '../config/db';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
 
@@ -66,6 +67,26 @@ router.get('/problems', async (req, res) => {
     }
 });
 
+
+
+const getUserIdFromToken = (req: any) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) {
+        console.log('Problems Route: No token provided');
+        return null;
+    }
+    try {
+        const secret = process.env.JWT_SECRET || 'your-secret-key';
+        const decoded: any = jwt.verify(token, secret);
+        console.log('Problems Route: User ID from token:', decoded.id);
+        return decoded.id;
+    } catch (e) {
+        console.error('Problems Route: Token verification failed:', e);
+        return null;
+    }
+};
+
 // Get single problem by ID
 router.get('/problems/:id', async (req, res) => {
     const { id } = req.params;
@@ -84,6 +105,23 @@ router.get('/problems/:id', async (req, res) => {
             return res.status(404).json({ error: 'Problem not found' });
         }
 
+        const problem = result.rows[0];
+
+        // Check if solved
+        const userId = getUserIdFromToken(req);
+        if (userId) {
+            console.log(`Checking if problem ${id} is solved by user ${userId}`);
+            const solvedResult = await pool.query(
+                "SELECT 1 FROM submissions WHERE problem_id = $1 AND user_id = $2 AND verdict = 'AC' LIMIT 1",
+                [id, userId]
+            );
+            console.log('Solved Check Result Rows:', solvedResult.rows);
+            problem.solved = solvedResult.rows.length > 0;
+        } else {
+            console.log('No user ID found, assuming not solved');
+            problem.solved = false;
+        }
+
         // Get sample test cases
         const testCasesResult = await pool.query(`
             SELECT input, expected_output
@@ -92,7 +130,6 @@ router.get('/problems/:id', async (req, res) => {
             ORDER BY id
         `, [id]);
 
-        const problem = result.rows[0];
         problem.sample_test_cases = testCasesResult.rows;
 
         res.json(problem);
@@ -120,7 +157,21 @@ router.get('/problems/slug/:slug', async (req, res) => {
             return res.status(404).json({ error: 'Problem not found' });
         }
 
-        res.json(result.rows[0]);
+        const problem = result.rows[0];
+
+        // Check if solved
+        const userId = getUserIdFromToken(req);
+        if (userId) {
+            const solvedResult = await pool.query(
+                "SELECT 1 FROM submissions WHERE problem_id = $1 AND user_id = $2 AND verdict = 'AC' LIMIT 1",
+                [problem.id, userId]
+            );
+            problem.solved = solvedResult.rows.length > 0;
+        } else {
+            problem.solved = false;
+        }
+
+        res.json(problem);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });

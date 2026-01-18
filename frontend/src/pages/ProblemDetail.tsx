@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import { ArrowLeft, Play, Terminal } from 'lucide-react';
+import { ArrowLeft, Play, Terminal, Check } from 'lucide-react';
 import { problemsAPI, submitAPI, submissionsAPI } from '../services/api';
 import SubmissionResultModal from '../components/SubmissionResultModal';
 import SolutionModal from '../components/SolutionModal';
@@ -15,6 +15,7 @@ interface Problem {
     topics: { name: string; slug: string }[];
     sample_test_cases?: { input: string; expected_output: string }[];
     constraints?: string;
+    solved?: boolean;
 }
 
 const ProblemDetail: React.FC = () => {
@@ -263,6 +264,10 @@ const ProblemDetail: React.FC = () => {
             const result: any = await submitAPI.submitCode(code, language, problem.id);
             setSubmissionResult(result);
             setShowSubmissionModal(true);
+
+            if (result.verdict === 'accepted') {
+                setProblem(prev => prev ? { ...prev, solved: true } : null);
+            }
         } catch (error: any) {
             setSubmissionResult({
                 verdict: 'error',
@@ -432,8 +437,15 @@ const ProblemDetail: React.FC = () => {
                     <div className="max-w-3xl mx-auto space-y-6">
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-2xl font-bold">{problem.id}. {problem.title}</h2>
-                                <div className='flex gap-2'>
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-2xl font-bold">{problem.id}. {problem.title}</h2>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                    {problem.solved && (
+                                        <span className="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full text-xs font-medium border border-green-400/20 transition-all animate-fade-in mr-2">
+                                            <Check className="w-3 h-3" /> Solved
+                                        </span>
+                                    )}
                                     <button
                                         onClick={() => setShowSubmissionsModal(true)}
                                         className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg font-medium transition-colors text-sm"
