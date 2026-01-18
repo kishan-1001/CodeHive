@@ -19,16 +19,20 @@ router.get('/topics', async (req, res) => {
 // Get all problems (optionally filtered by topic slug, difficulty, and search term)
 router.get('/problems', async (req, res) => {
     const { topic, difficulty, search } = req.query; // topic slug, difficulty, search term
+    const userId = getUserIdFromToken(req);
+
     try {
         let query = `
       SELECT p.id, p.title, p.difficulty, p.description, 
-             COALESCE(json_agg(json_build_object('name', t.name, 'slug', t.slug)) FILTER (WHERE t.id IS NOT NULL), '[]') as topics
+             COALESCE(json_agg(json_build_object('name', t.name, 'slug', t.slug)) FILTER (WHERE t.id IS NOT NULL), '[]') as topics,
+             ${userId ? `EXISTS (SELECT 1 FROM submissions s WHERE s.problem_id = p.id AND s.user_id = ${userId ? '$1' : ''} AND s.verdict = 'AC') as solved` : 'false as solved'}
       FROM problems p
       LEFT JOIN problem_topics pt ON p.id = pt.problem_id
       LEFT JOIN topics t ON pt.topic_id = t.id
     `;
 
-        const params: any[] = [];
+        // If userId is present, it's the first param ($1)
+        const params: any[] = userId ? [userId] : [];
         const conditions: string[] = [];
 
         // Filter by topic

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, Search, Check } from 'lucide-react';
 import Header from '../components/Header';
 import { problemsAPI } from '../services/api';
 
@@ -10,6 +10,7 @@ interface Problem {
   description: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   topics: { name: string; slug: string }[];
+  solved?: boolean;
 }
 
 const ProblemList: React.FC = () => {
@@ -166,12 +167,13 @@ const ProblemList: React.FC = () => {
                 <div
                   key={problem.id}
                   onClick={() => handleProblemClick(problem.id.toString())}
-                  className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 hover:border-amber-400/50 cursor-pointer transition-colors"
+                  className={`bg-gray-800/50 rounded-2xl p-6 border transition-colors cursor-pointer hover:border-amber-400/50 ${problem.solved ? 'border-green-500/30' : 'border-gray-700'}`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-white hover:text-amber-400 transition-colors mb-2">
+                      <h3 className="text-xl font-semibold text-white hover:text-amber-400 transition-colors mb-2 flex items-center gap-2">
                         {problem.id}. {problem.title}
+                        {problem.solved && <Check className="w-5 h-5 text-green-400" />}
                       </h3>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ml-4 ${problem.difficulty === 'Easy' ? 'text-green-400 bg-green-400/10' :
