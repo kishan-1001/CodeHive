@@ -117,7 +117,7 @@ const ProblemList: React.FC = () => {
                 <form onSubmit={handleSearch} className="relative">
                   <input
                     type="number"
-                    placeholder="Search by ID..."
+                    placeholder="ID"
                     value={searchId}
                     onChange={(e) => setSearchId(e.target.value)}
                     className="bg-gray-800 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-700 focus:border-amber-400 outline-none w-full md:w-32 transition-colors"
