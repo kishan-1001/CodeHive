@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, Play, Building2, BookOpen } from 'lucide-react';
+import { arenaAPI } from '../services/api';
 import Header from '../components/Header';
 
 const COMPANIES = [
@@ -57,13 +58,19 @@ const InstantArena: React.FC = () => {
     }
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (selectedCompanies.length === 0 || selectedTopics.length === 0) {
-      // Could show a toast/alert here
+      alert('Please select at least one company and one topic.');
       return;
     }
-    console.log('Starting Arena with:', { companies: selectedCompanies, topics: selectedTopics });
-    // TODO: Implement navigation to the actual arena/test page
+
+    try {
+      const response = await arenaAPI.createSession(selectedCompanies, selectedTopics);
+      navigate(`/arena/${response.sessionId}`);
+    } catch (error: any) {
+      console.error('Failed to create arena session:', error);
+      alert(error.message || 'Failed to start arena session');
+    }
   };
 
   return (

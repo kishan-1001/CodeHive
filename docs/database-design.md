@@ -322,3 +322,27 @@ CREATE TABLE problem_solutions (
 
   UNIQUE (problem_id, language, solution_type)
 );
+
+🧩 6️⃣ Arena Tables
+CREATE TABLE arena_sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  total_problems INT DEFAULT 0,
+  score INT DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'abandoned')),
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ended_at TIMESTAMP,
+  
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE arena_session_problems (
+  id SERIAL PRIMARY KEY,
+  session_id INT NOT NULL,
+  problem_id INT NOT NULL,
+  order_index INT,
+  is_solved BOOLEAN DEFAULT false,
+  
+  FOREIGN KEY (session_id) REFERENCES arena_sessions(id) ON DELETE CASCADE,
+  FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+);

@@ -14,7 +14,7 @@ export const api = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
+      throw new Error(error.message || error.error || 'Something went wrong');
     }
 
     return response.json();
@@ -32,7 +32,7 @@ export const api = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
+      throw new Error(error.message || error.error || 'Something went wrong');
     }
 
     return response.json();
@@ -129,6 +129,20 @@ export const submitAPI = {
 export const submissionsAPI = {
   async getProblemSubmissions(problemId: string) {
     return api.get(`/submissions/${problemId}`);
+  },
+};
+
+export const arenaAPI = {
+  async createSession(companies: string[], topics: string[]) {
+    return api.post('/arena/create', { companies, topics });
+  },
+
+  async getSession(sessionId: string) {
+    return api.get(`/arena/${sessionId}`);
+  },
+
+  async submitSolution(data: { code: string; language: string; problem_id: number; session_id: number }) {
+    return api.post('/arena/submit', data);
   },
 };
 

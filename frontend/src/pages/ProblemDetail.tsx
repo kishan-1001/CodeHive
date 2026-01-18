@@ -173,7 +173,7 @@ const ProblemDetail: React.FC = () => {
         for (let i = 0; i < problem.sample_test_cases.length; i++) {
             const testCase = problem.sample_test_cases[i];
             try {
-                const response = await fetch('http://localhost:3001/api/execute', {
+                const response = await fetch('/api/execute', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
