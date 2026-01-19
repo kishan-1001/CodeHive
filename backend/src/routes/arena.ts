@@ -361,11 +361,15 @@ router.post('/submit', authenticateToken, async (req, res) => {
         let allPassed = true;
         let totalRuntime = 0;
 
-        // Fetch problem time limit
+        // Fetch problem time limit and difficulty
         let baseTimeLimitMs = 2000;
+        let difficulty = 'Easy';
         try {
-            const problemResult = await pool.query('SELECT time_limit_ms FROM problems WHERE id = $1', [problem_id]);
-            if (problemResult.rows.length > 0) baseTimeLimitMs = Number(problemResult.rows[0].time_limit_ms);
+            const problemResult = await pool.query('SELECT time_limit_ms, difficulty FROM problems WHERE id = $1', [problem_id]);
+            if (problemResult.rows.length > 0) {
+                baseTimeLimitMs = Number(problemResult.rows[0].time_limit_ms);
+                difficulty = problemResult.rows[0].difficulty;
+            }
         } catch (e) { }
 
         // Multiplier
@@ -441,12 +445,17 @@ router.post('/submit', authenticateToken, async (req, res) => {
         WHERE session_id = $1 AND problem_id = $2
     `, [session_id, problem_id]);
 
-        // Update Score (e.g. +100 per problem for now)
+        // Calculate points based on difficulty
+        let points = 4;
+        if (difficulty === 'Medium') points = 5;
+        if (difficulty === 'Hard') points = 6;
+
+        // Update Score
         await pool.query(`
         UPDATE arena_sessions
-        SET score = score + 100
-        WHERE id = $1
-    `, [session_id]);
+        SET score = score + $1
+        WHERE id = $2
+    `, [points, session_id]);
 
         res.json({ verdict: 'accepted', message: 'All test cases passed!' });
 

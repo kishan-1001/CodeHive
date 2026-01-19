@@ -428,7 +428,7 @@ const ArenaSession: React.FC = () => {
                                 <div className={`text-xs mt-1 ${p.difficulty === 'Easy' ? 'text-green-400' :
                                     p.difficulty === 'Medium' ? 'text-yellow-400' : 'text-red-400'
                                     }`}>
-                                    {p.difficulty}
+                                    {p.difficulty} • {p.difficulty === 'Easy' ? 4 : p.difficulty === 'Medium' ? 5 : 6} pts
                                 </div>
                             </div>
                             {p.is_solved && <Check className="w-4 h-4 text-green-400 shrink-0 ml-2" />}
@@ -453,7 +453,7 @@ const ArenaSession: React.FC = () => {
                                 currentProblem.difficulty === 'Medium' ? 'text-amber-400 bg-amber-400/10' :
                                     'text-red-400 bg-red-400/10'
                                 }`}>
-                                {currentProblem.difficulty}
+                                {currentProblem.difficulty} • {currentProblem.difficulty === 'Easy' ? 4 : currentProblem.difficulty === 'Medium' ? 5 : 6} pts
                             </span>
                         )}
                         <div className="flex items-center gap-2 text-gray-400 bg-gray-800 px-3 py-1 rounded-full text-sm ml-4">
