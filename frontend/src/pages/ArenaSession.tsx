@@ -233,6 +233,20 @@ const ArenaSession: React.FC = () => {
     useEffect(() => {
         if (!hasStarted) return;
 
+        const handleVisibilityChange = () => {
+            if (document.hidden && !isSubmitting) {
+                // Treat as violation
+                violationCountRef.current += 1;
+                setViolationCount(violationCountRef.current);
+
+                if (violationCountRef.current > WARNING_LIMIT) {
+                    handleAutoSubmitAll("Too many security violations (Tab Switch)");
+                } else {
+                    setShowWarningOverlay(true);
+                }
+            }
+        };
+
         const handleCopyPaste = (e: ClipboardEvent) => {
             e.preventDefault();
 
@@ -253,12 +267,14 @@ const ArenaSession: React.FC = () => {
             e.preventDefault();
         };
 
+        document.addEventListener('visibilitychange', handleVisibilityChange);
         document.addEventListener('copy', handleCopyPaste);
         document.addEventListener('cut', handleCopyPaste);
         document.addEventListener('paste', handleCopyPaste);
         document.addEventListener('contextmenu', handleContextMenu);
 
         return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
             document.removeEventListener('copy', handleCopyPaste);
             document.removeEventListener('cut', handleCopyPaste);
             document.removeEventListener('paste', handleCopyPaste);
@@ -522,6 +538,7 @@ const ArenaSession: React.FC = () => {
                                     <strong className="block text-red-400 mb-1">Strict Anti-Cheat Policy</strong>
                                     <ul className="list-disc list-inside space-y-1 text-red-200/80">
                                         <li>You must remain in full-screen mode.</li>
+                                        <li><strong>No Tab Switching</strong> (Alt+Tab, minimizing).</li>
                                         <li><strong>No Copy/Paste allowed.</strong> Attempts will be recorded as violations.</li>
                                     </ul>
                                 </div>
