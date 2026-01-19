@@ -47,6 +47,7 @@ const ArenaSession: React.FC = () => {
     const [violationCount, setViolationCount] = useState(0);
     const violationCountRef = useRef(0);
     const [showWarningOverlay, setShowWarningOverlay] = useState(false);
+    const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
     const WARNING_LIMIT = 3;
 
     // Editor State
@@ -284,7 +285,11 @@ const ArenaSession: React.FC = () => {
 
     // Finish Session Manually
     const handleFinish = async () => {
-        if (!confirm("Are you sure you want to finish the exam? This cannot be undone.")) return;
+        setShowFinishConfirmation(true);
+    };
+
+    const confirmFinish = () => {
+        setShowFinishConfirmation(false);
         handleAutoSubmitAll("User Finished");
     };
 
@@ -602,6 +607,40 @@ const ArenaSession: React.FC = () => {
                 </div>
             )}
 
+            {/* 3. Finish Confirmation Modal */}
+            {
+                showFinishConfirmation && (
+                    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 transition-all duration-300 animate-in fade-in">
+                        <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden ring-1 ring-white/10">
+                            <div className="absolute top-0 right-0 p-24 bg-amber-500/5 blur-3xl rounded-full pointer-events-none" />
+
+                            <div className="relative z-10">
+                                <h2 className="text-2xl font-bold text-white mb-3">Finish Exam?</h2>
+                                <p className="text-gray-400 mb-8 leading-relaxed">
+                                    Are you sure you want to submit your exam now? <br />
+                                    This cannot be undone and your session will end.
+                                </p>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => setShowFinishConfirmation(false)}
+                                        className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors border border-gray-700"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={confirmFinish} // Using the new function
+                                        className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-red-900/20"
+                                    >
+                                        Finish & Submit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
             {/* Left Sidebar - Problem List (Arena Specific) */}
             <div className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0">
                 <div className="p-4 border-b border-gray-800">
@@ -869,15 +908,17 @@ const ArenaSession: React.FC = () => {
             </div>
 
             {/* Submission Result Modal */}
-            {submissionResult && (
-                <SubmissionResultModal
-                    isOpen={showSubmissionModal}
-                    onClose={() => setShowSubmissionModal(false)}
-                    verdict={submissionResult.verdict}
-                    message={submissionResult.message}
-                />
-            )}
-        </div>
+            {
+                submissionResult && (
+                    <SubmissionResultModal
+                        isOpen={showSubmissionModal}
+                        onClose={() => setShowSubmissionModal(false)}
+                        verdict={submissionResult.verdict}
+                        message={submissionResult.message}
+                    />
+                )
+            }
+        </div >
     );
 };
 
