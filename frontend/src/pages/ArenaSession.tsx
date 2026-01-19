@@ -229,6 +229,43 @@ const ArenaSession: React.FC = () => {
     }, [hasStarted, isSubmitting]);
 
 
+    // Proctoring: Disable Copy/Paste & Count as Violation
+    useEffect(() => {
+        if (!hasStarted) return;
+
+        const handleCopyPaste = (e: ClipboardEvent) => {
+            e.preventDefault();
+
+            // Treat as violation
+            violationCountRef.current += 1;
+            setViolationCount(violationCountRef.current);
+
+            // Logic: if current count > limit, we terminate.
+            // But we also want to show the overlay to "Warn" them if they are still within limit.
+            if (violationCountRef.current > WARNING_LIMIT) {
+                handleAutoSubmitAll("Too many security violations (Copy/Paste)");
+            } else {
+                setShowWarningOverlay(true);
+            }
+        };
+
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+        };
+
+        document.addEventListener('copy', handleCopyPaste);
+        document.addEventListener('cut', handleCopyPaste);
+        document.addEventListener('paste', handleCopyPaste);
+        document.addEventListener('contextmenu', handleContextMenu);
+
+        return () => {
+            document.removeEventListener('copy', handleCopyPaste);
+            document.removeEventListener('cut', handleCopyPaste);
+            document.removeEventListener('paste', handleCopyPaste);
+            document.removeEventListener('contextmenu', handleContextMenu);
+        };
+    }, [hasStarted]);
+
     // Finish Session Manually
     const handleFinish = async () => {
         if (!confirm("Are you sure you want to finish the exam? This cannot be undone.")) return;
@@ -478,11 +515,19 @@ const ArenaSession: React.FC = () => {
                             You are about to enter a timed, proctored environment.
                         </p>
 
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8 max-w-lg w-full flex gap-3 text-left">
-                            <AlertTriangle className="w-6 h-6 text-red-400 shrink-0" />
-                            <div className="text-sm text-red-200">
-                                <strong className="block text-red-400 mb-1">Strict Anti-Cheat Policy</strong>
-                                You must remain in full-screen mode. You have <span className="font-bold underline">3 warnings</span>.
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8 max-w-lg w-full text-left space-y-3">
+                            <div className="flex gap-3">
+                                <AlertTriangle className="w-6 h-6 text-red-400 shrink-0" />
+                                <div className="text-sm text-red-200">
+                                    <strong className="block text-red-400 mb-1">Strict Anti-Cheat Policy</strong>
+                                    <ul className="list-disc list-inside space-y-1 text-red-200/80">
+                                        <li>You must remain in full-screen mode.</li>
+                                        <li><strong>No Copy/Paste allowed.</strong> Attempts will be recorded as violations.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div className="pl-9 text-xs text-red-400/80 border-t border-red-500/10 pt-2">
+                                You have <span className="font-bold underline">3 warnings</span> total.
                                 On the 4th violation, the exam will <span className="font-bold">automatically submit</span>.
                             </div>
                         </div>
