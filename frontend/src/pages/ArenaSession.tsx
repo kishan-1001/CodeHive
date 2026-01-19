@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import { ArrowLeft, Play, Terminal, Check, List, Clock } from 'lucide-react';
+import { ArrowLeft, Play, Terminal, Check, List, Clock, Maximize, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { arenaAPI, problemsAPI } from '../services/api';
 import SubmissionResultModal from '../components/SubmissionResultModal';
 
@@ -39,43 +39,21 @@ const ArenaSession: React.FC = () => {
     const [timeLeft, setTimeLeft] = useState<string>('00:00:00');
     const [isExpired, setIsExpired] = useState(false);
 
+    // Proctoring State
+    const [hasStarted, setHasStarted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-
-    // Initialize Timer
-    useEffect(() => {
-        if (!session?.expires_at) return;
-
-        const interval = setInterval(() => {
-            const now = new Date().getTime();
-            const expires = new Date(session.expires_at).getTime();
-            const diff = expires - now;
-
-            if (diff <= 0) {
-                clearInterval(interval);
-                setTimeLeft('00:00:00');
-                if (!isExpired) {
-                    setIsExpired(true);
-                    handleAutoSubmitAll();
-                }
-            } else {
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                setTimeLeft(
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-                );
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [session?.expires_at, isExpired, sessionProblems, drafts]); // dep on drafts/problems for auto-submit closure if needed
+    // Warning System State
+    const [violationCount, setViolationCount] = useState(0);
+    const violationCountRef = useRef(0);
+    const [showWarningOverlay, setShowWarningOverlay] = useState(false);
+    const WARNING_LIMIT = 3;
 
     // Editor State
     const [code, setCode] = useState<string>('// Loading...');
     const [language, setLanguage] = useState<string>('cpp');
     const [testResults, setTestResults] = useState<{ [key: number]: { actual: string; verdict: string; passed: boolean } }>({});
     const [isRunning, setIsRunning] = useState<boolean>(false);
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submissionResult, setSubmissionResult] = useState<{ verdict: string; message: string } | null>(null);
     const [showSubmissionModal, setShowSubmissionModal] = useState<boolean>(false);
 
@@ -118,7 +96,6 @@ const ArenaSession: React.FC = () => {
                 setLoading(true);
                 const data = await arenaAPI.getSession(sessionId);
                 setSession(data.session);
-                // Ensure proper typing or mapping if needed
                 setSessionProblems(data.problems);
             } catch (error) {
                 console.error('Failed to load session:', error);
@@ -131,43 +108,54 @@ const ArenaSession: React.FC = () => {
         loadSession();
     }, [sessionId]);
 
-    // Finish Session
-    const handleFinish = async () => {
-        if (!confirm("Are you sure you want to finish the exam? This cannot be undone.")) return;
+    // Initialize Timer
+    useEffect(() => {
+        if (!session?.expires_at) return;
 
-        try {
-            await arenaAPI.finishSession(sessionId!);
-            navigate(`/arena/${sessionId}/feedback`);
-        } catch (error) {
-            console.error('Failed to finish session:', error);
-            alert('Failed to finish session. Please try again.');
-        }
-    };
+        const interval = setInterval(() => {
+            const now = new Date().getTime();
+            const expires = new Date(session.expires_at).getTime();
+            const diff = expires - now;
 
-    // Auto Submit All
-    const handleAutoSubmitAll = async () => {
-        // Prevent multiple calls
+            if (diff <= 0) {
+                clearInterval(interval);
+                setTimeLeft('00:00:00');
+                if (!isExpired) {
+                    setIsExpired(true);
+                    handleAutoSubmitAll('Time Expired');
+                }
+            } else {
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                setTimeLeft(
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                );
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [session?.expires_at, isExpired]);
+
+
+    // Auto Submit All Wrapper
+    const handleAutoSubmitAll = async (reason: string = "Time's Up!") => {
         if (isSubmitting) return;
         setIsSubmitting(true);
-        alert("Time's Up! Submitting all solutions...");
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(err => console.log(err));
+        }
+
+        console.log(`Auto-submitting due to: ${reason}`);
 
         for (const p of sessionProblems) {
             const codeToSubmit = drafts[p.id];
-            if (!codeToSubmit) continue; // Skip if no code written
-
-            // Determine language... simplistic assumption: single language for session? 
-            // OR we store language in drafts too? 
-            // For now, assume current 'language' state is used? 
-            // FAILURE POINT: User might use different languages for different problems.
-            // Drafts should ideally store {code, language}.
-            // Simplification: We use the current selected language for everything or just what's in 'language'.
-            // Given constraints, we'll try to submit with current 'language'. 
-            // Ideally we'd map drafts to language.
+            if (!codeToSubmit) continue;
 
             try {
                 await arenaAPI.submitSolution({
                     code: codeToSubmit,
-                    language: language, // Potential issue if they switched langs
+                    language: language,
                     problem_id: p.id,
                     session_id: session.id
                 });
@@ -180,7 +168,74 @@ const ArenaSession: React.FC = () => {
         navigate(`/arena/${sessionId}/feedback`);
     };
 
-    // Modified Effect for Switching Problems (Handling Drafts)
+    // Proctoring: Start Exam (Enter Fullscreen)
+    const handleStartExam = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                setHasStarted(true);
+                // Reset warnings on start just in case
+                violationCountRef.current = 0;
+                setViolationCount(0);
+            }).catch(err => {
+                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            setHasStarted(true);
+        }
+    };
+
+    // Proctoring: Resume Exam (Re-enter Fullscreen)
+    const handleResumeExam = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                setShowWarningOverlay(false);
+            }).catch(err => {
+                console.error("Failed to re-enter full screen", err);
+            });
+        }
+    };
+
+    // Proctoring: Monitor Fullscreen Exit
+    useEffect(() => {
+        // Only monitor if exam has started
+        if (!hasStarted) return;
+
+        const handleFullScreenChange = () => {
+            // If we lost full screen AND we are not currently submitting
+            if (!document.fullscreenElement && !isSubmitting) {
+                // Increment violation count
+                violationCountRef.current += 1;
+                setViolationCount(violationCountRef.current);
+
+                // Check limits
+                // Rules: 3 warnings allowed. 4th violation = termination.
+                // So if count > 3, terminate.
+                if (violationCountRef.current > WARNING_LIMIT) {
+                    handleAutoSubmitAll("Too many security violations");
+                } else {
+                    // Show warning overlay
+                    setShowWarningOverlay(true);
+                }
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullScreenChange);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullScreenChange);
+        };
+    }, [hasStarted, isSubmitting]);
+
+
+    // Finish Session Manually
+    const handleFinish = async () => {
+        if (!confirm("Are you sure you want to finish the exam? This cannot be undone.")) return;
+        handleAutoSubmitAll("User Finished");
+    };
+
+    // Code Loading & Template Logic
     useEffect(() => {
         const fetchProblemDetails = async () => {
             if (sessionProblems.length === 0) return;
@@ -195,20 +250,15 @@ const ArenaSession: React.FC = () => {
                     solved: basicProblem.is_solved
                 });
 
-                // Reset specific UI states
                 setTestResults({});
                 setSubmissionResult(null);
 
-                // Code Loading Logic: Draft -> Template -> Fallback
                 if (drafts[basicProblem.id]) {
                     setCode(drafts[basicProblem.id]);
                 } else {
                     try {
                         const template = await problemsAPI.getProblemTemplate(basicProblem.id.toString(), language);
                         setCode(template.starter_code);
-                        // Save initial template to draft strictly? No, only on edit.
-                        // But to be safe for auto-submit "empty" or "template" code? 
-                        // Let's NOT save template to draft to avoid auto-submitting untouched problems.
                     } catch {
                         const langKey = language as keyof typeof boilerplateCode;
                         setCode(boilerplateCode[langKey] || '// Write code here');
@@ -223,13 +273,12 @@ const ArenaSession: React.FC = () => {
         };
 
         fetchProblemDetails();
-    }, [currentIndex, sessionProblems]); // Removed drafts and language dependencies to avoid flicker
+    }, [currentIndex, sessionProblems]);
 
     // Re-fetch template when language changes
     useEffect(() => {
         if (!currentProblem) return;
         const fetchTemplate = async () => {
-            // Only fetch template if there's no draft for the current problem
             if (!drafts[currentProblem.id]) {
                 try {
                     const template = await problemsAPI.getProblemTemplate(currentProblem.id.toString(), language);
@@ -243,7 +292,6 @@ const ArenaSession: React.FC = () => {
         fetchTemplate();
     }, [language, currentProblem?.id]);
 
-    // Editor Change Handler wrapper
     const handleCodeChange = (value: string | undefined) => {
         const newCode = value || '';
         setCode(newCode);
@@ -252,12 +300,9 @@ const ArenaSession: React.FC = () => {
         }
     };
 
-
-    // Handlers
+    // Run Logic
     const handleRun = async () => {
-        if (!currentProblem?.sample_test_cases || currentProblem.sample_test_cases.length === 0) {
-            return;
-        }
+        if (!currentProblem?.sample_test_cases || currentProblem.sample_test_cases.length === 0) return;
 
         setIsRunning(true);
         setTestResults({});
@@ -311,7 +356,7 @@ const ArenaSession: React.FC = () => {
 
                     newResults[i] = { actual: `${verdict}: ${errorMessage}`, verdict, passed: false };
 
-                    // Highlight line if available
+
                     if (error.line && monacoRef.current && editorRef.current) {
                         const model = editorRef.current.getModel();
                         monacoRef.current.editor.setModelMarkers(model, 'owner', [
@@ -348,7 +393,6 @@ const ArenaSession: React.FC = () => {
         setSubmissionResult(null);
 
         try {
-            // Use Arena Submit API which likely updates session score too
             const result: any = await arenaAPI.submitSolution({
                 code,
                 language,
@@ -360,7 +404,6 @@ const ArenaSession: React.FC = () => {
             setShowSubmissionModal(true);
 
             if (result.verdict === 'accepted') {
-                // Update local session list to show checkmark
                 const newProblems = [...sessionProblems];
                 newProblems[currentIndex].is_solved = true;
                 setSessionProblems(newProblems);
@@ -377,7 +420,7 @@ const ArenaSession: React.FC = () => {
         }
     };
 
-    // Resizers
+    // Resizers logic
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
         const startX = e.clientX;
@@ -401,7 +444,6 @@ const ArenaSession: React.FC = () => {
         const startHeight = testCaseHeight;
         const handleMouseMove = (e: MouseEvent) => {
             const deltaY = e.clientY - startY;
-            // approx height, simpler than Window calc
             const deltaPercent = (deltaY / window.innerHeight) * 100;
             setTestCaseHeight(Math.max(10, Math.min(90, startHeight - deltaPercent)));
         };
@@ -416,8 +458,88 @@ const ArenaSession: React.FC = () => {
 
     if (loading) return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div></div>;
 
+    // 1. Proctoring Overlay (Initial)
+    if (!hasStarted) {
+        return (
+            <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-center p-6">
+                <div className="max-w-2xl w-full bg-gray-900 p-10 rounded-3xl border border-gray-800 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-1000" />
+
+                    <div className="relative z-10 flex flex-col items-center">
+                        <div className="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 ring-1 ring-amber-500/20">
+                            <Maximize className="w-10 h-10 text-amber-400" />
+                        </div>
+
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-4">
+                            Proctored Exam
+                        </h1>
+
+                        <p className="text-gray-400 text-lg mb-8 max-w-lg leading-relaxed">
+                            You are about to enter a timed, proctored environment.
+                        </p>
+
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8 max-w-lg w-full flex gap-3 text-left">
+                            <AlertTriangle className="w-6 h-6 text-red-400 shrink-0" />
+                            <div className="text-sm text-red-200">
+                                <strong className="block text-red-400 mb-1">Strict Anti-Cheat Policy</strong>
+                                You must remain in full-screen mode. You have <span className="font-bold underline">3 warnings</span>.
+                                On the 4th violation, the exam will <span className="font-bold">automatically submit</span>.
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleStartExam}
+                            className="px-8 py-4 text-white font-semibold bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl hover:from-amber-600 hover:to-orange-700 hover:shadow-lg transition-all"
+                        >
+                            Enter Arena & Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
+        <div className="flex h-screen bg-gray-900 text-white overflow-hidden relative">
+
+            {/* 2. Warning Overlay (Blocking) */}
+            {showWarningOverlay && (
+                <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 transition-all duration-300 animate-in fade-in">
+                    <div className="max-w-md w-full bg-gray-900 border border-red-500/50 rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
+                        <div className="relative z-10">
+                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 ring-1 ring-red-500/40">
+                                <ShieldAlert className="w-8 h-8 text-red-500" />
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-white mb-2">Security Violation</h2>
+                            <p className="text-red-400 font-medium mb-6">
+                                You exited full-screen mode. This is recorded as a violation.
+                            </p>
+
+                            <div className="flex items-center justify-center gap-2 text-3xl font-black text-white mb-8">
+                                <span className="text-red-500">{violationCount}</span>
+                                <span className="text-gray-600">/</span>
+                                <span className="text-gray-400">{WARNING_LIMIT}</span>
+                                <span className="text-sm font-normal text-gray-500 ml-2 self-end mb-1">Warnings Used</span>
+                            </div>
+
+                            <p className="text-sm text-gray-400 mb-8">
+                                Please return to the exam environment immediately.
+                                <br />Further violations will result in auto-submission.
+                            </p>
+
+                            <button
+                                onClick={handleResumeExam}
+                                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-red-900/20"
+                            >
+                                Resume Exam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Left Sidebar - Problem List (Arena Specific) */}
             <div className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0">
                 <div className="p-4 border-b border-gray-800">
@@ -475,6 +597,13 @@ const ArenaSession: React.FC = () => {
                             <Clock className="w-4 h-4" />
                             <span>{timeLeft}</span>
                         </div>
+                        {/* Warnings Display inside Header */}
+                        {violationCount > 0 && (
+                            <div className="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20 ml-2">
+                                <AlertTriangle className="w-4 h-4 text-red-500" />
+                                <span className="text-xs font-bold text-red-400">Warnings: {violationCount}/{WARNING_LIMIT}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-4">
