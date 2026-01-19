@@ -144,5 +144,13 @@ export const arenaAPI = {
   async submitSolution(data: { code: string; language: string; problem_id: number; session_id: number }) {
     return api.post('/arena/submit', data);
   },
+
+  async finishSession(sessionId: string) {
+    return api.post('/arena/finish', { sessionId });
+  },
+
+  async getSubmissions(problemId: number) {
+    return api.get(`/submissions/${problemId}`);
+  },
 };
 

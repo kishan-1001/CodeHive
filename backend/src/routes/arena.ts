@@ -465,4 +465,28 @@ router.post('/submit', authenticateToken, async (req, res) => {
     }
 });
 
+
+// 4. Finish Session
+router.post('/finish', authenticateToken, async (req, res) => {
+    const { sessionId } = req.body;
+    const user_id = (req as any).user.id;
+
+    if (!sessionId) {
+        return res.status(400).json({ error: 'Session ID is required' });
+    }
+
+    try {
+        await pool.query(`
+            UPDATE arena_sessions 
+            SET status = 'completed', expires_at = NOW() 
+            WHERE id = $1 AND user_id = $2
+        `, [sessionId, user_id]);
+
+        res.json({ message: 'Session completed successfully' });
+    } catch (error) {
+        console.error('Error finishing session:', error);
+        res.status(500).json({ error: 'Failed to finish session' });
+    }
+});
+
 export default router;

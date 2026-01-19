@@ -8,6 +8,7 @@ import submitRoutes from './routes/submit';
 import submissionsRoutes from './routes/submissions';
 import passwordResetRoutes from './routes/passwordReset';
 import arenaRoutes from './routes/arena';
+import aiRoutes from './routes/ai';
 
 import session from 'express-session';
 import passport from 'passport';
@@ -37,6 +38,7 @@ app.use('/api/problems', problemsRoutes);
 app.use('/api/submit', submitRoutes);
 app.use('/api/submissions', submissionsRoutes);
 app.use('/api/arena', arenaRoutes);
+app.use('/api/ai', aiRoutes); // [NEW]
 
 // Health check
 app.get('/api/health', (req, res) => {

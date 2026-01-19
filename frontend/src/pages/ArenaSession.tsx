@@ -131,6 +131,19 @@ const ArenaSession: React.FC = () => {
         loadSession();
     }, [sessionId]);
 
+    // Finish Session
+    const handleFinish = async () => {
+        if (!confirm("Are you sure you want to finish the exam? This cannot be undone.")) return;
+
+        try {
+            await arenaAPI.finishSession(sessionId!);
+            navigate(`/arena/${sessionId}/feedback`);
+        } catch (error) {
+            console.error('Failed to finish session:', error);
+            alert('Failed to finish session. Please try again.');
+        }
+    };
+
     // Auto Submit All
     const handleAutoSubmitAll = async () => {
         // Prevent multiple calls
@@ -164,7 +177,7 @@ const ArenaSession: React.FC = () => {
         }
 
         setIsSubmitting(false);
-        navigate(`/arena/${sessionId}/summary`); // Or similar
+        navigate(`/arena/${sessionId}/feedback`);
     };
 
     // Modified Effect for Switching Problems (Handling Drafts)
@@ -436,9 +449,11 @@ const ArenaSession: React.FC = () => {
                     ))}
                 </div>
                 <div className="p-4 border-t border-gray-800">
-                    <button onClick={() => navigate('/contest')} className="w-full py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-400 transition-colors flex items-center justify-center gap-2">
-                        <ArrowLeft className="w-4 h-4" /> Exit Arena
-                    </button>
+                    <div className="p-4 border-t border-gray-800">
+                        <button onClick={handleFinish} className="w-full py-2 bg-red-600 hover:bg-red-500 rounded font-medium text-white transition-colors flex items-center justify-center gap-2">
+                            Finish Exam
+                        </button>
+                    </div>
                 </div>
             </div>
 

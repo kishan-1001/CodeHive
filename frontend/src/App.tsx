@@ -9,6 +9,7 @@ import ProblemList from "./pages/ProblemList.tsx";
 import ProblemDetail from "./pages/ProblemDetail.tsx";
 import InstantArena from "./pages/InstantArena.tsx";
 import ArenaSession from "./pages/ArenaSession.tsx";
+import ArenaFeedback from "./pages/ArenaFeedback.tsx";
 import WeeklyContest from "./pages/WeeklyContest.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
@@ -28,6 +29,7 @@ const App: React.FC = () => {
       <Route path="/problems/:id" element={<ProblemDetail />} />
       <Route path="/contest" element={<InstantArena />} />
       <Route path="/arena/:sessionId" element={<ArenaSession />} />
+      <Route path="/arena/:sessionId/feedback" element={<ArenaFeedback />} />
       <Route path="/weekly-contest" element={<WeeklyContest />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/legal" element={<Legal />} />
