@@ -16,6 +16,17 @@ import AuthCallback from "./pages/AuthCallback.tsx";
 import Legal from "./pages/Legal.tsx";
 
 
+import AdminRoute from "./components/auth/AdminRoute.tsx";
+import AdminLayout from "./layouts/AdminLayout.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import ProblemManagement from "./pages/admin/ProblemManagement.tsx";
+import ProblemCreate from "./pages/admin/ProblemCreate.tsx";
+import ProblemEdit from "./pages/admin/ProblemEdit.tsx";
+import ContestManagement from "./pages/admin/ContestManagement.tsx";
+import ContestCreate from "./pages/admin/ContestCreate.tsx";
+import ContestEdit from "./pages/admin/ContestEdit.tsx";
+import UserManagement from "./pages/admin/UserManagement.tsx";
+
 const App: React.FC = () => {
   return (
     <Routes>
@@ -36,6 +47,20 @@ const App: React.FC = () => {
 
       <Route path="/editor" element={<HomeCodeEditor />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="problems" element={<ProblemManagement />} />
+          <Route path="problems/create" element={<ProblemCreate />} />
+          <Route path="problems/:id/edit" element={<ProblemEdit />} />
+          <Route path="contests" element={<ContestManagement />} />
+          <Route path="contests/create" element={<ContestCreate />} />
+          <Route path="contests/:id/edit" element={<ContestEdit />} />
+          <Route path="users" element={<UserManagement />} />
+        </Route>
+      </Route>
     </Routes>
   );
 };

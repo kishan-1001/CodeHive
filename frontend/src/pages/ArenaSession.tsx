@@ -268,11 +268,31 @@ const ArenaSession: React.FC = () => {
             e.preventDefault();
         };
 
+        const handlePopState = (e: PopStateEvent) => {
+            e.preventDefault();
+            // Re-push state to keep user on the same page
+            window.history.pushState(null, '', window.location.href);
+
+            // Treat as violation
+            violationCountRef.current += 1;
+            setViolationCount(violationCountRef.current);
+
+            if (violationCountRef.current > WARNING_LIMIT) {
+                handleAutoSubmitAll("Too many security violations (Back Navigation)");
+            } else {
+                setShowWarningOverlay(true);
+            }
+        };
+
+        // Initialize history trap
+        window.history.pushState(null, '', window.location.href);
+
         document.addEventListener('visibilitychange', handleVisibilityChange);
         document.addEventListener('copy', handleCopyPaste);
         document.addEventListener('cut', handleCopyPaste);
         document.addEventListener('paste', handleCopyPaste);
         document.addEventListener('contextmenu', handleContextMenu);
+        window.addEventListener('popstate', handlePopState);
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -280,6 +300,7 @@ const ArenaSession: React.FC = () => {
             document.removeEventListener('cut', handleCopyPaste);
             document.removeEventListener('paste', handleCopyPaste);
             document.removeEventListener('contextmenu', handleContextMenu);
+            window.removeEventListener('popstate', handlePopState);
         };
     }, [hasStarted]);
 

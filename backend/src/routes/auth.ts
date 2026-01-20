@@ -93,7 +93,7 @@ router.post('/verify-otp', async (req, res) => {
 
     // Find user
     const userResult = await pool.query(
-      'SELECT id, name, email FROM users WHERE id = $1',
+      'SELECT id, name, email, role FROM users WHERE id = $1',
       [otpRecord.user_id]
     );
 
@@ -105,7 +105,7 @@ router.post('/verify-otp', async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
@@ -113,7 +113,7 @@ router.post('/verify-otp', async (req, res) => {
     res.json({
       message: 'Account verified successfully',
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email, role: user.role }
     });
   } catch (error) {
     console.error('Verify OTP error:', error);
@@ -127,7 +127,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     // Find user
-    const result = await pool.query('SELECT id, name, email, password FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT id, name, email, password, role FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -147,12 +147,12 @@ router.post('/login', async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -173,7 +173,7 @@ router.get(
     const user = req.user as any;
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
@@ -197,7 +197,7 @@ router.get(
     const user = req.user as any;
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );

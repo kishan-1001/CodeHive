@@ -109,6 +109,22 @@ const ArenaFeedback: React.FC = () => {
         fetchSessionData();
     }, [sessionId]);
 
+    // Handle Back Button -> Redirect to Instant Arena
+    useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            event.preventDefault();
+            navigate('/contest', { replace: true });
+        };
+
+        // Push state to trap the back button
+        window.history.pushState(null, '', window.location.href);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [navigate]);
+
     const handleGenerateFeedback = async (problem: ProblemResult) => {
         if (!problem.user_code || analyzingMap[problem.id]) return;
 

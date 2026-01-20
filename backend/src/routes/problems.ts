@@ -16,6 +16,17 @@ router.get('/topics', async (req, res) => {
     }
 });
 
+// Get all companies
+router.get('/companies', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM companies ORDER BY name');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Get all problems (optionally filtered by topic slug, difficulty, and search term)
 router.get('/problems', async (req, res) => {
     const { topic, difficulty, search } = req.query; // topic slug, difficulty, search term
@@ -97,7 +108,7 @@ router.get('/problems/:id', async (req, res) => {
     try {
         const result = await pool.query(`
       SELECT p.*,
-             COALESCE(json_agg(json_build_object('name', t.name, 'slug', t.slug)) FILTER (WHERE t.id IS NOT NULL), '[]') as topics
+             COALESCE(json_agg(json_build_object('id', t.id, 'name', t.name, 'slug', t.slug)) FILTER (WHERE t.id IS NOT NULL), '[]') as topics
       FROM problems p
       LEFT JOIN problem_topics pt ON p.id = pt.problem_id
       LEFT JOIN topics t ON pt.topic_id = t.id
@@ -149,7 +160,7 @@ router.get('/problems/slug/:slug', async (req, res) => {
     try {
         const result = await pool.query(`
       SELECT p.*,
-             COALESCE(json_agg(json_build_object('name', t.name, 'slug', t.slug)) FILTER (WHERE t.id IS NOT NULL), '[]') as topics
+             COALESCE(json_agg(json_build_object('id', t.id, 'name', t.name, 'slug', t.slug)) FILTER (WHERE t.id IS NOT NULL), '[]') as topics
       FROM problems p
       LEFT JOIN problem_topics pt ON p.id = pt.problem_id
       LEFT JOIN topics t ON pt.topic_id = t.id
