@@ -44,11 +44,29 @@ router.post('/', async (req, res) => {
 
         // Insert companies (assuming existing table or text based)
         // Note: Basic implementation, expand as needed for companies table if normalized
+        // Insert companies (check if exists, get id, or insert new)
         if (companies && companies.length > 0) {
-            for (const company of companies) {
+            for (const companyName of companies) {
+                let companyId;
+
+                // Check if company exists
+                const companyResult = await pool.query('SELECT id FROM companies WHERE name = $1', [companyName]);
+
+                if (companyResult.rows.length > 0) {
+                    companyId = companyResult.rows[0].id;
+                } else {
+                    // Insert new company
+                    const newCompanyResult = await pool.query(
+                        'INSERT INTO companies (name) VALUES ($1) RETURNING id',
+                        [companyName]
+                    );
+                    companyId = newCompanyResult.rows[0].id;
+                }
+
+                // Insert into problem_companies
                 await pool.query(
-                    'INSERT INTO problem_companies (problem_id, company_name) VALUES ($1, $2)',
-                    [problemId, company]
+                    'INSERT INTO problem_companies (problem_id, company_id) VALUES ($1, $2)',
+                    [problemId, companyId]
                 );
             }
         }
@@ -90,10 +108,26 @@ router.put('/:id', async (req, res) => {
         // Update companies
         await pool.query('DELETE FROM problem_companies WHERE problem_id = $1', [id]);
         if (companies && companies.length > 0) {
-            for (const company of companies) {
+            for (const companyName of companies) {
+                let companyId;
+
+                // Check if company exists
+                const companyResult = await pool.query('SELECT id FROM companies WHERE name = $1', [companyName]);
+
+                if (companyResult.rows.length > 0) {
+                    companyId = companyResult.rows[0].id;
+                } else {
+                    // Insert new company
+                    const newCompanyResult = await pool.query(
+                        'INSERT INTO companies (name) VALUES ($1) RETURNING id',
+                        [companyName]
+                    );
+                    companyId = newCompanyResult.rows[0].id;
+                }
+
                 await pool.query(
-                    'INSERT INTO problem_companies (problem_id, company_name) VALUES ($1, $2)',
-                    [id, company]
+                    'INSERT INTO problem_companies (problem_id, company_id) VALUES ($1, $2)',
+                    [id, companyId]
                 );
             }
         }
@@ -123,6 +157,48 @@ router.delete('/:id', async (req, res) => {
         await pool.query('COMMIT');
 
         res.json({ message: 'Problem deleted successfully' });
+    } catch (err: any) {
+        await pool.query('ROLLBACK');
+        console.error(err);
+        res.status(500).json({ error: err.message || 'Server error' });
+    }
+});
+
+
+// Save a solution (Admin only) - Note: :id here is problem_id
+router.post('/:id/solutions', async (req, res) => {
+    const { id } = req.params;
+    const { language, solution_type, explanation, code, time_complexity, space_complexity } = req.body;
+
+    try {
+        await pool.query('BEGIN');
+
+        // Check if solution exists
+        const checkRes = await pool.query(
+            'SELECT id FROM problem_solutions WHERE problem_id = $1 AND language = $2 AND solution_type = $3',
+            [id, language, solution_type]
+        );
+
+        if (checkRes.rows.length > 0) {
+            // Update
+            await pool.query(
+                `UPDATE problem_solutions 
+                 SET explanation = $1, code = $2, time_complexity = $3, space_complexity = $4
+                 WHERE id = $5`,
+                [explanation, code, time_complexity, space_complexity, checkRes.rows[0].id]
+            );
+        } else {
+            // Insert
+            await pool.query(
+                `INSERT INTO problem_solutions 
+                 (problem_id, language, solution_type, explanation, code, time_complexity, space_complexity)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [id, language, solution_type, explanation, code, time_complexity, space_complexity]
+            );
+        }
+
+        await pool.query('COMMIT');
+        res.json({ message: 'Solution saved successfully' });
     } catch (err: any) {
         await pool.query('ROLLBACK');
         console.error(err);

@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import TestCaseManager from './TestCaseManager';
 import TemplateManager from './TemplateManager';
+import SolutionManager from './SolutionManager';
 
 const ProblemEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -79,6 +80,11 @@ const ProblemEdit: React.FC = () => {
             {/* Template Management */}
             <div className="border-t border-gray-800 my-8 pt-8">
                 <TemplateManager problemId={id!} />
+            </div>
+
+            {/* Solution Management */}
+            <div className="border-t border-gray-800 my-8 pt-8">
+                <SolutionManager problemId={id!} />
             </div>
         </div>
     );

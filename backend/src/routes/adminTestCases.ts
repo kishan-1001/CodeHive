@@ -35,8 +35,8 @@ router.post('/:problemId/test-cases', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'INSERT INTO test_cases (problem_id, input, expected_output, is_sample, is_hidden) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [problemId, input, expected_output, is_sample || false, is_hidden || false]
+            'INSERT INTO test_cases (problem_id, input, expected_output, is_sample) VALUES ($1, $2, $3, $4) RETURNING *',
+            [problemId, input, expected_output, is_sample || false]
         );
         res.status(201).json(result.rows[0]);
     } catch (err: any) {

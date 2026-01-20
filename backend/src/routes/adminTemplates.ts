@@ -33,15 +33,32 @@ router.post('/:problemId/templates', async (req, res) => {
     }
 
     try {
-        // Upsert logic
-        const result = await pool.query(
-            `INSERT INTO problem_templates (problem_id, language, starter_code, wrapper_code)
-             VALUES ($1, $2, $3, $4)
-             ON CONFLICT (problem_id, language)
-             DO UPDATE SET starter_code = $3, wrapper_code = $4
-             RETURNING *`,
-            [problemId, language, starter_code, wrapper_code || '']
+        // Check if template exists
+        const checkRes = await pool.query(
+            'SELECT id FROM problem_templates WHERE problem_id = $1 AND language = $2',
+            [problemId, language]
         );
+
+        let result;
+        if (checkRes.rows.length > 0) {
+            // Update
+            result = await pool.query(
+                `UPDATE problem_templates 
+                 SET starter_code = $1, wrapper_code = $2
+                 WHERE id = $3
+                 RETURNING *`,
+                [starter_code, wrapper_code || '', checkRes.rows[0].id]
+            );
+        } else {
+            // Insert
+            result = await pool.query(
+                `INSERT INTO problem_templates (problem_id, language, starter_code, wrapper_code)
+                 VALUES ($1, $2, $3, $4)
+                 RETURNING *`,
+                [problemId, language, starter_code, wrapper_code || '']
+            );
+        }
+
         res.json(result.rows[0]);
     } catch (err: any) {
         console.error(err);

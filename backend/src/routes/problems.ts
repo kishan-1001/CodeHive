@@ -232,4 +232,25 @@ router.get('/:id/solutions/:language', async (req, res) => {
     }
 });
 
+
+// Get specific solution
+router.get('/:id/solutions/:lang/:type', async (req, res) => {
+    const { id, lang, type } = req.params;
+    try {
+        const result = await pool.query(
+            'SELECT * FROM problem_solutions WHERE problem_id = $1 AND language = $2 AND solution_type = $3',
+            [id, lang, type]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Solution not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err: any) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 export default router;
