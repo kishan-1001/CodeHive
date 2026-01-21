@@ -27,7 +27,8 @@ const ContestEdit: React.FC = () => {
                     description: data.description,
                     start_time: data.start_time,
                     end_time: data.end_time,
-                    problems: data.problems ? data.problems.map((p: any) => p.problem_id) : []
+                    is_published: data.is_published,
+                    problems: data.problems ? data.problems.map((p: any) => ({ id: p.problem_id, points: p.points })) : []
                 });
             } else {
                 alert('Contest not found');

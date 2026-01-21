@@ -101,15 +101,15 @@ export const problemsAPI = {
     if (topic) params.append('topic', topic);
     if (difficulty) params.append('difficulty', difficulty);
     if (search) params.append('search', search);
-    return api.get(`/problems/problems?${params.toString()}`);
+    return api.get(`/problems?${params.toString()}`);
   },
 
   async getProblemById(id: string) {
-    return api.get(`/problems/problems/${id}`);
+    return api.get(`/problems/${id}`);
   },
 
   async getProblemBySlug(slug: string) {
-    return api.get(`/problems/problems/slug/${slug}`);
+    return api.get(`/problems/slug/${slug}`);
   },
 
   async getProblemTemplate(problemId: string, language: string) {

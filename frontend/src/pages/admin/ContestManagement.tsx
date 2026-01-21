@@ -7,7 +7,7 @@ interface Contest {
     title: string;
     start_time: string;
     end_time: string;
-    status: string;
+    is_published: boolean;
 }
 
 const ContestManagement: React.FC = () => {
@@ -76,21 +76,21 @@ const ContestManagement: React.FC = () => {
                             <div>
                                 <h3 className="text-xl font-bold text-white">{contest.title}</h3>
                                 <div className="flex items-center gap-2 mt-2">
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${contest.status === 'active' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                        contest.status === 'completed' ? 'bg-gray-800 text-gray-400 border-gray-700' :
-                                            'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                        }`}>
-                                        {contest.status.toUpperCase()}
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${contest.is_published ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
+                                        {contest.is_published ? 'PUBLISHED' : 'DRAFT'}
                                     </span>
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button
-                                    onClick={() => navigate(`/admin/contests/${contest.id}/edit`)}
-                                    className="p-2 text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
-                                >
-                                    <Pencil className="w-4 h-4" />
-                                </button>
+                                {!contest.is_published && (
+                                    <button
+                                        onClick={() => navigate(`/admin/contests/${contest.id}/edit`)}
+                                        className="p-2 text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
+                                        title="Edit Draft"
+                                    >
+                                        <Pencil className="w-4 h-4" />
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => handleDelete(contest.id)}
                                     className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -103,11 +103,11 @@ const ContestManagement: React.FC = () => {
                         <div className="space-y-2 text-sm text-gray-400">
                             <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-gray-500" />
-                                <span>Start: {new Date(contest.start_time).toLocaleString()}</span>
+                                <span>Start: {new Date(contest.start_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-gray-500" />
-                                <span>End: {new Date(contest.end_time).toLocaleString()}</span>
+                                <span>End: {new Date(contest.end_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}</span>
                             </div>
                         </div>
                     </div>

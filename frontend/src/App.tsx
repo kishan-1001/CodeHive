@@ -11,6 +11,7 @@ import InstantArena from "./pages/InstantArena.tsx";
 import ArenaSession from "./pages/ArenaSession.tsx";
 import ArenaFeedback from "./pages/ArenaFeedback.tsx";
 import WeeklyContest from "./pages/WeeklyContest.tsx";
+import ContestLive from "./pages/ContestLive.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Legal from "./pages/Legal.tsx";
@@ -42,6 +43,7 @@ const App: React.FC = () => {
       <Route path="/arena/:sessionId" element={<ArenaSession />} />
       <Route path="/arena/:sessionId/feedback" element={<ArenaFeedback />} />
       <Route path="/weekly-contest" element={<WeeklyContest />} />
+      <Route path="/weekly-contest/:id" element={<ContestLive />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/legal" element={<Legal />} />
 

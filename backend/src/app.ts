@@ -21,6 +21,7 @@ import adminContestsRoutes from './routes/adminContests';
 import adminUsersRoutes from './routes/adminUsers';
 import adminStatsRoutes from './routes/adminStats';
 import contactRoutes from './routes/contact';
+import contestsRoutes from './routes/contests';
 
 const app = express();
 
@@ -54,7 +55,9 @@ app.use('/api/admin', adminTestCasesRoutes); // Admin Test Case Routes
 app.use('/api/admin', adminTemplatesRoutes); // Admin Template Routes
 app.use('/api/admin/contests', adminContestsRoutes); // Admin Contest Routes
 app.use('/api/admin/users', adminUsersRoutes); // Admin User Routes
+app.use('/api/admin/users', adminUsersRoutes); // Admin User Routes
 app.use('/api/admin/stats', adminStatsRoutes); // Admin Stats Routes
+app.use('/api/contests', contestsRoutes); // Public Contest Routes
 
 // Health check
 app.get('/api/health', (req, res) => {

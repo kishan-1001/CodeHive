@@ -28,7 +28,7 @@ router.get('/companies', async (req, res) => {
 });
 
 // Get all problems (optionally filtered by topic slug, difficulty, and search term)
-router.get('/problems', async (req, res) => {
+router.get('/', async (req, res) => {
     const { topic, difficulty, search } = req.query; // topic slug, difficulty, search term
     const userId = getUserIdFromToken(req);
 
@@ -103,7 +103,7 @@ const getUserIdFromToken = (req: any) => {
 };
 
 // Get single problem by ID
-router.get('/problems/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query(`
@@ -155,7 +155,7 @@ router.get('/problems/:id', async (req, res) => {
 });
 
 // Get single problem by slug
-router.get('/problems/slug/:slug', async (req, res) => {
+router.get('/slug/:slug', async (req, res) => {
     const { slug } = req.params;
     try {
         const result = await pool.query(`

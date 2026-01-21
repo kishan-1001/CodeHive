@@ -11,7 +11,7 @@ router.use(authenticateToken, isAdmin);
 // 1. List All Contests
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM contests ORDER BY start_time DESC');
+        const result = await pool.query('SELECT * FROM contests ORDER BY created_at DESC');
         res.json(result.rows);
     } catch (err: any) {
         console.error('Error fetching contests:', err);
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
             FROM contest_problems cp
             JOIN problems p ON cp.problem_id = p.id
             WHERE cp.contest_id = $1
-            ORDER BY cp.order_index ASC
+            ORDER BY cp.problem_order ASC
         `, [id]);
 
         res.json({ ...contestRes.rows[0], problems: problemsRes.rows });
@@ -43,9 +43,10 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// 3. Create Contest
-router.post('/', async (req, res) => {
-    const { title, description, start_time, end_time, problems } = req.body; // problems: number[] (ids)
+// 3. Create Contest (Draft)
+router.post('/', async (req: any, res) => {
+    const { title, description, start_time, end_time, problems, is_published } = req.body;
+    const userId = req.user.id;
 
     if (!title || !start_time || !end_time) {
         return res.status(400).json({ error: 'Title, Start Time, and End Time are required' });
@@ -55,17 +56,20 @@ router.post('/', async (req, res) => {
         await pool.query('BEGIN');
 
         const contestRes = await pool.query(
-            'INSERT INTO contests (title, description, start_time, end_time) VALUES ($1, $2, $3, $4) RETURNING *',
-            [title, description, start_time, end_time]
+            'INSERT INTO contests (title, description, start_time, end_time, is_published, created_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [title, description, start_time, end_time, is_published || false, userId]
         );
         const contestId = contestRes.rows[0].id;
 
         if (problems && Array.isArray(problems) && problems.length > 0) {
-            const problemValues = problems.map((pId: number, idx: number) => `(${contestId}, ${pId}, ${idx})`).join(',');
-            await pool.query(`
-                INSERT INTO contest_problems (contest_id, problem_id, order_index)
-                VALUES ${problemValues}
-            `);
+            // problems: { id: number, points: number }[]
+            for (let i = 0; i < problems.length; i++) {
+                const p = problems[i];
+                await pool.query(
+                    'INSERT INTO contest_problems (contest_id, problem_id, problem_order, points) VALUES ($1, $2, $3, $4)',
+                    [contestId, p.id, i + 1, p.points || 100]
+                );
+            }
         }
 
         await pool.query('COMMIT');
@@ -80,14 +84,14 @@ router.post('/', async (req, res) => {
 // 4. Update Contest
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, description, start_time, end_time, status, problems } = req.body;
+    const { title, description, start_time, end_time, is_published, problems } = req.body;
 
     try {
         await pool.query('BEGIN');
 
         await pool.query(
-            'UPDATE contests SET title = $1, description = $2, start_time = $3, end_time = $4, status = COALESCE($5, status) WHERE id = $6',
-            [title, description, start_time, end_time, status, id]
+            'UPDATE contests SET title = $1, description = $2, start_time = $3, end_time = $4, is_published = $5 WHERE id = $6',
+            [title, description, start_time, end_time, is_published, id]
         );
 
         // If problems provided, replace all existing
@@ -95,11 +99,13 @@ router.put('/:id', async (req, res) => {
             await pool.query('DELETE FROM contest_problems WHERE contest_id = $1', [id]);
 
             if (problems.length > 0) {
-                const problemValues = problems.map((pId: number, idx: number) => `(${id}, ${pId}, ${idx})`).join(',');
-                await pool.query(`
-                    INSERT INTO contest_problems (contest_id, problem_id, order_index)
-                    VALUES ${problemValues}
-                `);
+                for (let i = 0; i < problems.length; i++) {
+                    const p = problems[i];
+                    await pool.query(
+                        'INSERT INTO contest_problems (contest_id, problem_id, problem_order, points) VALUES ($1, $2, $3, $4)',
+                        [id, p.id, i + 1, p.points || 100]
+                    );
+                }
             }
         }
 
@@ -125,3 +131,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+

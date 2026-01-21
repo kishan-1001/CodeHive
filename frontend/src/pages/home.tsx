@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Code2,
   Terminal,
@@ -294,10 +294,10 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
         <div>
           <h4 className="text-white font-bold mb-6">Platform</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Code Editor</a></li>
+            <li><Link to="/editor" className="hover:text-amber-400 transition-colors">Code Editor</Link></li>
             <li><a href="#" className="hover:text-amber-400 transition-colors">Coding Contests</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Try Sandbox</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Leaderboards</a></li>
+            <li><Link to="/editor" className="hover:text-amber-400 transition-colors">Try Sandbox</Link></li>
+            <li><Link to="/leaderboard" className="hover:text-amber-400 transition-colors">Leaderboards</Link></li>
           </ul>
         </div>
 
@@ -314,10 +314,10 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
         <div>
           <h4 className="text-white font-bold mb-6">Company</h4>
           <ul className="space-y-4 text-gray-500 text-sm">
-            <li><a href="/about" className="hover:text-amber-400 transition-colors">About Us</a></li>
-            <li><a href="/career" className="hover:text-amber-400 transition-colors">Careers</a></li>
+            <li><Link to="/about" className="hover:text-amber-400 transition-colors">About Us</Link></li>
+            <li><Link to="/career" className="hover:text-amber-400 transition-colors">Careers</Link></li>
             <li><button onClick={onContactClick} className="text-gray-500 hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer text-sm p-0">Contact</button></li>
-            <li><a href="/legal" className="hover:text-amber-400 transition-colors">Legal</a></li>
+            <li><Link to="/legal" className="hover:text-amber-400 transition-colors">Legal</Link></li>
           </ul>
         </div>
       </div>
