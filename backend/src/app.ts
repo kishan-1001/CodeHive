@@ -20,6 +20,7 @@ import adminTemplatesRoutes from './routes/adminTemplates';
 import adminContestsRoutes from './routes/adminContests';
 import adminUsersRoutes from './routes/adminUsers';
 import adminStatsRoutes from './routes/adminStats';
+import contactRoutes from './routes/contact';
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/submissions', submissionsRoutes);
 app.use('/api/arena', arenaRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/career', careerRoutes); // Career Routes
+app.use('/api/contact', contactRoutes); // Contact Routes
 app.use('/api/admin/problems', adminProblemsRoutes); // Admin Routes
 app.use('/api/admin', adminTestCasesRoutes); // Admin Test Case Routes
 app.use('/api/admin', adminTemplatesRoutes); // Admin Template Routes

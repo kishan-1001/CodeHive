@@ -148,6 +148,67 @@ export class EmailService {
       throw new Error('Failed to send application email');
     }
   }
+
+  async sendContactEmail(data: {
+    name: string;
+    email: string;
+    message: string;
+  }): Promise<void> {
+    const emailData = {
+      sender: {
+        name: data.name,
+        email: "codehive.auth@gmail.com"
+      },
+      to: [{
+        email: "codehive.auth@gmail.com",
+        name: "CodeHive Support"
+      }],
+      subject: `New Contact Message from ${data.name}`,
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">New Contact Message</h2>
+          <hr style="border: 1px solid #eee; margin: 20px 0;">
+          
+          <p><strong>Name:</strong> ${data.name}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          
+          <h3 style="color: #555;">Message</h3>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; white-space: pre-wrap;">${data.message}</div>
+          
+          <br>
+          <p style="font-size: 12px; color: #888;">This message was sent from the CodeHive Contact form.</p>
+        </div>
+      `,
+      replyTo: {
+        email: data.email,
+        name: data.name
+      }
+    };
+
+    try {
+      console.log(`Sending contact email from ${data.email}`);
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': this.apiKey,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      });
+
+      console.log('Brevo API response status:', response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Brevo API error:', errorData);
+        throw new Error('Failed to send contact email');
+      }
+      console.log('Contact email sent successfully');
+    } catch (error) {
+      console.error('Error sending contact email:', error);
+      throw new Error('Failed to send contact email');
+    }
+  }
 }
 
 export const emailService = new EmailService();

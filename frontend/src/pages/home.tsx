@@ -16,6 +16,7 @@ import {
 
 import LoginModal from './login';
 import RegisterModal from './registered';
+import ContactModal from './ContactModal';
 
 // --- Components ---
 
@@ -265,7 +266,7 @@ const CTASection: React.FC<{ onGetStartedClick: () => void }> = ({ onGetStartedC
   );
 };
 
-const Footer: React.FC = () => {
+const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) => {
   return (
     <footer className="pt-20 pb-10 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12 mb-20">
@@ -315,7 +316,7 @@ const Footer: React.FC = () => {
           <ul className="space-y-4 text-gray-500 text-sm">
             <li><a href="/about" className="hover:text-amber-400 transition-colors">About Us</a></li>
             <li><a href="/career" className="hover:text-amber-400 transition-colors">Careers</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition-colors">Contact</a></li>
+            <li><button onClick={onContactClick} className="text-gray-500 hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer text-sm p-0">Contact</button></li>
             <li><a href="/legal" className="hover:text-amber-400 transition-colors">Legal</a></li>
           </ul>
         </div>
@@ -339,6 +340,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
 
   const handleSignInClick = () => {
@@ -393,10 +395,11 @@ const Home: React.FC = () => {
         <CTASection onGetStartedClick={handleGetStartedClick} />
       </main>
 
-      <Footer />
+      <Footer onContactClick={() => setIsContactModalOpen(true)} />
 
       <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} onSignUpClick={handleSignUpClick} />
       <RegisterModal isOpen={isRegisterModalOpen} onClose={handleCloseRegisterModal} onSignInClick={handleSignInClick} />
+      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
     </div>
   );
 };
