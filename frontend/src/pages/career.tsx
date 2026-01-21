@@ -1,6 +1,16 @@
+import { useState } from 'react';
 import { Briefcase, Heart, Zap, Globe, Coffee, ArrowRight, MapPin } from 'lucide-react';
+import ApplicationModal from './ApplicationModal';
 
 const Career = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState('');
+
+    const handleApplyClick = (jobTitle: string) => {
+        setSelectedJob(jobTitle);
+        setIsModalOpen(true);
+    };
+
     const perks = [
         {
             icon: <Globe className="w-6 h-6 text-blue-400" />,
@@ -29,7 +39,7 @@ const Career = () => {
             id: 1,
             title: "Senior Full Stack Engineer",
             department: "Engineering",
-            location: "Remote / New York",
+            location: "Vadodara, Parul University",
             type: "Full-time",
             description: "We are looking for an experienced Full Stack Engineer to help build our core platform..."
         },
@@ -37,7 +47,7 @@ const Career = () => {
             id: 2,
             title: "UI/UX Designer",
             department: "Design",
-            location: "Remote",
+            location: "Vadodara, Parul University",
             type: "Full-time",
             description: "Shape the future of our product design. You'll work closely with engineering and product..."
         },
@@ -45,8 +55,8 @@ const Career = () => {
             id: 3,
             title: "DevOps Engineer",
             department: "Infrastructure",
-            location: "London, UK",
-            type: "Contract",
+            location: "Vadodara, Parul University",
+            type: "Full-time",
             description: "Help us scale our infrastructure and improve our developer experience with modern CI/CD..."
         }
     ];
@@ -128,13 +138,22 @@ const Career = () => {
                                 </div>
                                 <p className="text-gray-400 text-sm max-w-2xl">{job.description}</p>
                             </div>
-                            <button className="whitespace-nowrap bg-gray-800 hover:bg-blue-600 hover:text-white px-6 py-2.5 rounded-lg font-medium transition-all text-sm border border-gray-700 hover:border-blue-500 dark:text-gray-200">
+                            <button
+                                onClick={() => handleApplyClick(job.title)}
+                                className="whitespace-nowrap bg-gray-800 hover:bg-blue-600 hover:text-white px-6 py-2.5 rounded-lg font-medium transition-all text-sm border border-gray-700 hover:border-blue-500 dark:text-gray-200"
+                            >
                                 Apply Now
                             </button>
                         </div>
                     ))}
                 </div>
             </div>
+
+            <ApplicationModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                jobTitle={selectedJob}
+            />
         </div>
     );
 };

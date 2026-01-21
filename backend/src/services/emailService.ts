@@ -77,6 +77,77 @@ export class EmailService {
       throw new Error('Failed to send OTP email');
     }
   }
+  async sendApplicationEmail(data: {
+    name: string;
+    email: string;
+    phone: string;
+    linkedin?: string;
+    resume: string;
+    coverLetter?: string;
+    jobTitle: string;
+  }): Promise<void> {
+    const emailData = {
+      sender: {
+        name: "CodeHive Careers",
+        email: "codehive.auth@gmail.com"
+      },
+      to: [{
+        email: "codehive.auth@gmail.com",
+        name: "CodeHive HR"
+      }],
+      subject: `New Job Application: ${data.jobTitle} - ${data.name}`,
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">New Job Application</h2>
+          <p><strong>Job Title:</strong> ${data.jobTitle}</p>
+          <hr style="border: 1px solid #eee; margin: 20px 0;">
+          
+          <h3 style="color: #555;">Applicant Details</h3>
+          <p><strong>Name:</strong> ${data.name}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Phone:</strong> ${data.phone}</p>
+          ${data.linkedin ? `<p><strong>LinkedIn/Portfolio:</strong> <a href="${data.linkedin}">${data.linkedin}</a></p>` : ''}
+          <p><strong>Resume Link:</strong> <a href="${data.resume}">${data.resume}</a></p>
+          
+          ${data.coverLetter ? `
+          <h3 style="color: #555;">Cover Letter</h3>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; white-space: pre-wrap;">${data.coverLetter}</div>
+          ` : ''}
+          
+          <br>
+          <p style="font-size: 12px; color: #888;">This application was submitted through the CodeHive Career page.</p>
+        </div>
+      `,
+      replyTo: {
+        email: data.email,
+        name: data.name
+      }
+    };
+
+    try {
+      console.log(`Sending application email for ${data.name} to CodeHive`);
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': this.apiKey,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      });
+
+      console.log('Brevo API response status:', response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Brevo API error:', errorData);
+        throw new Error('Failed to send application email');
+      }
+      console.log('Application email sent successfully');
+    } catch (error) {
+      console.error('Error sending application email:', error);
+      throw new Error('Failed to send application email');
+    }
+  }
 }
 
 export const emailService = new EmailService();

@@ -1,5 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
+import passport from 'passport';
+import './config/passport';
+
 import authRoutes from './routes/auth';
 import executeRoutes from './routes/execute';
 import postsRoutes from './routes/posts';
@@ -9,17 +13,13 @@ import submissionsRoutes from './routes/submissions';
 import passwordResetRoutes from './routes/passwordReset';
 import arenaRoutes from './routes/arena';
 import aiRoutes from './routes/ai';
+import careerRoutes from './routes/career';
 import adminProblemsRoutes from './routes/adminProblems';
 import adminTestCasesRoutes from './routes/adminTestCases';
 import adminTemplatesRoutes from './routes/adminTemplates';
 import adminContestsRoutes from './routes/adminContests';
 import adminUsersRoutes from './routes/adminUsers';
 import adminStatsRoutes from './routes/adminStats';
-
-import session from 'express-session';
-import passport from 'passport';
-import './config/passport';
-import './config/passport';
 
 const app = express();
 
@@ -46,6 +46,7 @@ app.use('/api/submit', submitRoutes);
 app.use('/api/submissions', submissionsRoutes);
 app.use('/api/arena', arenaRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/career', careerRoutes); // Career Routes
 app.use('/api/admin/problems', adminProblemsRoutes); // Admin Routes
 app.use('/api/admin', adminTestCasesRoutes); // Admin Test Case Routes
 app.use('/api/admin', adminTemplatesRoutes); // Admin Template Routes
