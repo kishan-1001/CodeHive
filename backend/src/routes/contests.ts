@@ -289,6 +289,71 @@ router.post('/:id/submit', authenticateToken, async (req, res) => {
         console.error('Contest Submit Error:', error);
         res.status(500).json({ error: 'Server error during submission' });
     }
+    // Get User's Contest Results (for AI Feedback)
+    router.get('/:id/my-results', authenticateToken, async (req, res) => {
+        const { id } = req.params;
+        const user_id = (req as any).user.id;
+
+        try {
+            // 1. Fetch Contest Basic Info
+            const contestRes = await pool.query('SELECT title, description FROM contests WHERE id = $1', [id]);
+            if (contestRes.rows.length === 0) {
+                return res.status(404).json({ error: 'Contest not found' });
+            }
+            const contest = contestRes.rows[0];
+
+            // 2. Fetch Problems with Points
+            const problemsRes = await pool.query(`
+            SELECT p.id, p.title, p.description, p.difficulty, cp.points
+            FROM contest_problems cp
+            JOIN problems p ON cp.problem_id = p.id
+            WHERE cp.contest_id = $1
+            ORDER BY cp.problem_order ASC
+        `, [id]);
+
+            // 3. Fetch User's Best Submissions (AC preferred)
+            // We want to know if they solved it, and get their code.
+            const results = await Promise.all(problemsRes.rows.map(async (problem) => {
+                const subRes = await pool.query(`
+                SELECT verdict, code, language, runtime_ms
+                FROM contest_submissions
+                WHERE contest_id = $1 AND user_id = $2 AND problem_id = $3
+                ORDER BY 
+                    CASE WHEN verdict = 'AC' THEN 1 ELSE 2 END,
+                    submitted_at DESC
+                LIMIT 1
+            `, [id, user_id, problem.id]);
+
+                const submission = subRes.rows[0];
+
+                return {
+                    ...problem,
+                    is_solved: submission?.verdict === 'AC',
+                    user_code: submission?.code || '',
+                    language: submission?.language || 'javascript',
+                    verdict: submission?.verdict || 'Not Attempted'
+                };
+            }));
+
+            // Calculate User Score (Dynamic based on contest_problems points)
+            const score = results.reduce((acc, curr) => {
+                if (curr.is_solved) {
+                    return acc + (curr.points || 0);
+                }
+                return acc;
+            }, 0);
+
+            res.json({
+                session: { id, score }, // Mocking session structure for compatibility
+                problems: results
+            });
+
+        } catch (error) {
+            console.error('Error fetching contest results:', error);
+            res.status(500).json({ error: 'Failed to fetch results' });
+        }
+    });
+
 });
 
 // Helper to log submission to DB
@@ -303,5 +368,7 @@ async function logSubmission(contestId: string, userId: number, problemId: numbe
         // We don't block the response if logging fails, but it's critical for scoring
     }
 }
+
+
 
 export default router;

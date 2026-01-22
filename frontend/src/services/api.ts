@@ -118,6 +118,10 @@ export const problemsAPI = {
   async getProblemSolutions(id: string, language: string) {
     return api.get(`/problems/${id}/solutions/${language}`);
   },
+
+  async getContestResults(contestId: string) {
+    return api.get(`/contests/${contestId}/my-results`);
+  },
 };
 
 export const submitAPI = {
