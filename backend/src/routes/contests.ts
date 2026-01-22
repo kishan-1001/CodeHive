@@ -371,4 +371,58 @@ async function logSubmission(contestId: string, userId: number, problemId: numbe
 
 
 
+// --- Contest Participation Endpoints ---
+
+// Enter Contest (Start Attempt)
+router.post('/:id/enter', authenticateToken, async (req: any, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        // Check if user already participating
+        const checkRes = await pool.query(
+            `SELECT status FROM contest_participation WHERE user_id = $1 AND contest_id = $2`,
+            [userId, id]
+        );
+
+        if (checkRes.rows.length > 0) {
+            const status = checkRes.rows[0].status;
+            if (status === 'finished' || status === 'disqualified') {
+                return res.status(403).json({ error: 'You have already finished this contest.', status });
+            }
+            // If 'started', just allow re-entry (e.g. refresh)
+            return res.json({ message: 'Resuming contest', status: 'started' });
+        }
+
+        // Create new participation record
+        await pool.query(
+            `INSERT INTO contest_participation (user_id, contest_id, status) VALUES ($1, $2, 'started')`,
+            [userId, id]
+        );
+
+        res.json({ message: 'Contest started', status: 'started' });
+    } catch (error) {
+        console.error('Error entering contest:', error);
+        res.status(500).json({ error: 'Failed to enter contest' });
+    }
+});
+
+// Finish Contest (End Attempt)
+router.post('/:id/finish', authenticateToken, async (req: any, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        await pool.query(
+            `UPDATE contest_participation SET status = 'finished', finished_at = CURRENT_TIMESTAMP 
+             WHERE user_id = $1 AND contest_id = $2`,
+            [userId, id]
+        );
+        res.json({ message: 'Contest finished' });
+    } catch (error) {
+        console.error('Error finishing contest:', error);
+        res.status(500).json({ error: 'Failed to finish contest' });
+    }
+});
+
 export default router;

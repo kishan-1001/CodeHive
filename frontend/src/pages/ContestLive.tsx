@@ -73,7 +73,14 @@ const ContestLive: React.FC = () => {
         setShowFinishConfirmation(true);
     };
 
-    const confirmFinish = () => {
+    const confirmFinish = async () => {
+        try {
+            await fetch(`/api/contests/${id}/finish`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+        } catch (e) { console.error("Finish error", e); }
+
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(err => console.error("Exit FS error:", err));
         }
@@ -260,7 +267,24 @@ const ContestLive: React.FC = () => {
         setShowProctorModal(true);
     };
 
-    const confirmEnterContest = () => {
+    const confirmEnterContest = async () => {
+        try {
+            const res = await fetch(`/api/contests/${id}/enter`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await res.json();
+
+            if (res.status === 403) {
+                alert(data.error);
+                navigate(`/weekly-contest/${id}/feedback`);
+                return;
+            }
+        } catch (e) {
+            console.error("Enter contest error", e);
+            // Optionally block entry if network fails?
+        }
+
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen().then(() => {
@@ -298,7 +322,14 @@ const ContestLive: React.FC = () => {
                 if (document.fullscreenElement) {
                     document.exitFullscreen().catch(() => { });
                 }
-                navigate(`/weekly-contest/${id}/feedback`);
+
+                // Call finish API
+                fetch(`/api/contests/${id}/finish`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                }).finally(() => {
+                    navigate(`/weekly-contest/${id}/feedback`);
+                });
                 return;
             }
             setShowWarningOverlay(true);
