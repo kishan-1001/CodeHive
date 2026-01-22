@@ -140,15 +140,7 @@ const ContestForm: React.FC<ContestFormProps> = ({ initialData, onSubmit, isEdit
         updateSelectedProblems(newSelected);
     };
 
-    const toLocalISOString = (date: Date) => {
-        const pad = (n: number) => n.toString().padStart(2, '0');
-        return date.getFullYear() +
-            '-' + pad(date.getMonth() + 1) +
-            '-' + pad(date.getDate()) +
-            'T' + pad(date.getHours()) +
-            ':' + pad(date.getMinutes()) +
-            ':00.000';
-    };
+
 
     const getDateParts = (isoString: string) => {
         const date = isoString ? new Date(isoString) : new Date();
@@ -193,7 +185,7 @@ const ContestForm: React.FC<ContestFormProps> = ({ initialData, onSubmit, isEdit
             dateObj.setHours(h);
         }
 
-        setFormData(prev => ({ ...prev, [field]: toLocalISOString(dateObj) }));
+        setFormData(prev => ({ ...prev, [field]: dateObj.toISOString() }));
     };
 
     const updateSelectedProblems = (newSelected: SelectedProblem[]) => {

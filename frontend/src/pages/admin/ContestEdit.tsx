@@ -57,7 +57,7 @@ const ContestEdit: React.FC = () => {
                 navigate('/admin/contests');
             } else {
                 const err = await res.json();
-                alert('Error updating contest: ' + err.error);
+                alert('Error updating contest: ' + (err.error || err.message || JSON.stringify(err)));
             }
         } catch (error) {
             console.error('Update error:', error);

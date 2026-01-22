@@ -21,7 +21,7 @@ const ContestCreate: React.FC = () => {
                 navigate('/admin/contests');
             } else {
                 const err = await res.json();
-                alert('Error creating contest: ' + err.error);
+                alert('Error creating contest: ' + (err.error || err.message || JSON.stringify(err)));
             }
         } catch (error) {
             console.error('Create error:', error);

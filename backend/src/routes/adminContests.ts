@@ -11,7 +11,13 @@ router.use(authenticateToken, isAdmin);
 // 1. List All Contests
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM contests ORDER BY created_at DESC');
+        const result = await pool.query(`
+            SELECT id, title, description, 
+                   start_time AT TIME ZONE 'UTC' as start_time, 
+                   end_time AT TIME ZONE 'UTC' as end_time, 
+                   is_published, created_at, created_by 
+            FROM contests ORDER BY created_at DESC
+        `);
         res.json(result.rows);
     } catch (err: any) {
         console.error('Error fetching contests:', err);
@@ -23,7 +29,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const contestRes = await pool.query('SELECT * FROM contests WHERE id = $1', [id]);
+        const contestRes = await pool.query(`
+            SELECT id, title, description, 
+                   start_time AT TIME ZONE 'UTC' as start_time, 
+                   end_time AT TIME ZONE 'UTC' as end_time, 
+                   is_published, created_at, created_by 
+            FROM contests WHERE id = $1
+        `, [id]);
         if (contestRes.rows.length === 0) {
             return res.status(404).json({ error: 'Contest not found' });
         }
