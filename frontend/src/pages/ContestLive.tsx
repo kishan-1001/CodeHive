@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { Play, Terminal, Check, Timer, Trophy, ArrowRight, ShieldAlert, BadgeCheck, AlertTriangle, Maximize } from 'lucide-react';
 import { problemsAPI } from '../services/api';
+import ContestAlreadyFinishedModal from '../components/ContestAlreadyFinishedModal';
 
 // Types
 interface Problem {
@@ -64,6 +65,7 @@ const ContestLive: React.FC = () => {
     // Finish Contest Logic
     const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
     const [showProctorModal, setShowProctorModal] = useState(false);
+    const [showFinishedModal, setShowFinishedModal] = useState(false);
 
     // Refs
     const editorRef = useRef<any>(null);
@@ -273,11 +275,10 @@ const ContestLive: React.FC = () => {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
-            const data = await res.json();
-
             if (res.status === 403) {
-                alert(data.error);
-                navigate(`/weekly-contest/${id}/feedback`);
+                // alert(data.error); 
+                // navigate(`/weekly-contest/${id}/feedback`);
+                setShowFinishedModal(true);
                 return;
             }
         } catch (e) {
@@ -286,19 +287,27 @@ const ContestLive: React.FC = () => {
         }
 
         const elem = document.documentElement;
+        // Attempt full screen
         if (elem.requestFullscreen) {
-            elem.requestFullscreen().then(() => {
+            try {
+                await elem.requestFullscreen();
+                console.log("Entered full screen successfully");
                 setHasEntered(true);
                 setShowProctorModal(false);
                 violationCountRef.current = 0;
                 setViolationCount(0);
-            }).catch(err => {
-                alert(`Error entering full-screen: ${err.message}`);
-                // Allow entry anyway if FS fails? strict mode would say no.
+            } catch (err: any) {
+                console.error("Full screen error:", err);
+                // Fallback: Enter anyway but warn or just allow (user might be in a weird environment)
+                // For now, let's allow entry but maybe show a toast or just proceed?
+                // The user said "nothing is happening", implying it might be stuck.
+                // If it fails, we MUST set hasEntered(true) or else they are stuck.
+                alert(`Could not enter full-screen mode automatically: ${err.message}. You can try pressing F11 manually.`);
                 setHasEntered(true);
                 setShowProctorModal(false);
-            });
+            }
         } else {
+            console.warn("Full screen API not supported");
             setHasEntered(true);
             setShowProctorModal(false);
         }
@@ -358,7 +367,7 @@ const ContestLive: React.FC = () => {
             checkViolations();
         };
 
-        const handlePopState = (e: PopStateEvent) => {
+        const handlePopState = () => {
             // Prevent back navigation
             window.history.pushState(null, "", window.location.pathname);
             violationCountRef.current += 1;
@@ -594,6 +603,13 @@ const ContestLive: React.FC = () => {
                         </div>
                     </div>
                 )}
+                {/* Finished Contest Modal (Professional) - Added for visibility on Landing Page */}
+                {showFinishedModal && id && (
+                    <ContestAlreadyFinishedModal
+                        contestId={id}
+                        onClose={() => setShowFinishedModal(false)}
+                    />
+                )}
             </>
         );
     }
@@ -601,6 +617,14 @@ const ContestLive: React.FC = () => {
     // 2. LIVE ARENA UI
     return (
         <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans">
+            {/* Finished Contest Modal (Professional) */}
+            {showFinishedModal && id && (
+                <ContestAlreadyFinishedModal
+                    contestId={id}
+                    onClose={() => setShowFinishedModal(false)}
+                />
+            )}
+
             {/* Warning Overlay */}
             {showWarningOverlay && (
                 <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
