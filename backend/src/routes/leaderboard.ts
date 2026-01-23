@@ -1,6 +1,8 @@
 import express from 'express';
 import { pool } from '../config/db';
 import { authenticateToken } from '../middleware/auth';
+import { GlobalLeaderboardService } from '../services/globalLeaderboard';
+import { PlatformFetcherService } from '../services/platformFetcher';
 
 const router = express.Router();
 
@@ -157,5 +159,39 @@ router.post('/recalculate-all', authenticateToken, async (req: any, res) => {
     }
 });
 
+
+
+// --- Global Leaderboard Routes ---
+
+// Get Global Leaderboard
+router.get('/global', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit as string) || 100;
+        const offset = parseInt(req.query.offset as string) || 0;
+
+        const leaderboard = await GlobalLeaderboardService.getLeaderboard(limit, offset);
+        res.json(leaderboard);
+    } catch (error) {
+        console.error('Error fetching global leaderboard:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Sync authenticated user's Global Score
+router.post('/global/sync', authenticateToken, async (req: any, res) => {
+    try {
+        const userId = req.user.id;
+
+        // 1. Fetch latest stats from external APIs
+        await PlatformFetcherService.fetchAndUpsertUserStats(userId);
+
+        // 2. Recalculate score
+        const newScore = await GlobalLeaderboardService.updateUserGlobalScore(userId);
+        res.json({ message: 'Global score synced', universal_score: newScore });
+    } catch (error) {
+        console.error('Error syncing global score:', error);
+        res.status(500).json({ error: 'Failed to sync global score' });
+    }
+});
 
 export default router;

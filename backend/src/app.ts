@@ -23,6 +23,7 @@ import adminStatsRoutes from './routes/adminStats';
 import contactRoutes from './routes/contact';
 import contestsRoutes from './routes/contests';
 import leaderboardRoutes from './routes/leaderboard';
+import userProfileRoutes from './routes/userProfile';
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use('/api/admin/users', adminUsersRoutes); // Admin User Routes
 app.use('/api/admin/stats', adminStatsRoutes); // Admin Stats Routes
 app.use('/api/contests', contestsRoutes); // Public Contest Routes
 app.use('/api/leaderboard', leaderboardRoutes); // Leaderboard Routes
+app.use('/api/profile', userProfileRoutes); // User Profile Routes
 
 // Health check
 app.get('/api/health', (req, res) => {

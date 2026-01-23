@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
   onSignOut: () => void;
@@ -20,8 +20,9 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
     { name: 'Instant Arena', path: '/contest' },
     { name: 'Weekly Contest', path: '/weekly-contest' },
     { name: 'Knowledge Drop', path: '/explore', isAction: true },
-    { name: 'Leaderboard', path: '/leaderboard' },
   ];
+
+  const [isLeaderboardHovered, setIsLeaderboardHovered] = useState(false);
 
   const handleNavClick = (item: { name: string; path: string; isAction?: boolean }) => {
     if (item.isAction && item.name === 'Knowledge Drop' && onKnowledgeDropClick) {
@@ -51,6 +52,47 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
               {item.name}
             </button>
           ))}
+
+          <div
+            className="relative h-full flex items-center"
+            onMouseEnter={() => setIsLeaderboardHovered(true)}
+            onMouseLeave={() => setIsLeaderboardHovered(false)}
+          >
+            <button
+              className={`flex items-center text-gray-300 hover:text-amber-400 font-medium text-sm transition-colors focus:outline-none ${isLeaderboardHovered ? 'text-amber-400' : ''}`}
+            >
+              Leaderboard
+              <ChevronDown className={`ml-1 w-4 h-4 transition-transform duration-200 ${isLeaderboardHovered ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isLeaderboardHovered && (
+              <div
+                className="absolute top-full left-0 pt-2 w-40 z-50"
+              >
+                <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-1 overflow-hidden">
+                  <button
+                    onClick={() => {
+                      navigate('/leaderboard');
+                      setIsLeaderboardHovered(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                  >
+                    CodeHive
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('/global-leaderboard');
+                      setIsLeaderboardHovered(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                  >
+                    Global
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="relative">
@@ -61,13 +103,23 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
             <User className="w-5 h-5 text-white" />
           </button>
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+            <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+              <button
+                onClick={() => {
+                  navigate('/coding-profile');
+                  setIsDropdownOpen(false);
+                }}
+                className="flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-gray-700"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Coding Profile
+              </button>
               <button
                 onClick={() => {
                   onSignOut();
                   setIsDropdownOpen(false);
                 }}
-                className="flex items-center w-full px-4 py-2 text-sm text-white hover:bg-gray-700 rounded-lg"
+                className="flex items-center w-full px-4 py-3 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
