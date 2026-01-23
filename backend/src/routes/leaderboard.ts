@@ -166,11 +166,24 @@ router.post('/recalculate-all', authenticateToken, async (req: any, res) => {
 // Get Global Leaderboard
 router.get('/global', async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit as string) || 100;
-        const offset = parseInt(req.query.offset as string) || 0;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 15; // Default 15 as requested
+        const search = (req.query.search as string) || '';
 
-        const leaderboard = await GlobalLeaderboardService.getLeaderboard(limit, offset);
-        res.json(leaderboard);
+        const offset = (page - 1) * limit;
+
+        const leaderboard = await GlobalLeaderboardService.getLeaderboard(limit, offset, search);
+        const total = await GlobalLeaderboardService.getLeaderboardCount(search);
+
+        res.json({
+            data: leaderboard,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         console.error('Error fetching global leaderboard:', error);
         res.status(500).json({ error: 'Server error' });
@@ -191,6 +204,18 @@ router.post('/global/sync', authenticateToken, async (req: any, res) => {
     } catch (error) {
         console.error('Error syncing global score:', error);
         res.status(500).json({ error: 'Failed to sync global score' });
+    }
+});
+
+// Get Current User's Global Rank
+router.get('/global/my-rank', authenticateToken, async (req: any, res) => {
+    try {
+        const userId = req.user.id;
+        const rankData = await GlobalLeaderboardService.getUserRank(userId);
+        res.json(rankData); // Returns null if no score yet
+    } catch (error) {
+        console.error('Error fetching global rank:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
