@@ -168,134 +168,124 @@ const GlobalLeaderboard = () => {
                         </div>
                     </div>
 
-                    {/* Leaderboard Table */}
+                    {/* Leaderboard Table (Converted to Grid) */}
                     <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden shadow-2xl mb-8">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-800/50">
-                                    <tr>
-                                        <th className="px-8 py-5 text-left text-sm font-semibold text-gray-400 uppercase tracking-wider">Rank</th>
-                                        <th className="px-8 py-5 text-left text-sm font-semibold text-gray-400 uppercase tracking-wider">User</th>
-                                        <th className="px-8 py-5 text-right text-sm font-semibold text-gray-400 uppercase tracking-wider">Universal Score</th>
-                                        <th className="px-8 py-5 text-center text-sm font-semibold text-gray-400 uppercase tracking-wider">Breakdown</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-800">
-                                    {/* Pinned User Row (Sticky Top) */}
-                                    {myRank && (
-                                        <tr className="bg-amber-500/10 border-b border-amber-500/20 relative">
-                                            <td className="px-8 py-6 whitespace-nowrap">
-                                                <div className="flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg bg-amber-500 text-black border border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-                                                    #{myRank.rank}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    {myRank.avatar_url ? (
-                                                        <img className="h-12 w-12 rounded-full border-2 border-amber-500/50" src={myRank.avatar_url} alt="" />
-                                                    ) : (
-                                                        <div className="h-12 w-12 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center border-2 border-amber-500/50 text-lg font-bold">
-                                                            {myRank.name ? myRank.name.charAt(0).toUpperCase() : 'U'}
-                                                        </div>
-                                                    )}
-                                                    <div className="ml-4">
-                                                        <div className="text-lg font-bold text-white flex items-center gap-2">
-                                                            {myRank.name || "You"}
-                                                            <span className="text-xs bg-amber-500 text-black px-2 py-0.5 rounded-full font-bold">YOU</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6 text-right whitespace-nowrap">
-                                                <span className="text-2xl font-black text-amber-400">
-                                                    {Number(myRank.universal_score).toFixed(0)}
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-6 whitespace-nowrap">
-                                                <div className="flex justify-center flex-wrap gap-3">
-                                                    {myRank.platform_details && myRank.platform_details.map((api, idx) => (
-                                                        <div key={idx} className="flex items-center gap-1.5 bg-gray-900/80 px-2.5 py-1 rounded-full border border-gray-700/50 text-xs">
-                                                            {getPlatformIcon(api.platform)}
-                                                            <span className="text-gray-300">{Number(api.score).toFixed(0)}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
 
-                                    {/* Spacer/Divider if pinned user exists */}\
-                                    {/* {myRank && <tr className="h-4 bg-gray-900/50 border-b border-gray-800"></tr>} */}
-                                    {loading ? (
-                                        [...Array(5)].map((_, i) => (
-                                            <tr key={i} className="animate-pulse">
-                                                <td className="px-8 py-6"><div className="h-6 w-8 bg-gray-800 rounded"></div></td>
-                                                <td className="px-8 py-6"><div className="h-10 w-48 bg-gray-800 rounded"></div></td>
-                                                <td className="px-8 py-6"><div className="h-6 w-24 bg-gray-800 rounded ml-auto"></div></td>
-                                                <td className="px-8 py-6"><div className="h-8 w-32 bg-gray-800 rounded mx-auto"></div></td>
-                                            </tr>
-                                        ))
-                                    ) : users.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={4} className="px-8 py-16 text-center text-gray-500">
-                                                <Trophy className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                                                <p className="text-xl">No users found.</p>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        users.map((user) => (
-                                            <tr
-                                                key={user.user_id}
-                                                className="group hover:bg-gray-800/30 transition-colors"
-                                            >
-                                                <td className="px-8 py-6 whitespace-nowrap">
-                                                    <div className={`
-                            flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg
-                            ${user.rank === 1 && !searchDebounce ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
-                                                            user.rank === 2 && !searchDebounce ? 'bg-gray-300/10 text-gray-300 border border-gray-300/20' :
-                                                                user.rank === 3 && !searchDebounce ? 'bg-amber-700/10 text-amber-700 border border-amber-700/20' :
-                                                                    'text-gray-500'
-                                                        }
-                          `}>
-                                                        {(!searchDebounce && user.rank <= 3) ? <Award className="w-5 h-5" /> : `#${user.rank}`}
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-6 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        {user.avatar_url ? (
-                                                            <img className="h-12 w-12 rounded-full border-2 border-gray-800 group-hover:border-gray-700" src={user.avatar_url} alt="" />
-                                                        ) : (
-                                                            <div className="h-12 w-12 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center border-2 border-gray-800 group-hover:border-gray-700 text-lg font-bold">
-                                                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                                                            </div>
-                                                        )}
-                                                        <div className="ml-4">
-                                                            <div className="text-lg font-medium text-white group-hover:text-amber-400 transition-colors">
-                                                                {user.name}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-6 text-right whitespace-nowrap">
-                                                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-600">
-                                                        {Number(user.universal_score).toFixed(0)}
-                                                    </span>
-                                                </td>
-                                                <td className="px-8 py-6 whitespace-nowrap">
-                                                    <div className="flex justify-center flex-wrap gap-3">
-                                                        {user.platform_details && user.platform_details.map((api, idx) => (
-                                                            <div key={idx} className="flex items-center gap-1.5 bg-gray-800 px-2.5 py-1 rounded-full border border-gray-700 text-xs">
-                                                                {getPlatformIcon(api.platform)}
-                                                                <span className="text-gray-300">{Number(api.score).toFixed(0)}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                        {/* My Rank (Sticky Top) - Just like Leaderboard.tsx */}
+                        {myRank && (
+                            <div className="bg-amber-500/10 border-b border-amber-500/20">
+                                <div className="grid grid-cols-1 md:grid-cols-12 px-6 py-4 items-center bg-amber-500/5 gap-4 md:gap-0">
+                                    <div className="col-span-1 text-center font-bold text-lg bg-amber-500 text-black w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center mx-auto md:mx-0 shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                                        #{myRank.rank}
+                                    </div>
+                                    <div className="col-span-1 md:col-span-4 flex items-center justify-center md:justify-start gap-4">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-amber-500/50 overflow-hidden shrink-0">
+                                            {myRank.avatar_url ? (
+                                                <img src={myRank.avatar_url} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
+                                                    {myRank.name ? myRank.name.charAt(0).toUpperCase() : 'U'}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 text-center md:text-left">
+                                            <div className="font-bold text-white flex items-center gap-2 justify-center md:justify-start">
+                                                {myRank.name || "You"}
+                                                <span className="text-xs bg-amber-500 text-black px-2 py-0.5 rounded-full font-bold">YOU</span>
+                                            </div>
+                                            <div className="text-xs text-amber-500/70">@{myRank.email?.split('@')[0] || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="col-span-1 md:col-span-2 text-center md:text-right font-black text-amber-400 text-xl md:text-2xl">
+                                        {Number(myRank.universal_score).toFixed(0)}
+                                    </div>
+                                    <div className="col-span-1 md:col-span-5 flex justify-center md:justify-end flex-wrap gap-2">
+                                        {myRank.platform_details && myRank.platform_details.map((api, idx) => (
+                                            <div key={idx} className="flex items-center gap-1.5 bg-gray-900/80 px-2.5 py-1 rounded-full border border-gray-700/50 text-xs">
+                                                {getPlatformIcon(api.platform)}
+                                                <span className="text-gray-300">{Number(api.score).toFixed(0)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Table Header */}
+                        <div className="hidden md:grid grid-cols-12 px-6 py-4 bg-gray-800/50 border-b border-gray-800 text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                            <div className="col-span-1 text-left">Rank</div>
+                            <div className="col-span-4 text-left">User</div>
+                            <div className="col-span-2 text-right">Universal Score</div>
+                            <div className="col-span-5 text-center">Breakdown</div>
+                        </div>
+
+                        {/* Rows */}
+                        <div className="divide-y divide-gray-800">
+                            {loading ? (
+                                [...Array(5)].map((_, i) => (
+                                    <div key={i} className="px-6 py-6 animate-pulse grid grid-cols-12 gap-4">
+                                        <div className="col-span-1"><div className="h-6 w-8 bg-gray-800 rounded"></div></div>
+                                        <div className="col-span-4"><div className="h-10 w-48 bg-gray-800 rounded"></div></div>
+                                        <div className="col-span-2"><div className="h-6 w-24 bg-gray-800 rounded ml-auto"></div></div>
+                                        <div className="col-span-5"><div className="h-8 w-32 bg-gray-800 rounded mx-auto"></div></div>
+                                    </div>
+                                ))
+                            ) : users.length === 0 ? (
+                                <div className="p-16 text-center text-gray-500">
+                                    <Trophy className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                                    <p className="text-xl">No users found.</p>
+                                </div>
+                            ) : (
+                                users.map((user) => (
+                                    <div
+                                        key={user.user_id}
+                                        className="grid grid-cols-1 md:grid-cols-12 px-6 py-6 items-center hover:bg-gray-800/30 transition-colors group gap-4 md:gap-0"
+                                    >
+                                        <div className="col-span-1 flex items-center justify-center md:justify-start">
+                                            <div className={`
+                                                flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full font-bold text-lg
+                                                ${user.rank === 1 && !searchDebounce ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
+                                                    user.rank === 2 && !searchDebounce ? 'bg-gray-300/10 text-gray-300 border border-gray-300/20' :
+                                                        user.rank === 3 && !searchDebounce ? 'bg-amber-700/10 text-amber-700 border border-amber-700/20' :
+                                                            'text-gray-500'
+                                                }
+                                            `}>
+                                                {(!searchDebounce && user.rank <= 3) ? <Award className="w-5 h-5" /> : `#${user.rank}`}
+                                            </div>
+                                        </div>
+
+                                        <div className="col-span-1 md:col-span-4 flex items-center justify-center md:justify-start gap-4">
+                                            {user.avatar_url ? (
+                                                <img className="h-10 w-10 md:h-12 md:w-12 rounded-full border-2 border-gray-800 group-hover:border-gray-700 object-cover shrink-0" src={user.avatar_url} alt="" />
+                                            ) : (
+                                                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center border-2 border-gray-800 group-hover:border-gray-700 text-lg font-bold shrink-0">
+                                                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                                </div>
+                                            )}
+                                            <div className="min-w-0 text-center md:text-left">
+                                                <div className="text-lg font-medium text-white group-hover:text-amber-400 transition-colors">
+                                                    {user.name}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="col-span-1 md:col-span-2 text-center md:text-right">
+                                            <span className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-600">
+                                                {Number(user.universal_score).toFixed(0)}
+                                            </span>
+                                        </div>
+
+                                        <div className="col-span-1 md:col-span-5 flex justify-center md:justify-end flex-wrap gap-2">
+                                            {user.platform_details && user.platform_details.map((api, idx) => (
+                                                <div key={idx} className="flex items-center gap-1.5 bg-gray-800 px-2.5 py-1 rounded-full border border-gray-700 text-xs">
+                                                    {getPlatformIcon(api.platform)}
+                                                    <span className="text-gray-300">{Number(api.score).toFixed(0)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
 
