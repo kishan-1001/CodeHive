@@ -3,13 +3,22 @@ CREATE TABLE users (
   name VARCHAR(100),
   email VARCHAR(100) UNIQUE,
   password TEXT,
+
   provider VARCHAR(20)
-    CHECK (provider IN ('local', 'google', 'github')) DEFAULT 'local',
+    CHECK (provider IN ('local', 'google', 'github'))
+    DEFAULT 'local',
+
   provider_id VARCHAR(255),
   avatar_url TEXT,
+
+  role VARCHAR(20)
+    CHECK (role IN ('user', 'admin'))
+    DEFAULT 'user',
+
   is_verified BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 
@@ -296,7 +305,23 @@ CREATE TABLE otp_verifications (
 );
 
 
+Scoring Logic (The "Ideal Rule")
+We will normalize scores to a standard integer scale.
 
+1. Practice Problems
+Easy: 10 Points
+Medium: 30 Points
+Hard: 50 Points
+Rule: Only unique solved problems count (no points for re-solving).
+2. Instant Arena
+Session Score: The score field in arena_sessions is already calculated based on problems solved.
+Bonus: +20 Points for fully completing a session (all problems solved).
+Formula: SUM(arena_sessions.score) + (Completed_Sessions * 20)
+3. Weekly Contests
+Contest Score: Sum of points from contest_submissions or the pre-calculated contest score.
+Formula: SUM(contest_points)
+Total Leaderboard Score
+Total Score = Practice_Points + Arena_Points + Contest_Points
 
 
 CREATE TABLE problem_solutions (
@@ -346,3 +371,156 @@ CREATE TABLE arena_session_problems (
   FOREIGN KEY (session_id) REFERENCES arena_sessions(id) ON DELETE CASCADE,
   FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
 );
+
+
+
+CREATE TABLE contests (
+  id SERIAL PRIMARY KEY,
+
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL,
+
+  is_published BOOLEAN DEFAULT false,
+
+  created_by INT NOT NULL,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (created_by)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE contest_problems (
+  contest_id INT NOT NULL,
+  problem_id INT NOT NULL,
+
+  problem_order INT,
+  points INT DEFAULT 100,
+
+  PRIMARY KEY (contest_id, problem_id),
+
+  FOREIGN KEY (contest_id)
+    REFERENCES contests(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE contest_submissions (
+  id SERIAL PRIMARY KEY,
+
+  contest_id INT NOT NULL,
+  problem_id INT NOT NULL,
+  user_id INT NOT NULL,
+
+  language VARCHAR(20) NOT NULL,
+  code TEXT NOT NULL,
+
+  verdict VARCHAR(20)
+    CHECK (verdict IN ('AC','WA','TLE','MLE','RE','CE')),
+
+  runtime_ms INT,
+  memory_kb INT,
+
+  submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (contest_id)
+    REFERENCES contests(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE contest_participation (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  contest_id INT NOT NULL,
+  status VARCHAR(20) CHECK (status IN ('started', 'finished', 'disqualified')) DEFAULT 'started',
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  finished_at TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(user_id, contest_id)
+);
+
+
+
+CREATE TABLE platforms (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL,      -- LeetCode
+  slug VARCHAR(50) UNIQUE NOT NULL,      -- leetcode
+  base_url TEXT NOT NULL                 -- https://leetcode.com
+);
+
+
+CREATE TABLE user_platform_profiles (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  platform_id INT NOT NULL,
+  username VARCHAR(100),
+  profile_url TEXT,
+  verified BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE (user_id, platform_id),
+
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (platform_id) REFERENCES platforms(id)
+);
+
+
+CREATE TABLE platform_stats_raw (
+  id SERIAL PRIMARY KEY,
+  user_platform_id INT NOT NULL,
+
+  problems_solved INT,
+  rating INT,
+  contests_participated INT,
+  global_rank INT,
+
+  fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_platform_id)
+    REFERENCES user_platform_profiles(id)
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE platform_scores (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  platform_id INT NOT NULL,
+  normalized_score NUMERIC(6,2) NOT NULL,
+  calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE (user_id, platform_id),
+
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (platform_id) REFERENCES platforms(id)
+);
+
+CREATE TABLE universal_leaderboard (
+  user_id INT PRIMARY KEY,
+  universal_score NUMERIC(6,2) NOT NULL,
+  rank INT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+
+

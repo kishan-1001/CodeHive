@@ -523,4 +523,84 @@ router.delete('/coding-profiles/:platform', authenticateToken, async (req: any, 
     }
 });
 
+
+/**
+ * @route GET /api/profile/activity
+ * @desc Get user's paginated submission activity
+ * @access Private
+ */
+router.get('/activity', authenticateToken, async (req: any, res) => {
+    try {
+        const userId = req.user.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        // 1. Get Total Activity Count
+        const countRes = await pool.query(`
+            SELECT COUNT(*) 
+            FROM (
+                SELECT id FROM submissions WHERE user_id = $1
+                UNION ALL
+                SELECT id FROM contest_submissions WHERE user_id = $1
+            ) as total_activity
+        `, [userId]);
+
+        const totalItems = parseInt(countRes.rows[0].count);
+        const totalPages = Math.ceil(totalItems / limit);
+
+        // 2. Get Paginated Activity
+        const activityRes = await pool.query(`
+            SELECT * FROM (
+                SELECT 
+                    s.id::text as id,
+                    p.title as problem,
+                    s.verdict as action,
+                    s.created_at as time,
+                    p.difficulty as type
+                FROM submissions s
+                JOIN problems p ON s.problem_id = p.id
+                WHERE s.user_id = $1
+                
+                UNION ALL
+                
+                SELECT 
+                    cs.id::text as id,
+                    p.title as problem,
+                    cs.verdict as action,
+                    cs.submitted_at as time,
+                    p.difficulty as type
+                FROM contest_submissions cs
+                JOIN problems p ON cs.problem_id = p.id
+                WHERE cs.user_id = $1
+            ) AS combined_submissions
+            ORDER BY time DESC
+            LIMIT $2 OFFSET $3
+        `, [userId, limit, offset]);
+
+        const submissions = activityRes.rows.map(row => ({
+            id: row.id,
+            action: row.action === 'AC' ? 'Solved' : 'Attempted',
+            problem: row.problem,
+            time: row.time,
+            type: row.type.toLowerCase()
+        }));
+
+        res.json({
+            submissions,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalItems,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching activity:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 export default router;

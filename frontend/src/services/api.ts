@@ -227,6 +227,10 @@ export const userProfileAPI = {
     const formData = new FormData();
     formData.append('avatar', file);
     return api.uploadFile('/profile/upload-avatar', formData);
+  },
+
+  async getUserActivity(page: number = 1, limit: number = 10) {
+    return api.get(`/profile/activity?page=${page}&limit=${limit}`);
   }
 };
 

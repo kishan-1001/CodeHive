@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, GitCommit, Trophy, Star, Eye, Github, Linkedin, Twitter, Globe, X, Save, Image as ImageIcon, Upload } from 'lucide-react';
+import { Edit, GitCommit, Trophy, Star, Eye, Github, Linkedin, Twitter, Globe, X, Save, Image as ImageIcon, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
 import { authAPI, userProfileAPI, leaderboardAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -70,12 +70,22 @@ const UserProfile = () => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
+    // Activity Pagination State
+    const [activity, setActivity] = useState<RecentSubmission[]>([]);
+    const [activityPage, setActivityPage] = useState(1);
+    const [activityPagination, setActivityPagination] = useState({ hasNext: false, hasPrev: false, totalPages: 1 });
+    const [loadingActivity, setLoadingActivity] = useState(true);
+
     // Mock Data for other sections (Badges) - these are not yet in backend
     const mockBadges = ['Guardian', '50 Days Streak', 'Contest Winner'];
 
     useEffect(() => {
         fetchUserProfile();
     }, []);
+
+    useEffect(() => {
+        fetchActivity();
+    }, [activityPage]);
 
     const fetchUserProfile = async () => {
         try {
@@ -91,6 +101,19 @@ const UserProfile = () => {
             console.error('Failed to fetch profile', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchActivity = async () => {
+        setLoadingActivity(true);
+        try {
+            const data = await userProfileAPI.getUserActivity(activityPage, 10);
+            setActivity(data.submissions);
+            setActivityPagination(data.pagination);
+        } catch (error) {
+            console.error('Failed to fetch activity', error);
+        } finally {
+            setLoadingActivity(false);
         }
     };
 
@@ -490,12 +513,22 @@ const UserProfile = () => {
                         </div>
                     </div>
 
-                    {/* Recent Submissions List (Vertical) */}
+                    {/* Recent Submissions List (Vertical) with Pagination */}
                     <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-                        <h3 className="font-bold text-white mb-4">Recent AC Submissions</h3>
-                        <div className="space-y-4">
-                            {displayStats.recentSubmissions.length > 0 ? (
-                                displayStats.recentSubmissions.map((sub) => (
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-white">Recent Activity</h3>
+                            <div className="text-xs text-gray-500">
+                                Page {activityPage} of {activityPagination.totalPages || 1}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 min-h-[400px]">
+                            {loadingActivity ? (
+                                <div className="flex items-center justify-center h-full py-10">
+                                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            ) : activity.length > 0 ? (
+                                activity.map((sub) => (
                                     <div key={sub.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer group">
                                         <div className="flex items-center gap-4">
                                             <div className={`p-2 rounded-lg ${sub.type === 'hard' ? 'bg-red-500/10 text-red-500' : sub.type === 'medium' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-green-500/10 text-green-500'}`}>
@@ -512,8 +545,34 @@ const UserProfile = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-gray-500 text-center py-4">No recent submissions found.</div>
+                                <div className="text-gray-500 text-center py-10 flex flex-col items-center">
+                                    <GitCommit className="w-12 h-12 mb-2 opacity-20" />
+                                    <p>No activity found.</p>
+                                </div>
                             )}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-800">
+                            <button
+                                onClick={() => setActivityPage(p => Math.max(1, p - 1))}
+                                disabled={!activityPagination.hasPrev || loadingActivity}
+                                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-400 rounded-lg hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                            >
+                                <ChevronLeft className="w-4 h-4" /> Previous
+                            </button>
+
+                            <div className="flex gap-1">
+                                {/* Page dots can be added here later if needed */}
+                            </div>
+
+                            <button
+                                onClick={() => setActivityPage(p => p + 1)}
+                                disabled={!activityPagination.hasNext || loadingActivity}
+                                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-400 rounded-lg hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                            >
+                                Next <ChevronRight className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
 
