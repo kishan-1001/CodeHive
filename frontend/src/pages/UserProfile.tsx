@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, GitCommit, Trophy, Star, Eye, Github, Linkedin, Twitter, Globe, X, Save, Image as ImageIcon, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, GitCommit, Trophy, Eye, Github, Linkedin, Twitter, Globe, X, Save, Image as ImageIcon, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
 import { authAPI, userProfileAPI, leaderboardAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -46,6 +46,7 @@ interface UserStats {
     };
     recentSubmissions: RecentSubmission[];
     submissionCalendar: { date: string; count: number }[];
+    badges: { name: string; image: string; description: string }[];
 }
 
 const UserProfile = () => {
@@ -70,6 +71,10 @@ const UserProfile = () => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
+    // Badge Details Modal State
+    const [selectedBadge, setSelectedBadge] = useState<{ name: string; image: string; description: string } | null>(null);
+    const [isAllBadgesModalOpen, setIsAllBadgesModalOpen] = useState(false);
+
     // Activity Pagination State
     const [activity, setActivity] = useState<RecentSubmission[]>([]);
     const [activityPage, setActivityPage] = useState(1);
@@ -77,7 +82,7 @@ const UserProfile = () => {
     const [loadingActivity, setLoadingActivity] = useState(true);
 
     // Mock Data for other sections (Badges) - these are not yet in backend
-    const mockBadges = ['Guardian', '50 Days Streak', 'Contest Winner'];
+
 
     useEffect(() => {
         fetchUserProfile();
@@ -226,7 +231,8 @@ const UserProfile = () => {
         solved: { total: 0, easy: 0, medium: 0, hard: 0 },
         totalQuestions: { total: 0, easy: 0, medium: 0, hard: 0 },
         recentSubmissions: [],
-        submissionCalendar: []
+        submissionCalendar: [],
+        badges: []
     };
 
     // Helper to generate the last 365 days for the heatmap
@@ -385,19 +391,7 @@ const UserProfile = () => {
                             </div>
                         </div>
 
-                        {/* Badges Section */}
-                        <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-                            <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                                <Star className="w-5 h-5 text-amber-500" /> Badges
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                                {mockBadges.map((badge, idx) => (
-                                    <span key={idx} className="px-3 py-1 bg-gray-800 text-xs font-medium text-amber-400 rounded-full border border-gray-700">
-                                        {badge}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
@@ -455,16 +449,38 @@ const UserProfile = () => {
 
                         <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
                             <h3 className="font-bold text-white mb-4">Badges & Achievements</h3>
-                            <div className="grid grid-cols-3 gap-4">
-                                {[1, 2, 3].map((_, i) => (
-                                    <div key={i} className="aspect-square bg-gray-800/50 rounded-xl flex flex-col items-center justify-center border border-gray-700 hover:border-amber-500/50 transition-colors cursor-pointer group">
-                                        <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                                            <Trophy className={`w-6 h-6 ${i === 0 ? 'text-amber-400' : 'text-gray-500'}`} />
+                            {displayStats.badges && displayStats.badges.length > 0 ? (
+                                <div className="grid grid-cols-3 gap-4">
+                                    {(displayStats.badges.length > 3 ? displayStats.badges.slice(0, 3) : displayStats.badges).map((badge, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => setSelectedBadge(badge)}
+                                            className="group relative flex flex-col items-center justify-center p-2 rounded-xl bg-gray-800/20 border border-gray-800 hover:border-amber-500/50 hover:bg-gray-800/60 transition-all cursor-pointer aspect-square"
+                                        >
+                                            <div className="w-12 h-12 mb-2 relative flex-shrink-0">
+                                                <img src={badge.image} alt={badge.name} className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+                                            </div>
+                                            <span className="text-[10px] text-gray-400 text-center font-medium leading-tight group-hover:text-amber-400 transition-colors line-clamp-2">{badge.name}</span>
                                         </div>
-                                        <span className="text-xs text-gray-400 font-medium">{i === 0 ? 'Winner' : 'Locked'}</span>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+
+                                    {displayStats.badges.length > 3 && (
+                                        <div
+                                            onClick={() => setIsAllBadgesModalOpen(true)}
+                                            className="group flex flex-col items-center justify-center p-2 rounded-xl bg-gray-800/20 border border-dashed border-gray-700 hover:border-amber-500 hover:bg-gray-800/60 transition-all cursor-pointer aspect-square"
+                                        >
+                                            <span className="text-xl font-bold text-gray-500 group-hover:text-amber-500 transition-colors">+{displayStats.badges.length - 3}</span>
+                                            <span className="text-[10px] text-gray-500 font-medium group-hover:text-amber-400 transition-colors mt-1">View All</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
+                                    <Trophy className="w-12 h-12 mb-3 opacity-20" />
+                                    <p className="text-sm">No badges earned yet.</p>
+                                    <p className="text-xs mt-1">Solve problems to unlock!</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -720,6 +736,86 @@ const UserProfile = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )
+            }
+            {/* All Badges Modal */}
+            {
+                isAllBadgesModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200" onClick={() => setIsAllBadgesModalOpen(false)}>
+                        <div
+                            className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl relative p-6 flex flex-col max-h-[80vh]"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
+                                <div>
+                                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                        <Trophy className="w-5 h-5 text-amber-500" />
+                                        All Badges & Achievements
+                                    </h3>
+                                    <p className="text-xs text-gray-400 mt-1">You have earned {displayStats.badges.length} badges</p>
+                                </div>
+                                <button onClick={() => setIsAllBadgesModalOpen(false)} className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded-lg">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="overflow-y-auto custom-scrollbar p-2">
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                                    {displayStats.badges.map((badge, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => setSelectedBadge(badge)}
+                                            className="group relative flex flex-col items-center justify-center p-4 rounded-xl bg-gray-800/40 border border-gray-700 hover:border-amber-500/50 hover:bg-gray-800 transition-all cursor-pointer aspect-square"
+                                        >
+                                            <div className="w-16 h-16 mb-3 relative">
+                                                <img src={badge.image} alt={badge.name} className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+                                            </div>
+                                            <span className="text-xs text-gray-300 text-center font-medium leading-tight group-hover:text-amber-400 transition-colors">{badge.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Badge Details Modal */}
+            {
+                selectedBadge && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200" onClick={() => setSelectedBadge(null)}>
+                        <div
+                            className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm shadow-2xl relative p-8 flex flex-col items-center text-center transform scale-100 transition-transform duration-200"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setSelectedBadge(null)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="w-32 h-32 mb-6 relative">
+                                <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full"></div>
+                                <img src={selectedBadge.image} alt={selectedBadge.name} className="w-full h-full object-contain relative z-10 drop-shadow-2xl" />
+                            </div>
+
+                            <h3 className="text-2xl font-bold text-white mb-2">{selectedBadge.name}</h3>
+                            <div className="h-1 w-16 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-full mb-4"></div>
+                            <p className="text-gray-300 leading-relaxed font-light">
+                                {selectedBadge.description}
+                            </p>
+
+                            <div className="mt-8 flex gap-3 w-full">
+                                <button
+                                    onClick={() => setSelectedBadge(null)}
+                                    className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-xl transition-colors border border-gray-700"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )

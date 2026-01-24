@@ -259,7 +259,53 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
             count: parseInt(row.value)
         }));
 
-        // 5. Aggregate for Response
+        // 5. Get User Account Info (created_at) & Universal Score
+        const userInfoRes = await pool.query(`
+            SELECT u.created_at, COALESCE(gl.universal_score, 0) as score
+            FROM users u
+            LEFT JOIN global_leaderboard gl ON u.id = gl.user_id
+            WHERE u.id = $1
+        `, [userId]);
+
+        const createdAt = userInfoRes.rows[0]?.created_at ? new Date(userInfoRes.rows[0].created_at) : new Date();
+        const universalScore = parseFloat(userInfoRes.rows[0]?.score || '0');
+
+        // 6. Calculate Badges
+        const badges = [];
+        const activeDays = submissionCalendar.length; // Number of unique days with activity
+        const now = new Date();
+        const yearsActive = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24 * 365); // Approx years
+
+        // -- Active Days Badges --
+        if (activeDays >= 50) badges.push({ name: '50 Days Badge', image: '/50days.png', description: 'Completed 50 days of coding' });
+        if (activeDays >= 100) badges.push({ name: '100 Days Badge', image: '/100days.png', description: 'Completed 100 days of coding' });
+        if (activeDays >= 200) badges.push({ name: '200 Days Badge', image: '/200days.png', description: 'Completed 200 days of coding' });
+        if (activeDays >= 366) badges.push({ name: '366 Days Badge', image: '/366days.png', description: 'Completed 366 days of coding' });
+
+        // -- Yearly Badges --
+        if (yearsActive >= 2) badges.push({ name: '2 Years Badge', image: '/2year.png', description: 'Member for 2+ years' });
+        if (yearsActive >= 3) badges.push({ name: '3 Years Badge', image: '/3year.png', description: 'Member for 3+ years' });
+        if (yearsActive >= 4) badges.push({ name: '4 Years Badge', image: '/4year.png', description: 'Member for 4+ years' });
+        if (yearsActive >= 5) badges.push({ name: '5 Years Badge', image: '/5year.png', description: 'Member for 5+ years' });
+
+        // -- Rank/Score Badges --
+        // -- Rank/Score Badges (Exclusive: Show only the highest earned) --
+        let rankBadge = null;
+        if (universalScore >= 20000) {
+            rankBadge = { name: 'Expert', image: '/expert.png', description: 'Score 20000+' };
+        } else if (universalScore >= 10000) {
+            rankBadge = { name: 'Pro', image: '/pro.png', description: 'Score 10000+' };
+        } else if (universalScore >= 5000) {
+            rankBadge = { name: 'Intermediate', image: '/intermediate.png', description: 'Score 5000+' };
+        } else if (universalScore >= 100) {
+            rankBadge = { name: 'Beginner', image: '/beginner.png', description: 'Score 100+' };
+        }
+
+        if (rankBadge) {
+            badges.push(rankBadge);
+        }
+
+        // 7. Aggregate for Response
         const response = {
             solved: {
                 total: solvedStats.Easy + solvedStats.Medium + solvedStats.Hard,
@@ -274,7 +320,8 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
                 hard: totalStats.Hard
             },
             recentSubmissions,
-            submissionCalendar
+            submissionCalendar,
+            badges
         };
 
         res.json(response);
