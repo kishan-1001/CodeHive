@@ -140,7 +140,7 @@ const WeeklyContest: React.FC = () => {
                             : 'bg-gray-800 text-white hover:bg-gray-700'
                         }`}
                     >
-                      {status === 'live' ? 'Enter Contest' : status === 'upcoming' ? 'Starts Soon' : 'View Results'}
+                      {status === 'live' ? 'Enter Contest' : status === 'upcoming' ? 'Starts Soon' : 'View Questions'}
                       {status !== 'upcoming' && <ArrowRight className="w-5 h-5" />}
                     </button>
                   </div>
