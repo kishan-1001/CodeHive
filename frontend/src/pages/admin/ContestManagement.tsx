@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Calendar, Loader2 } from 'lucide-react';
+import DeleteContestModal from '../../components/DeleteContestModal';
+import ErrorModal from '../../components/ErrorModal';
 
 interface Contest {
     id: number;
@@ -14,6 +16,10 @@ const ContestManagement: React.FC = () => {
     const navigate = useNavigate();
     const [contests, setContests] = useState<Contest[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [contestToDelete, setContestToDelete] = useState<Contest | null>(null);
+    const [errorModalOpen, setErrorModalOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         fetchContests();
@@ -36,21 +42,32 @@ const ContestManagement: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this contest?')) return;
+    const handleDelete = (contest: Contest) => {
+        setContestToDelete(contest);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!contestToDelete) return;
+
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/admin/contests/${id}`, {
+            const res = await fetch(`/api/admin/contests/${contestToDelete.id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                setContests(contests.filter(c => c.id !== id));
+                setContests(contests.filter(c => c.id !== contestToDelete.id));
+                setDeleteModalOpen(false);
+                setContestToDelete(null);
             } else {
-                alert('Failed to delete contest');
+                setErrorMessage('Failed to delete contest');
+                setErrorModalOpen(true);
             }
         } catch (error) {
             console.error('Error deleting contest:', error);
+            setErrorMessage('An unexpected error occurred');
+            setErrorModalOpen(true);
         }
     };
 
@@ -92,7 +109,7 @@ const ContestManagement: React.FC = () => {
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => handleDelete(contest.id)}
+                                    onClick={() => handleDelete(contest)}
                                     className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
@@ -119,6 +136,21 @@ const ContestManagement: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Delete Modal */}
+            {deleteModalOpen && contestToDelete && (
+                <DeleteContestModal
+                    contestTitle={contestToDelete.title}
+                    onClose={() => setDeleteModalOpen(false)}
+                    onConfirm={confirmDelete}
+                />
+            )}
+
+            <ErrorModal
+                isOpen={errorModalOpen}
+                onClose={() => setErrorModalOpen(false)}
+                message={errorMessage}
+            />
         </div>
     );
 };

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import ErrorModal from '../../components/ErrorModal';
 
 interface Problem {
     id: number;
@@ -14,6 +16,12 @@ const ProblemManagement: React.FC = () => {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal State
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [errorModalOpen, setErrorModalOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [problemToDelete, setProblemToDelete] = useState<{ id: number, title: string } | null>(null);
 
     useEffect(() => {
         fetchProblems();
@@ -38,12 +46,17 @@ const ProblemManagement: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this problem?')) return;
+    const handleDelete = (problem: Problem) => {
+        setProblemToDelete({ id: problem.id, title: problem.title });
+        setConfirmModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!problemToDelete) return;
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/admin/problems/${id}`, {
+            const res = await fetch(`/api/admin/problems/${problemToDelete.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -51,13 +64,18 @@ const ProblemManagement: React.FC = () => {
             });
 
             if (res.ok) {
-                setProblems(problems.filter(p => p.id !== id));
+                setProblems(problems.filter(p => p.id !== problemToDelete.id));
+                setConfirmModalOpen(false);
+                setProblemToDelete(null);
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to delete problem');
+                setErrorMessage(data.error || 'Failed to delete problem');
+                setErrorModalOpen(true);
             }
         } catch (error) {
             console.error('Error deleting problem:', error);
+            setErrorMessage('An unexpected error occurred');
+            setErrorModalOpen(true);
         }
     };
 
@@ -128,7 +146,7 @@ const ProblemManagement: React.FC = () => {
                                         <Pencil className="w-4 h-4" />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(problem.id)}
+                                        onClick={() => handleDelete(problem)}
                                         className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                         title="Delete"
                                     >
@@ -147,6 +165,30 @@ const ProblemManagement: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Modals */}
+            <ConfirmationModal
+                isOpen={confirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Problem?"
+                message={
+                    <>
+                        Are you sure you want to delete <span className="font-bold text-red-500">{problemToDelete?.title}</span>?
+                        <br />
+                        This action cannot be undone.
+                    </>
+                }
+                confirmText="Yes, Delete"
+                confirmColor="red"
+                icon="trash"
+            />
+
+            <ErrorModal
+                isOpen={errorModalOpen}
+                onClose={() => setErrorModalOpen(false)}
+                message={errorMessage}
+            />
         </div>
     );
 };

@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Save, User, Link as LinkIcon, CheckCircle, AlertCircle, ShieldCheck, Copy, X, Trash2 } from 'lucide-react';
 import Header from '../components/Header';
 import { api } from '../services/api';
+import DeleteProfileModal from '../components/DeleteProfileModal';
+import SaveRequiredModal from '../components/SaveRequiredModal';
+import VerificationFailureModal from '../components/VerificationFailureModal';
 
 const CodingProfile = () => {
     const navigate = useNavigate();
@@ -14,7 +17,20 @@ const CodingProfile = () => {
     const [verificationModalOpen, setVerificationModalOpen] = useState(false);
     const [verifyingPlatform, setVerifyingPlatform] = useState<{ name: string, label: string } | null>(null);
     const [verificationKey, setVerificationKey] = useState<string | null>(null);
+
     const [isVerifying, setIsVerifying] = useState(false);
+
+    // deletion state
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [platformToDelete, setPlatformToDelete] = useState<string | null>(null);
+
+    // save required state
+    const [saveRequiredModalOpen, setSaveRequiredModalOpen] = useState(false);
+    const [missingPlatformLabel, setMissingPlatformLabel] = useState<string | null>(null);
+
+    // verification failure state
+    const [failureModalOpen, setFailureModalOpen] = useState(false);
+    const [verificationError, setVerificationError] = useState<string | null>(null);
 
     const [profiles, setProfiles] = useState({
         leetcode: { username: '', verified: false },
@@ -23,6 +39,9 @@ const CodingProfile = () => {
         geeksforgeeks: { username: '', verified: false },
         hackerrank: { username: '', verified: false }
     });
+
+    // Store original fetching state to detect unsaved changes
+    const [originalProfiles, setOriginalProfiles] = useState<any>(null);
 
     useEffect(() => {
         fetchProfiles();
@@ -45,6 +64,7 @@ const CodingProfile = () => {
                 });
             }
             setProfiles(profileMap);
+            setOriginalProfiles(JSON.parse(JSON.stringify(profileMap))); // Deep copy
         } catch (error) {
             console.error('Failed to fetch profiles', error);
             setMessage({ type: 'error', text: 'Failed to load existing profiles.' });
@@ -92,6 +112,8 @@ const CodingProfile = () => {
 
             // Re-fetch to confirm state (e.g. if backend cleared verification on username change)
             fetchProfiles();
+            // Also update originalProfiles to match new saved state
+            // fetchProfiles calls setOriginalProfiles, so we are good.
         } catch (error) {
             console.error('Failed to save profiles', error);
             setMessage({ type: 'error', text: 'Failed to save changes. Please try again.' });
@@ -104,8 +126,14 @@ const CodingProfile = () => {
         // First ensure profile is saved? Or we can just generate key using the platform name.
         // User must have username saved first ideally.
         const profile = (profiles as any)[platformName];
-        if (!profile.username) {
-            setMessage({ type: 'error', text: `Please save your ${platformLabel} username first.` });
+
+        // Check if empty OR if modified but not saved
+        const original = originalProfiles ? originalProfiles[platformName] : null;
+        const isUnsaved = original && original.username !== profile.username;
+
+        if (!profile.username || isUnsaved) {
+            setMissingPlatformLabel(platformLabel);
+            setSaveRequiredModalOpen(true);
             return;
         }
 
@@ -123,26 +151,45 @@ const CodingProfile = () => {
         }
     };
 
-    const handleDeleteProfile = async (platformName: string) => {
-        if (!window.confirm(`Are you sure you want to remove your ${platformName} profile? This will unverify it and remove its score from the leaderboard.`)) {
-            return;
-        }
+    const handleDeleteProfile = (platformName: string) => {
+        setPlatformToDelete(platformName);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDeleteProfile = async () => {
+        if (!platformToDelete) return;
 
         try {
-            await api.delete(`/profile/coding-profiles/${platformName}`);
+            await api.delete(`/profile/coding-profiles/${platformToDelete}`);
             setMessage({ type: 'success', text: 'Profile removed successfully.' });
 
             // Clear local state
             setProfiles(prev => ({
                 ...prev,
-                [platformName]: { username: '', verified: false }
+                [platformToDelete]: { username: '', verified: false }
             }));
 
             fetchProfiles(); // Ensure sync
+            setDeleteModalOpen(false);
+            setPlatformToDelete(null);
         } catch (error) {
             console.error('Failed to delete profile', error);
             setMessage({ type: 'error', text: 'Failed to remove profile.' });
+            setDeleteModalOpen(false); // Close even on error? Or keep open? Let's close.
         }
+    };
+
+    const getUserFriendlyError = (error: string): string => {
+        if (error.includes('Token not found')) {
+            return "We couldn't find the verification token in your profile. Please ensure you've updated your bio or name exactly as shown and saved it on the platform.";
+        }
+        if (error.includes('Profile not found') || error.includes('404')) {
+            return "We couldn't find a profile with this username on the platform. Please check for typos and ensure the account is public.";
+        }
+        if (error.includes('rate limit')) {
+            return "We are making too many requests to the platform. Please wait a moment and try again.";
+        }
+        return error;
     };
 
     const handleCheckVerification = async () => {
@@ -158,7 +205,9 @@ const CodingProfile = () => {
         } catch (error: any) {
             // Error handling
             const errMsg = error.message || 'Verification failed. Please check your bio and try again.';
-            alert(errMsg); // Simple alert for modal error or use local state
+            // alert(errMsg); // Simple alert for modal error or use local state
+            setVerificationError(getUserFriendlyError(errMsg));
+            setFailureModalOpen(true);
         } finally {
             setIsVerifying(false);
         }
@@ -357,6 +406,28 @@ const CodingProfile = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Delete Confirmation Modal */}
+            {deleteModalOpen && platformToDelete && (
+                <DeleteProfileModal
+                    platformName={platformToDelete}
+                    onClose={() => setDeleteModalOpen(false)}
+                    onConfirm={confirmDeleteProfile}
+                />
+            )}
+            {/* Save Required Modal */}
+            {saveRequiredModalOpen && missingPlatformLabel && (
+                <SaveRequiredModal
+                    platformLabel={missingPlatformLabel}
+                    onClose={() => setSaveRequiredModalOpen(false)}
+                />
+            )}
+            {/* Verification Failure Modal */}
+            {failureModalOpen && verificationError && (
+                <VerificationFailureModal
+                    error={verificationError}
+                    onClose={() => setFailureModalOpen(false)}
+                />
             )}
         </div>
     );

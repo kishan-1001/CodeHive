@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import ErrorModal from '../../components/ErrorModal';
 
 interface TestCase {
     id: number;
@@ -23,6 +25,12 @@ const TestCaseManager: React.FC<TestCaseManagerProps> = ({ problemId }) => {
     const [output, setOutput] = useState('');
     const [isSample, setIsSample] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
+
+    // Modal State
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [errorModalOpen, setErrorModalOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [testCaseToDelete, setTestCaseToDelete] = useState<number | null>(null);
 
     useEffect(() => {
         fetchTestCases();
@@ -72,29 +80,44 @@ const TestCaseManager: React.FC<TestCaseManagerProps> = ({ problemId }) => {
                 setIsSample(false);
                 setIsHidden(false);
             } else {
-                alert('Failed to add test case');
+                setErrorMessage('Failed to add test case');
+                setErrorModalOpen(true);
             }
         } catch (error) {
             console.error('Error adding test case:', error);
+            setErrorMessage('An unexpected error occurred');
+            setErrorModalOpen(true);
         } finally {
             setAdding(false);
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Delete this test case?')) return;
+    const handleDelete = (id: number) => {
+        setTestCaseToDelete(id);
+        setConfirmModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!testCaseToDelete) return;
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/admin/test-cases/${id}`, {
+            const res = await fetch(`/api/admin/test-cases/${testCaseToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
-                setTestCases(testCases.filter(tc => tc.id !== id));
+                setTestCases(testCases.filter(tc => tc.id !== testCaseToDelete));
+                setConfirmModalOpen(false);
+                setTestCaseToDelete(null);
+            } else {
+                setErrorMessage('Failed to delete test case');
+                setErrorModalOpen(true);
             }
         } catch (error) {
             console.error('Error deleting test case:', error);
+            setErrorMessage('An unexpected error occurred');
+            setErrorModalOpen(true);
         }
     };
 
@@ -194,6 +217,24 @@ const TestCaseManager: React.FC<TestCaseManagerProps> = ({ problemId }) => {
                     Add Test Case
                 </button>
             </form>
+
+            {/* Modals */}
+            <ConfirmationModal
+                isOpen={confirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Test Case?"
+                message="Are you sure you want to delete this test case? This cannot be undone."
+                confirmText="Yes, Delete"
+                confirmColor="red"
+                icon="trash"
+            />
+
+            <ErrorModal
+                isOpen={errorModalOpen}
+                onClose={() => setErrorModalOpen(false)}
+                message={errorMessage}
+            />
         </div>
     );
 };

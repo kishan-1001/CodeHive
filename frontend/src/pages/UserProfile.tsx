@@ -166,10 +166,10 @@ const UserProfile = () => {
                 bio: editForm.bio,
                 avatar_url: finalAvatarUrl,
                 social_links: {
-                    github: editForm.github,
-                    linkedin: editForm.linkedin,
-                    twitter: editForm.twitter,
-                    website: editForm.website
+                    github: ensureAbsoluteUrl(editForm.github),
+                    linkedin: ensureAbsoluteUrl(editForm.linkedin),
+                    twitter: ensureAbsoluteUrl(editForm.twitter),
+                    website: ensureAbsoluteUrl(editForm.website)
                 }
             });
 
@@ -180,10 +180,10 @@ const UserProfile = () => {
                 bio: editForm.bio,
                 avatar_url: finalAvatarUrl || null,
                 social_links: {
-                    github: editForm.github,
-                    linkedin: editForm.linkedin,
-                    twitter: editForm.twitter,
-                    website: editForm.website
+                    github: ensureAbsoluteUrl(editForm.github),
+                    linkedin: ensureAbsoluteUrl(editForm.linkedin),
+                    twitter: ensureAbsoluteUrl(editForm.twitter),
+                    website: ensureAbsoluteUrl(editForm.website)
                 }
             }) : null);
 
@@ -206,6 +206,12 @@ const UserProfile = () => {
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+
+    const ensureAbsoluteUrl = (url: string) => {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        return `https://${url}`;
     };
 
     if (loading) {
@@ -336,22 +342,22 @@ const UserProfile = () => {
                             {/* Social Links */}
                             <div className="flex items-center justify-center gap-3 mb-6 mt-4">
                                 {user.social_links?.github && (
-                                    <a href={user.social_links.github} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                                    <a href={ensureAbsoluteUrl(user.social_links.github)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                                         <Github className="w-5 h-5" />
                                     </a>
                                 )}
                                 {user.social_links?.linkedin && (
-                                    <a href={user.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-400 transition-colors">
+                                    <a href={ensureAbsoluteUrl(user.social_links.linkedin)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-400 transition-colors">
                                         <Linkedin className="w-5 h-5" />
                                     </a>
                                 )}
                                 {user.social_links?.twitter && (
-                                    <a href={user.social_links.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-sky-400 transition-colors">
+                                    <a href={ensureAbsoluteUrl(user.social_links.twitter)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-sky-400 transition-colors">
                                         <Twitter className="w-5 h-5" />
                                     </a>
                                 )}
                                 {user.social_links?.website && (
-                                    <a href={user.social_links.website} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-400 transition-colors">
+                                    <a href={ensureAbsoluteUrl(user.social_links.website)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-400 transition-colors">
                                         <Globe className="w-5 h-5" />
                                     </a>
                                 )}

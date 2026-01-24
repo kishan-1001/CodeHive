@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Shield, User, Search } from 'lucide-react';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import ErrorModal from '../../components/ErrorModal';
 
 interface UserData {
     id: number;
@@ -14,6 +16,12 @@ const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal State
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [errorModalOpen, setErrorModalOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [pendingRoleUpdate, setPendingRoleUpdate] = useState<{ userId: number, currentRole: string } | null>(null);
 
     useEffect(() => {
         fetchUsers();
@@ -36,9 +44,15 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    const handleRoleUpdate = async (userId: number, currentRole: string) => {
+    const handleRoleUpdate = (userId: number, currentRole: string) => {
+        setPendingRoleUpdate({ userId, currentRole });
+        setConfirmModalOpen(true);
+    };
+
+    const confirmRoleUpdate = async () => {
+        if (!pendingRoleUpdate) return;
+        const { userId, currentRole } = pendingRoleUpdate;
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
-        if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
 
         try {
             const token = localStorage.getItem('token');
@@ -53,11 +67,16 @@ const UserManagement: React.FC = () => {
 
             if (res.ok) {
                 setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+                setConfirmModalOpen(false);
+                setPendingRoleUpdate(null);
             } else {
-                alert('Failed to update role');
+                setErrorMessage('Failed to update role');
+                setErrorModalOpen(true);
             }
         } catch (error) {
             console.error('Error updating role:', error);
+            setErrorMessage('An unexpected error occurred');
+            setErrorModalOpen(true);
         }
     };
 
@@ -142,6 +161,28 @@ const UserManagement: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Modals */}
+            <ConfirmationModal
+                isOpen={confirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                onConfirm={confirmRoleUpdate}
+                title="Change User Role?"
+                message={
+                    <>
+                        Are you sure you want to change this user's role to <span className="font-bold text-amber-500">{pendingRoleUpdate && (pendingRoleUpdate.currentRole === 'admin' ? 'USER' : 'ADMIN')}</span>?
+                    </>
+                }
+                confirmText={pendingRoleUpdate?.currentRole === 'admin' ? 'Demote' : 'Promote'}
+                confirmColor="amber"
+                icon="shield"
+            />
+
+            <ErrorModal
+                isOpen={errorModalOpen}
+                onClose={() => setErrorModalOpen(false)}
+                message={errorMessage}
+            />
         </div>
     );
 };
