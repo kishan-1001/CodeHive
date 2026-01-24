@@ -1,15 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, LogOut, ChevronDown } from 'lucide-react';
+import { authAPI } from '../services/api';
 
 interface HeaderProps {
   onSignOut: () => void;
   onKnowledgeDropClick?: () => void;
 }
 
+interface UserData {
+  name: string;
+  email: string;
+  avatar_url: string | null;
+}
+
+const API_BASE_URL = 'http://localhost:3001'; // Default localhost
+
 const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
   const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await authAPI.getMe();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to fetch user in header', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -30,6 +67,12 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
     } else {
       navigate(item.path);
     }
+  };
+
+  const getAvatarSrc = (path: string | null) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return `${API_BASE_URL}${path}`;
   };
 
   return (
@@ -95,15 +138,40 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
           </div>
         </nav>
 
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={toggleDropdown}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors overflow-hidden border border-gray-700"
           >
-            <User className="w-5 h-5 text-white" />
+            {user?.avatar_url ? (
+              <img
+                src={getAvatarSrc(user.avatar_url)}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-5 h-5 text-white" />
+            )}
           </button>
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+              {/* User Info Header in Dropdown - Optional but nice */}
+              {user && (
+                <div className="px-4 py-3 border-b border-gray-700">
+                  <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  navigate('/profile');
+                  setIsDropdownOpen(false);
+                }}
+                className="flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-gray-700"
+              >
+                <User className="w-4 h-4 mr-2" />
+                My Profile
+              </button>
               <button
                 onClick={() => {
                   navigate('/coding-profile');

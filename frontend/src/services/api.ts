@@ -37,10 +37,66 @@ export const api = {
 
     return response.json();
   },
+
+  async put(endpoint: string, data: any) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || error.error || 'Something went wrong');
+    }
+
+    return response.json();
+  },
+
+  async delete(endpoint: string) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || error.error || 'Something went wrong');
+    }
+
+    return response.json();
+  },
+
+  async uploadFile(endpoint: string, formData: FormData) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        // No Content-Type header needed for FormData; fetch sets it automatically with boundary
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || error.error || 'Something went wrong');
+    }
+
+    return response.json();
+  },
 };
 
 export const authAPI = {
-  async register(userData: { name: string; email: string; password: string }) {
+  async register(userData: { name: string; email: string; password: string; username?: string }) {
     return api.post('/auth/register', userData);
   },
 
@@ -158,3 +214,33 @@ export const arenaAPI = {
   },
 };
 
+export const userProfileAPI = {
+  async getProfileStats() {
+    return api.get('/profile/stats');
+  },
+
+  async updateProfile(data: { name: string; bio?: string; social_links?: any; avatar_url?: string }) {
+    return api.put('/profile/update', data);
+  },
+
+  async uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return api.uploadFile('/profile/upload-avatar', formData);
+  }
+};
+
+export const leaderboardAPI = {
+  async getGlobalLeaderboard(page: number = 1, limit: number = 15, search: string = '') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search
+    });
+    return api.get(`/leaderboard/global?${params.toString()}`);
+  },
+
+  async getMyRank() {
+    return api.get('/leaderboard/my-rank');
+  }
+};

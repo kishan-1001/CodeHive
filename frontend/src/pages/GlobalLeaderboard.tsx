@@ -14,6 +14,7 @@ interface LeaderboardUser {
     universal_score: number;
     rank: number;
     name: string;
+    username: string;
     email: string;
     avatar_url: string | null;
     platform_details: PlatformDetail[];
@@ -107,6 +108,12 @@ const GlobalLeaderboard = () => {
         navigate('/home');
     };
 
+    const getAvatarSrc = (path: string | null) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        return `http://localhost:3001${path}`;
+    };
+
     const getPlatformIcon = (platform: string | null) => {
         if (!platform) return <span className="text-gray-600">-</span>;
         switch (platform.toLowerCase()) {
@@ -181,7 +188,7 @@ const GlobalLeaderboard = () => {
                                     <div className="col-span-1 md:col-span-4 flex items-center justify-center md:justify-start gap-4">
                                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-amber-500/50 overflow-hidden shrink-0">
                                             {myRank.avatar_url ? (
-                                                <img src={myRank.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                <img src={getAvatarSrc(myRank.avatar_url) || ''} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
                                                     {myRank.name ? myRank.name.charAt(0).toUpperCase() : 'U'}
@@ -193,7 +200,7 @@ const GlobalLeaderboard = () => {
                                                 {myRank.name || "You"}
                                                 <span className="text-xs bg-amber-500 text-black px-2 py-0.5 rounded-full font-bold">YOU</span>
                                             </div>
-                                            <div className="text-xs text-amber-500/70">@{myRank.email?.split('@')[0] || 'user'}</div>
+                                            <div className="text-xs text-amber-500/70">@{myRank.username || myRank.email?.split('@')[0] || 'user'}</div>
                                         </div>
                                     </div>
                                     <div className="col-span-1 md:col-span-2 text-center md:text-right font-black text-amber-400 text-xl md:text-2xl">
@@ -256,7 +263,7 @@ const GlobalLeaderboard = () => {
 
                                         <div className="col-span-1 md:col-span-4 flex items-center justify-center md:justify-start gap-4">
                                             {user.avatar_url ? (
-                                                <img className="h-10 w-10 md:h-12 md:w-12 rounded-full border-2 border-gray-800 group-hover:border-gray-700 object-cover shrink-0" src={user.avatar_url} alt="" />
+                                                <img className="h-10 w-10 md:h-12 md:w-12 rounded-full border-2 border-gray-800 group-hover:border-gray-700 object-cover shrink-0" src={getAvatarSrc(user.avatar_url) || ''} alt="" />
                                             ) : (
                                                 <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center border-2 border-gray-800 group-hover:border-gray-700 text-lg font-bold shrink-0">
                                                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -264,8 +271,9 @@ const GlobalLeaderboard = () => {
                                             )}
                                             <div className="min-w-0 text-center md:text-left">
                                                 <div className="text-lg font-medium text-white group-hover:text-amber-400 transition-colors">
-                                                    {user.name}
+                                                    {user.name || user.username}
                                                 </div>
+                                                <div className="text-xs text-gray-500">@{user.username || user.email?.split('@')[0] || 'user'}</div>
                                             </div>
                                         </div>
 

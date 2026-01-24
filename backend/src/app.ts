@@ -41,6 +41,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
+app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordResetRoutes);
 app.use('/api/execute', executeRoutes);

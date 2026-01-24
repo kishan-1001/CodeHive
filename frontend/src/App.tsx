@@ -15,6 +15,7 @@ import ContestLive from "./pages/ContestLive.tsx";
 import ContestFeedback from "./pages/ContestFeedback.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import GlobalLeaderboard from "./pages/GlobalLeaderboard.tsx";
+import UserProfile from "./pages/UserProfile.tsx";
 import CodingProfile from "./pages/CodingProfile.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Legal from "./pages/Legal.tsx";
@@ -50,6 +51,7 @@ const App: React.FC = () => {
       <Route path="/weekly-contest/:id/feedback" element={<ContestFeedback />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/global-leaderboard" element={<GlobalLeaderboard />} />
+      <Route path="/profile" element={<UserProfile />} />
       <Route path="/coding-profile" element={<CodingProfile />} />
       <Route path="/legal" element={<Legal />} />
 

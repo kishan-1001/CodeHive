@@ -111,6 +111,7 @@ router.get('/', async (req, res) => {
             SELECT 
                 l.*,
                 u.name,
+                u.username,
                 u.avatar_url
             FROM leaderboard l
             JOIN users u ON l.user_id = u.id
@@ -139,6 +140,27 @@ router.post('/sync', authenticateToken, async (req: any, res) => {
         res.json({ message: 'Score synced', scores });
     } catch (error) {
         res.status(500).json({ error: 'Failed to sync score' });
+    }
+});
+
+// Get Current User's CodeHive Rank
+router.get('/my-rank', authenticateToken, async (req: any, res) => {
+    try {
+        const userId = req.user.id;
+        // Calculate rank efficiently
+        // Rank = count of users with higher total_score + 1
+        const result = await pool.query(`
+            SELECT 
+                (SELECT COUNT(*) + 1 FROM leaderboard WHERE total_score > l.total_score) as rank
+            FROM leaderboard l
+            WHERE l.user_id = $1
+        `, [userId]);
+
+        const rank = result.rows[0]?.rank ? parseInt(result.rows[0].rank) : null;
+        res.json({ rank });
+    } catch (error) {
+        console.error('Error fetching my rank:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 

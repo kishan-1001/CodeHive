@@ -11,12 +11,20 @@ const router = Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, username } = req.body;
 
-    // Check if user already exists
-    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existingUser.rows.length > 0) {
-      return res.status(400).json({ message: 'User already exists' });
+    // Check if user already exists (email or username)
+    // We can do this in one query or separate for better error messages
+    const existingEmail = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existingEmail.rows.length > 0) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    if (username) {
+      const existingUsername = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+      if (existingUsername.rows.length > 0) {
+        return res.status(400).json({ message: 'Username is already taken' });
+      }
     }
 
     // Hash password
@@ -24,9 +32,10 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Insert user
+    // Now including username in INSERT
     const userResult = await pool.query(
-      'INSERT INTO users (name, email, password, provider) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
-      [name, email, hashedPassword, 'local']
+      'INSERT INTO users (name, email, password, username, provider) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, username',
+      [name, email, hashedPassword, username || null, 'local']
     );
     const user = userResult.rows[0];
 
@@ -208,8 +217,23 @@ router.get(
 );
 
 // Verify Token & Get User
-router.get('/me', authenticateToken, (req: any, res) => {
-  res.json(req.user);
+router.get('/me', authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await pool.query(
+      'SELECT id, name, email, username, avatar_url, role, bio, social_links, created_at FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 export default router;
