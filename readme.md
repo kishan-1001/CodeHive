@@ -56,13 +56,28 @@ Participate in scheduled contests to test your skills under pressure and climb t
   <img src="frontend/public/weekly contest.png" width="800" alt="Weekly Contest" />
 </p>
 
-### � AI-Driven Feedback
+### 🤖 AI-Driven Feedback
 Get personalized, AI-powered feedback on your performance in Instant Arena and Weekly Contests. Understand your weak points, receive optimization tips, and improve your code quality instantly.
 <p align="center">
   <img src="frontend/public/ai driven feedback.png" width="800" alt="AI Driven Feedback" />
 </p>
 
-### �🧠 Knowledge Drop
+### 🛡️ Admin Dashboard & Management
+Comprehensive tools for administrators to manage problems, contests, and users.
+<p align="center">
+  <img src="frontend/public/admin dashboard.png" width="800" alt="Admin Dashboard" />
+</p>
+<p align="center">
+  <img src="frontend/public/admin problem.png" width="800" alt="Admin Problem Management" />
+</p>
+<p align="center">
+  <img src="frontend/public/Screenshot 2026-01-26 015357.png" width="800" alt="Admin Contest Management" />
+</p>
+<p align="center">
+  <img src="frontend/public/Screenshot 2026-01-26 015418.png" width="800" alt="Admin User Management" />
+</p>
+
+### 🧠 Knowledge Drop
 Share your coding insights and articles with the community. (New: Now featuring author profile pictures!).
 <p align="center">
   <img src="frontend/public/knowledge drop.png" width="800" alt="Knowledge Drop" />
@@ -103,18 +118,18 @@ Ensure you have the following installed:
 *   **git**
 
 ### 1. Clone the Repository
-```bash
+    ```bash
 git clone https://github.com/kishan-1001/CodeHive.git
-cd CodeHive
-```
+    cd CodeHive
+    ```
 
 ### 2. Backend Setup
 
 **Install Dependencies:**
-```bash
-cd backend
-npm install
-```
+    ```bash
+    cd backend
+    npm install
+    ```
 
 **Environment Configuration:**
 Create a `.env` file in the `backend` directory with the following variables:
@@ -144,10 +159,9 @@ BREVO_API_KEY=your_brevo_api_key
 ```
 
 **Run the Backend:**
-```bash
-# Start in development mode (with hot reloading)
-npm run dev
-```
+    ```bash
+    npm run dev
+    ```
 *Note: Ensure Docker Desktop is running before executing code challenges.*
 
 ### 3. Frontend Setup
@@ -155,14 +169,14 @@ npm run dev
 Open a new terminal window and navigate to the frontend directory.
 
 **Install Dependencies:**
-```bash
+    ```bash
 cd frontend
-npm install
-```
+    npm install
+    ```
 
 **Run the Frontend:**
-```bash
-npm start
+    ```bash
+    npm start
 # OR
 npm run dev
 ```
