@@ -19,8 +19,11 @@ Instant Arena lets you create custom coding contests tailored to specific topics
 ### 🧩 Extensive Problem Library
 Practice with a vast collection of problems categorized by difficulty and topic. Features a powerful Monaco-based code editor with multi-language support.
 <p align="center">
-  <img src="frontend/public/topic wise proble page.png" width="48%" />
-  <img src="frontend/public/problem editor page.png" width="48%" />
+  <img src="frontend/public/problem page.png" width="800" alt="Problem List" />
+</p>
+<p align="center">
+  <img src="frontend/public/topic wise proble page.png" width="48%" alt="Topic Wise Problems" />
+  <img src="frontend/public/problem editor page.png" width="48%" alt="Code Editor" />
 </p>
 
 ### 🏆 Global & Local Leaderboards
