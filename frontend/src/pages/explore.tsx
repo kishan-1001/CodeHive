@@ -13,6 +13,7 @@ interface Post {
   content: string;
   created_at: string;
   author_name: string;
+  avatar_url?: string;
   like_count: number;
   comment_count: number;
 }
@@ -101,6 +102,11 @@ const Explore: React.FC = () => {
   }, []);
 
 
+  const getAvatarSrc = (path: string | undefined) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `http://localhost:3001${path}`;
+  };
 
   return (
     <div className="relative min-h-screen selection:bg-amber-400/30">
@@ -129,7 +135,7 @@ const Explore: React.FC = () => {
       <div className="relative min-h-screen pt-24 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            
+
             <p className="text-gray-400">Discover coding insights from the community</p>
           </div>
 
@@ -147,8 +153,12 @@ const Explore: React.FC = () => {
                 <div key={post.id} className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
-                        <User className="w-5 h-5 text-amber-400" />
+                      <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center overflow-hidden">
+                        {post.avatar_url ? (
+                          <img src={getAvatarSrc(post.avatar_url) || ''} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-5 h-5 text-amber-400" />
+                        )}
                       </div>
                       <div>
                         <p className="text-white font-medium">{post.author_name}</p>
@@ -172,9 +182,8 @@ const Explore: React.FC = () => {
                         className="flex items-center gap-1 mt-2 text-amber-400 text-sm font-medium"
                       >
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform ${
-                            expandedPosts[post.id] ? 'rotate-180' : ''
-                          }`}
+                          className={`w-4 h-4 transition-transform ${expandedPosts[post.id] ? 'rotate-180' : ''
+                            }`}
                         />
                         {expandedPosts[post.id] ? 'Show Less' : 'Read More'}
                       </button>

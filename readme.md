@@ -1,87 +1,113 @@
-# CodeHive
+# CodeHive 🐝
 
-A comprehensive coding platform built with modern web technologies, featuring problem solving, code execution, contests, and leaderboards.
+**The Ultimate Competitive Programming & Coding Platform**
 
-## Features
-- User authentication via GitHub and Google OAuth
-- Problem repository with various topics and difficulties
-- Real-time code editor with Monaco Editor
-- Code execution engine for multiple languages
-- Submission tracking and verdicts (AC, WA, TLE, etc.)
-- Leaderboards and contests
-- Responsive UI with Tailwind CSS
+![CodeHive Home](frontend/public/CodeHive%20home%20page%20.png)
 
-## Tech Stack
+CodeHive is a modern, feature-rich coding platform designed to help developers master data structures and algorithms, compete in contests, and showcase their skills to the world.
 
-### Backend
-- Node.js with Express
-- TypeScript
-- PostgreSQL database
-- Passport.js for authentication
-- WebSockets for real-time features
-- Redis for caching
+---
+
+## 🚀 Key Features
+
+### ⚔️ Instant Arena (1v1 Battles)
+Challenge other developers in real-time 1v1 coding battles! Select your difficulty, get matched instantly, and race to solve the problem first.
+<p align="center">
+  <img src="frontend/public/instant arena.png" width="800" alt="Instant Arena" />
+</p>
+
+### 🧩 Extensive Problem Library
+Practice with a vast collection of problems categorized by difficulty and topic. Features a powerful Monaco-based code editor with multi-language support.
+<p align="center">
+  <img src="frontend/public/topic wise proble page.png" width="48%" />
+  <img src="frontend/public/problem editor page.png" width="48%" />
+</p>
+
+### 🏆 Global & Local Leaderboards
+Track your progress against the community.
+*   **CodeHive Rank**: Based on your activity within the platform.
+*   **Global Rank**: we allow you to sync your ratings from LeetCode, CodeForces, and other platforms to generate a Universal Score!
+<p align="center">
+  <img src="frontend/public/codehive leaderboard.png" width="400" />
+  <img src="frontend/public/global leaderboard.png" width="400" />
+</p>
+
+### 👤 Detailed User Profiles
+Showcase your achievements, badges, and activity graph.
+*   **View Tracking**: See how many people visit your profile.
+*   **Privacy Controls**: Toggle your profile visibility between Public and Private.
+*   **Badges**: Earn badges for streaks and milestones (50 Days, 100 Days, etc.).
+<p align="center">
+  <img src="frontend/public/my profile.png" width="800" alt="User Profile" />
+</p>
+
+### 📅 Weekly Contests
+Participate in scheduled contests to test your skills under pressure and climb the rankings.
+<p align="center">
+  <img src="frontend/public/weekly contest.png" width="800" alt="Weekly Contest" />
+</p>
+
+### 🧠 Knowledge Drop
+Share your coding insights and articles with the community. (New: Now featuring author profile pictures!).
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- React with TypeScript
-- Vite for build tool
-- Tailwind CSS for styling
-- Monaco Editor for code editing
-- React Router for navigation
+*   **Framework**: React (Vite)
+*   **Styling**: Tailwind CSS, Vanilla CSS
+*   **Language**: TypeScript
+*   **Editor**: Monaco Editor
 
-### Execution Engine
-- Docker for isolated code execution
+### Backend
+*   **Runtime**: Node.js
+*   **Framework**: Express.js
+*   **Database**: PostgreSQL
+*   **Authentication**: Passport.js (Google, GitHub, Local), JWT
+*   **Real-time**: Socket.io (for Arena)
 
-## Installation
+---
+
+## ⚡ Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- PostgreSQL
-- Redis
-- Docker
+*   Node.js (v18+)
+*   PostgreSQL
+*   npm or yarn
 
-### Backend Setup
-1. Navigate to backend directory:
-   ```
-   cd backend
-   ```
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Set up environment variables in .env file (see .env.example)
-4. Run database migrations (if any)
-5. Start the server:
-   ```
-   npm run dev
-   ```
+### Installation
 
-### Frontend Setup
-1. Navigate to frontend directory:
-   ```
-   cd frontend
-   ```
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Start the development server:
-   ```
-   npm run dev
-   ```
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/kishan-1001/CodeHive.git
+    cd CodeHive
+    ```
 
-### Execution Engine
-1. Navigate to execution-engine directory
-2. Build Docker images as needed
+2.  **Backend Setup**
+    ```bash
+    cd backend
+    npm install
+    # Create .env file with DB credentials and JWT secrets
+    npm run dev
+    ```
 
-## Usage
-- Access the frontend at http://localhost:3000
-- Backend API at http://localhost:5000
+3.  **Frontend Setup**
+    ```bash
+    cd frontend
+    npm install
+    npm start
+    ```
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make changes and test
-4. Submit a pull request
+4.  **Visit the App**
+    Open `http://localhost:5173` in your browser.
 
-## License
-MIT License
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request.
+
+## 📄 License
+
+MIT License.

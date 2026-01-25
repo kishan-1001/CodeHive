@@ -10,7 +10,8 @@ router.get('/', async (req, res) => {
         const result = await pool.query(`
       SELECT 
         p.*, 
-        u.name as author_name, 
+        CASE WHEN u.is_public = FALSE THEN 'Anonymous' ELSE u.name END as author_name,
+        CASE WHEN u.is_public = FALSE THEN NULL ELSE u.avatar_url END as avatar_url,
         (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
         (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
       FROM posts p
