@@ -13,6 +13,7 @@ interface UserProfileData {
     avatar_url: string | null;
     created_at: string;
     is_public?: boolean;
+    views_count?: number;
     rank?: number;
     universal_score?: number;
     bio?: string;
@@ -433,7 +434,7 @@ const UserProfile = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-400 flex items-center gap-2"><Eye className="w-4 h-4" /> Views</span>
-                                        <span className="text-white font-medium">1.2K</span>
+                                        <span className="text-white font-medium">{user.views_count ? user.views_count.toLocaleString() : 0}</span>
                                     </div>
                                 </div>
                             </div>

@@ -663,7 +663,7 @@ router.get('/public/:username', authenticateToken, async (req: any, res) => {
 
         // 1. Find User by Username (Case Insensitive)
         const userRes = await pool.query(`
-            SELECT id, name, username, bio, avatar_url, social_links, created_at, role, is_public 
+            SELECT id, name, username, bio, avatar_url, social_links, created_at, role, is_public, views_count
             FROM users 
             WHERE LOWER(username) = LOWER($1)
         `, [username]);
@@ -681,6 +681,32 @@ router.get('/public/:username', authenticateToken, async (req: any, res) => {
         }
 
         const userId = targetUser.id;
+
+        // VIEW TRACKING LOGIC
+        const viewerId = req.user.id;
+        if (viewerId !== userId) { // Don't count self-views
+            // Check for recent view (24h cooldown)
+            const recentView = await pool.query(`
+                SELECT 1 FROM profile_views 
+                WHERE viewer_id = $1 AND profile_id = $2 
+                AND viewed_at > NOW() - INTERVAL '24 hours'
+            `, [viewerId, userId]);
+
+            if (recentView.rowCount === 0) {
+                // Record view
+                await pool.query(`
+                    INSERT INTO profile_views (viewer_id, profile_id) VALUES ($1, $2)
+                 `, [viewerId, userId]);
+
+                // Increment count
+                await pool.query(`
+                    UPDATE users SET views_count = COALESCE(views_count, 0) + 1 WHERE id = $1
+                 `, [userId]);
+
+                // Update local variable to return new count immediately
+                targetUser.views_count = (targetUser.views_count || 0) + 1;
+            }
+        }
 
         // 2. Reuse logic to get stats (Duplicated from /stats for safety)
 
@@ -786,6 +812,7 @@ router.get('/public/:username', authenticateToken, async (req: any, res) => {
                 bio: targetUser.bio,
                 social_links: targetUser.social_links,
                 created_at: targetUser.created_at,
+                views_count: targetUser.views_count || 0
             },
             stats: {
                 solved: {
