@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Edit, GitCommit, Trophy, Eye, Github, Linkedin, Twitter, Globe, X, Save, Image as ImageIcon, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
 import { authAPI, userProfileAPI, leaderboardAPI } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const API_BASE_URL = 'http://localhost:3001'; // Default localhost
 
@@ -12,6 +12,7 @@ interface UserProfileData {
     email: string;
     avatar_url: string | null;
     created_at: string;
+    is_public?: boolean;
     rank?: number;
     universal_score?: number;
     bio?: string;
@@ -51,10 +52,12 @@ interface UserStats {
 
 const UserProfile = () => {
     const navigate = useNavigate();
+    const { username } = useParams<{ username: string }>();
     const [user, setUser] = useState<UserProfileData | null>(null);
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [realRank, setRealRank] = useState<number | null>(null);
+    const isOwnProfile = !username;
 
     // Edit Profile State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -65,7 +68,8 @@ const UserProfile = () => {
         github: '',
         linkedin: '',
         twitter: '',
-        website: ''
+        website: '',
+        is_public: true
     });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -89,21 +93,41 @@ const UserProfile = () => {
     }, []);
 
     useEffect(() => {
-        fetchActivity();
-    }, [activityPage]);
+        if (!username) {
+            fetchActivity();
+        } else if (stats) {
+            // For public profile, populate activity from stats
+            setActivity(stats.recentSubmissions || []);
+            setLoadingActivity(false);
+        }
+    }, [activityPage, username, stats]);
 
     const fetchUserProfile = async () => {
         try {
-            const [userData, statsData, rankData] = await Promise.all([
-                authAPI.getMe(),
-                userProfileAPI.getProfileStats(),
-                leaderboardAPI.getMyRank().catch(() => ({ rank: null })) // Handle cases where rank might not be calculated yet
-            ]);
-            setUser(userData);
-            setStats(statsData);
-            setRealRank(rankData?.rank || null);
-        } catch (error) {
+            if (username) {
+                // Fetch public profile
+                const data = await userProfileAPI.getPublicProfile(username);
+                setUser(data.user);
+                setStats(data.stats);
+                setRealRank(null); // Rank not currently returned for public profiles
+            } else {
+                // Fetch own profile
+                const [userData, statsData, rankData] = await Promise.all([
+                    authAPI.getMe(),
+                    userProfileAPI.getProfileStats(),
+                    leaderboardAPI.getMyRank().catch(() => ({ rank: null }))
+                ]);
+                setUser(userData);
+                setStats(statsData);
+                setRealRank(rankData?.rank || null);
+            }
+        } catch (error: any) {
             console.error('Failed to fetch profile', error);
+            if (error.message?.includes('private') || error.response?.status === 403) {
+                // Redirect to leaderboard if private
+                // Could also show a "Private Profile" UI state instead of redirect
+                navigate('/leaderboard');
+            }
         } finally {
             setLoading(false);
         }
@@ -112,6 +136,25 @@ const UserProfile = () => {
     const fetchActivity = async () => {
         setLoadingActivity(true);
         try {
+            // For public profile, we might need a different activity endpoint or just use what we have (if public API supports activity separately)
+            // But wait, our public endpoint RETURNS recent activity in `stats.recentSubmissions`.
+            // The `activity` state is used for the PAGINATED list at the bottom.
+            // Be careful: `getUserActivity` in API defaults to /profile/activity which is ME.
+            // We need a public activity endpoint for pagination? 
+            // Current public endpoint returns `recentSubmissions` (top 15).
+            // `activity` state is used for the list.
+            // If viewing public profile, maybe duplicate `recentSubmissions` to `activity` initially?
+            // Or disable pagination for public profile for now (MVP).
+
+            if (username) {
+                // Only load initial if not already loaded? 
+                // Actually we don't have a public paginated activity endpoint yet.
+                // So we can just skip this or use the data from fetchUserProfile if we want to show *some* activity.
+                // Let's just set empty or disable for now to avoid error calls.
+                // Better: Use `stats.recentSubmissions` if available.
+                return;
+            }
+
             const data = await userProfileAPI.getUserActivity(activityPage, 10);
             setActivity(data.submissions);
             setActivityPagination(data.pagination);
@@ -136,7 +179,8 @@ const UserProfile = () => {
                 github: user.social_links?.github || '',
                 linkedin: user.social_links?.linkedin || '',
                 twitter: user.social_links?.twitter || '',
-                website: user.social_links?.website || ''
+                website: user.social_links?.website || '',
+                is_public: user.is_public !== false
             });
             setSelectedFile(null);
             setPreviewUrl(null);
@@ -175,7 +219,8 @@ const UserProfile = () => {
                     linkedin: ensureAbsoluteUrl(editForm.linkedin),
                     twitter: ensureAbsoluteUrl(editForm.twitter),
                     website: ensureAbsoluteUrl(editForm.website)
-                }
+                },
+                is_public: editForm.is_public
             });
 
             // Update local user state optimization
@@ -189,7 +234,8 @@ const UserProfile = () => {
                     linkedin: ensureAbsoluteUrl(editForm.linkedin),
                     twitter: ensureAbsoluteUrl(editForm.twitter),
                     website: ensureAbsoluteUrl(editForm.website)
-                }
+                },
+                is_public: editForm.is_public
             }) : null);
 
             setIsEditModalOpen(false);
@@ -369,12 +415,14 @@ const UserProfile = () => {
                                 )}
                             </div>
 
-                            <button
-                                onClick={openEditModal}
-                                className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-green-400 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 mb-4"
-                            >
-                                <Edit className="w-4 h-4" /> Edit Profile
-                            </button>
+                            {isOwnProfile && (
+                                <button
+                                    onClick={openEditModal}
+                                    className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-green-400 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 mb-4"
+                                >
+                                    <Edit className="w-4 h-4" /> Edit Profile
+                                </button>
+                            )}
 
 
 
@@ -605,14 +653,14 @@ const UserProfile = () => {
             {
                 isEditModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-                            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                        <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
                                 <h3 className="text-lg font-bold text-white">Edit Profile</h3>
                                 <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-                            <form onSubmit={handleSaveProfile} className="p-6 space-y-4">
+                            <form onSubmit={handleSaveProfile} className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-400 mb-1">Full Name</label>
                                     <input
@@ -713,6 +761,23 @@ const UserProfile = () => {
                                             />
                                         </div>
                                     </div>
+                                </div>
+
+
+                                <div className="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700 mt-4 mb-6">
+                                    <div className="flex flex-col">
+                                        <span className="text-white font-medium">Public Profile</span>
+                                        <span className="text-xs text-gray-400">Allow others to view your stats and activity.</span>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={editForm.is_public}
+                                            onChange={(e) => setEditForm({ ...editForm, is_public: e.target.checked })}
+                                        />
+                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                                    </label>
                                 </div>
 
                                 <div className="pt-4 flex justify-end gap-3">

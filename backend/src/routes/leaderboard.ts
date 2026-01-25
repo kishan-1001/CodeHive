@@ -110,9 +110,9 @@ router.get('/', async (req, res) => {
         const result = await pool.query(`
             SELECT 
                 l.*,
-                u.name,
-                u.username,
-                u.avatar_url
+                CASE WHEN u.is_public = FALSE THEN 'Anonymous' ELSE u.name END as name,
+                CASE WHEN u.is_public = FALSE THEN NULL ELSE u.username END as username,
+                CASE WHEN u.is_public = FALSE THEN NULL ELSE u.avatar_url END as avatar_url
             FROM leaderboard l
             JOIN users u ON l.user_id = u.id
             ORDER BY l.total_score DESC

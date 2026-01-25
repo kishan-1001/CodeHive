@@ -219,7 +219,7 @@ export const userProfileAPI = {
     return api.get('/profile/stats');
   },
 
-  async updateProfile(data: { name: string; bio?: string; social_links?: any; avatar_url?: string }) {
+  async updateProfile(data: { name: string; bio?: string; social_links?: any; avatar_url?: string; is_public?: boolean }) {
     return api.put('/profile/update', data);
   },
 
@@ -231,6 +231,10 @@ export const userProfileAPI = {
 
   async getUserActivity(page: number = 1, limit: number = 10) {
     return api.get(`/profile/activity?page=${page}&limit=${limit}`);
+  },
+
+  async getPublicProfile(username: string) {
+    return api.get(`/profile/public/${username}`);
   }
 };
 

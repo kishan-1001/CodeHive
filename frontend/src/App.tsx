@@ -52,6 +52,7 @@ const App: React.FC = () => {
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/global-leaderboard" element={<GlobalLeaderboard />} />
       <Route path="/profile" element={<UserProfile />} />
+      <Route path="/profile/:username" element={<UserProfile />} />
       <Route path="/coding-profile" element={<CodingProfile />} />
       <Route path="/legal" element={<Legal />} />
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { Medal, Crown, RefreshCw, Search } from 'lucide-react';
 
@@ -165,7 +165,13 @@ const Leaderboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-xl text-white mb-1">{topThree[1].name || topThree[1].username}</div>
+                  {topThree[1].username ? (
+                    <Link to={`/profile/${topThree[1].username}`} className="hover:underline">
+                      <div className="font-bold text-xl text-white mb-1">{topThree[1].name || topThree[1].username}</div>
+                    </Link>
+                  ) : (
+                    <div className="font-bold text-xl text-white mb-1">{topThree[1].name || "Unknown"}</div>
+                  )}
                   <div className="text-gray-400 font-mono text-lg">{topThree[1].total_score} pts</div>
                 </div>
                 <div className="mt-4 w-full h-32 bg-gradient-to-t from-gray-800/50 to-transparent rounded-t-2xl border-x border-t border-gray-700/50 flex items-end justify-center pb-4">
@@ -187,7 +193,13 @@ const Leaderboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-center scale-110">
-                  <div className="font-bold text-2xl text-amber-400 mb-1">{topThree[0].name || topThree[0].username}</div>
+                  {topThree[0].username ? (
+                    <Link to={`/profile/${topThree[0].username}`} className="hover:underline">
+                      <div className="font-bold text-2xl text-amber-400 mb-1">{topThree[0].name || topThree[0].username}</div>
+                    </Link>
+                  ) : (
+                    <div className="font-bold text-2xl text-amber-400 mb-1">{topThree[0].name || "Unknown"}</div>
+                  )}
                   <div className="text-amber-200/80 font-mono text-xl font-bold">{topThree[0].total_score} pts</div>
                 </div>
                 <div className="mt-6 w-full h-40 bg-gradient-to-t from-amber-900/30 to-transparent rounded-t-2xl border-x border-t border-amber-500/30 flex items-end justify-center pb-6 relative overflow-hidden">
@@ -209,7 +221,13 @@ const Leaderboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="font-bold text-xl text-white mb-1">{topThree[2].name || topThree[2].username}</div>
+                  {topThree[2].username ? (
+                    <Link to={`/profile/${topThree[2].username}`} className="hover:underline">
+                      <div className="font-bold text-xl text-white mb-1">{topThree[2].name || topThree[2].username}</div>
+                    </Link>
+                  ) : (
+                    <div className="font-bold text-xl text-white mb-1">{topThree[2].name || "Unknown"}</div>
+                  )}
                   <div className="text-gray-400 font-mono text-lg">{topThree[2].total_score} pts</div>
                 </div>
                 <div className="mt-4 w-full h-24 bg-gradient-to-t from-gray-800/50 to-transparent rounded-t-2xl border-x border-t border-gray-700/50 flex items-end justify-center pb-4">
@@ -235,13 +253,27 @@ const Leaderboard: React.FC = () => {
                       #{myRankEntry.rank}
                     </div>
                     <div className="col-span-5 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-amber-500 transition-all">
-                        <img src={getAvatarSrc(myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-white truncate">{myRankEntry.name || myRankEntry.username} (You)</div>
-                        <div className="text-xs text-gray-500">@{myRankEntry.username}</div>
-                      </div>
+                      {myRankEntry.username ? (
+                        <Link to={`/profile/${myRankEntry.username}`} className="flex items-center gap-4 group/link">
+                          <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-amber-500 transition-all">
+                            <img src={getAvatarSrc(myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-white truncate group-hover/link:text-amber-400 transition-colors">{myRankEntry.name || myRankEntry.username} (You)</div>
+                            <div className="text-xs text-gray-500">@{myRankEntry.username}</div>
+                          </div>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-amber-500 transition-all">
+                            <img src={getAvatarSrc(myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-white truncate">{myRankEntry.name || "Unknown"} (You)</div>
+                            <div className="text-xs text-gray-500">No Username</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="col-span-2 text-center text-amber-200/70 font-mono hidden md:block">
                       {myRankEntry.practice_score}
@@ -275,13 +307,27 @@ const Leaderboard: React.FC = () => {
                   #{user.rank}
                 </div>
                 <div className="col-span-5 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
-                    <img src={getAvatarSrc(user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-white truncate">{user.name || user.username}</div>
-                    <div className="text-xs text-gray-500">@{user.username || 'user'}</div>
-                  </div>
+                  {user.username ? (
+                    <Link to={`/profile/${user.username}`} className="flex items-center gap-4 group/link w-full">
+                      <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
+                        <img src={getAvatarSrc(user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-white truncate group-hover/link:text-amber-400 transition-colors">{user.name || user.username}</div>
+                        <div className="text-xs text-gray-500">@{user.username}</div>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-4 w-full">
+                      <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent transition-all">
+                        <img src={getAvatarSrc(user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-white truncate">{user.name || "Unknown"}</div>
+                        <div className="text-xs text-gray-500">No Username</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-2 text-center text-gray-400 font-mono hidden md:block">
                   {user.practice_score}

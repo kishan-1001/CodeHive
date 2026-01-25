@@ -350,9 +350,9 @@ router.put('/update', authenticateToken, async (req: any, res) => {
         // Update query
         await pool.query(`
             UPDATE users 
-            SET name = $1, bio = $2, social_links = $3, avatar_url = $4
+            SET name = $1, bio = $2, social_links = $3, avatar_url = $4, is_public = COALESCE($6, is_public)
             WHERE id = $5
-        `, [name, bio, JSON.stringify(social_links || {}), avatar_url, userId]);
+        `, [name, bio, JSON.stringify(social_links || {}), avatar_url, userId, req.body.is_public]);
 
         res.json({ message: 'Profile updated successfully' });
 
@@ -646,6 +646,168 @@ router.get('/activity', authenticateToken, async (req: any, res) => {
 
     } catch (error) {
         console.error('Error fetching activity:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
+/**
+ * @route GET /api/profile/public/:username
+ * @desc Get public user profile and stats by username
+ * @access Private (Authenticated users only)
+ */
+router.get('/public/:username', authenticateToken, async (req: any, res) => {
+    try {
+        const { username } = req.params;
+        console.log(`Fetching public profile for: ${username}`);
+
+        // 1. Find User by Username (Case Insensitive)
+        const userRes = await pool.query(`
+            SELECT id, name, username, bio, avatar_url, social_links, created_at, role, is_public 
+            FROM users 
+            WHERE LOWER(username) = LOWER($1)
+        `, [username]);
+
+        if (userRes.rows.length === 0) {
+            console.log(`User not found: ${username}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const targetUser = userRes.rows[0];
+
+        // Check visibility
+        if (targetUser.is_public === false) {
+            return res.status(403).json({ message: 'This profile is private.' });
+        }
+
+        const userId = targetUser.id;
+
+        // 2. Reuse logic to get stats (Duplicated from /stats for safety)
+
+        // A. Get Total Problems Count
+        const totalProblemsRes = await pool.query(`
+            SELECT difficulty, COUNT(*) as count FROM problems GROUP BY difficulty
+        `);
+        const totalStats = { Easy: 0, Medium: 0, Hard: 0 };
+        totalProblemsRes.rows.forEach(row => {
+            if (row.difficulty in totalStats) (totalStats as any)[row.difficulty] = parseInt(row.count);
+        });
+
+        // B. Get Solved Problems Count
+        const solvedProblemsRes = await pool.query(`
+            SELECT p.difficulty, COUNT(DISTINCT s.problem_id) as count 
+            FROM submissions s
+            JOIN problems p ON s.problem_id = p.id
+            WHERE s.user_id = $1 AND s.verdict = 'AC'
+            GROUP BY p.difficulty
+        `, [userId]);
+        const solvedStats = { Easy: 0, Medium: 0, Hard: 0 };
+        solvedProblemsRes.rows.forEach(row => {
+            if (row.difficulty in solvedStats) (solvedStats as any)[row.difficulty] = parseInt(row.count);
+        });
+
+        // C. Get Recent AC Submissions
+        const recentSubmissionsRes = await pool.query(`
+            SELECT * FROM (
+                SELECT s.id::text as id, p.title as problem, s.verdict as action, s.created_at as time, p.difficulty as type
+                FROM submissions s
+                JOIN problems p ON s.problem_id = p.id
+                WHERE s.user_id = $1
+                UNION ALL
+                SELECT cs.id::text as id, p.title as problem, cs.verdict as action, cs.submitted_at as time, p.difficulty as type
+                FROM contest_submissions cs
+                JOIN problems p ON cs.problem_id = p.id
+                WHERE cs.user_id = $1
+            ) AS combined_submissions
+            ORDER BY time DESC
+            LIMIT 15
+        `, [userId]);
+
+        const recentSubmissions = recentSubmissionsRes.rows.map(row => ({
+            id: row.id,
+            action: row.action === 'AC' ? 'Solved' : 'Attempted',
+            problem: row.problem,
+            time: row.time,
+            type: row.type.toLowerCase()
+        }));
+
+        // D. Get Submission Calendar
+        const calendarRes = await pool.query(`
+            SELECT TO_CHAR(time, 'YYYY-MM-DD') as day, COUNT(*) as value
+            FROM (
+                SELECT created_at as time FROM submissions WHERE user_id = $1
+                UNION ALL
+                SELECT submitted_at as time FROM contest_submissions WHERE user_id = $1
+            ) as combined_activity
+            GROUP BY day
+        `, [userId]);
+
+        const submissionCalendar = calendarRes.rows.map(row => ({
+            date: row.day,
+            count: parseInt(row.value)
+        }));
+
+        // E. Universal Score & Badges
+        const scoreRes = await pool.query(`
+             SELECT COALESCE(gl.universal_score, 0) as score
+             FROM global_leaderboard gl
+             WHERE gl.user_id = $1
+        `, [userId]);
+        const universalScore = parseFloat(scoreRes.rows[0]?.score || '0');
+        const createdAt = targetUser.created_at ? new Date(targetUser.created_at) : new Date();
+
+        // Calculate Badges
+        const badges = [];
+        const activeDays = submissionCalendar.length;
+        const yearsActive = (new Date().getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24 * 365);
+
+        if (activeDays >= 50) badges.push({ name: '50 Days Badge', image: '/50days.png', description: 'Completed 50 days of coding' });
+        if (activeDays >= 100) badges.push({ name: '100 Days Badge', image: '/100days.png', description: 'Completed 100 days of coding' });
+        if (activeDays >= 200) badges.push({ name: '200 Days Badge', image: '/200days.png', description: 'Completed 200 days of coding' });
+        if (activeDays >= 366) badges.push({ name: '366 Days Badge', image: '/366days.png', description: 'Completed 366 days of coding' });
+        if (yearsActive >= 2) badges.push({ name: '2 Years Badge', image: '/2year.png', description: 'Member for 2+ years' });
+        if (yearsActive >= 3) badges.push({ name: '3 Years Badge', image: '/3year.png', description: 'Member for 3+ years' });
+        if (yearsActive >= 4) badges.push({ name: '4 Years Badge', image: '/4year.png', description: 'Member for 4+ years' });
+        if (yearsActive >= 5) badges.push({ name: '5 Years Badge', image: '/5year.png', description: 'Member for 5+ years' });
+
+        let rankBadge = null;
+        if (universalScore >= 20000) rankBadge = { name: 'Expert', image: '/expert.png', description: 'Score 20000+' };
+        else if (universalScore >= 10000) rankBadge = { name: 'Pro', image: '/pro.png', description: 'Score 10000+' };
+        else if (universalScore >= 5000) rankBadge = { name: 'Intermediate', image: '/intermediate.png', description: 'Score 5000+' };
+        else if (universalScore >= 100) rankBadge = { name: 'Beginner', image: '/beginner.png', description: 'Score 100+' };
+        if (rankBadge) badges.push(rankBadge);
+
+        // Return Data
+        res.json({
+            user: {
+                name: targetUser.name,
+                username: targetUser.username,
+                avatar_url: targetUser.avatar_url,
+                bio: targetUser.bio,
+                social_links: targetUser.social_links,
+                created_at: targetUser.created_at,
+            },
+            stats: {
+                solved: {
+                    total: solvedStats.Easy + solvedStats.Medium + solvedStats.Hard,
+                    easy: solvedStats.Easy,
+                    medium: solvedStats.Medium,
+                    hard: solvedStats.Hard
+                },
+                totalQuestions: {
+                    total: totalStats.Easy + totalStats.Medium + totalStats.Hard,
+                    easy: totalStats.Easy,
+                    medium: totalStats.Medium,
+                    hard: totalStats.Hard
+                },
+                recentSubmissions,
+                submissionCalendar,
+                badges
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching public profile:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
