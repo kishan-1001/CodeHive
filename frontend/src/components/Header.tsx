@@ -14,7 +14,7 @@ interface UserData {
   avatar_url: string | null;
 }
 
-const API_BASE_URL = 'http://localhost:3001'; // Default localhost
+
 
 const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -72,7 +72,8 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   const getAvatarSrc = (path: string | null) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    return `${API_BASE_URL}${path}`;
+    // If it's a relative path from uploads, prepend /api base path (which is proxied/rewritten)
+    return `/api${path}`;
   };
 
   return (

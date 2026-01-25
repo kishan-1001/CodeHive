@@ -105,7 +105,8 @@ const Explore: React.FC = () => {
   const getAvatarSrc = (path: string | undefined) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `http://localhost:3001${path}`;
+    // If it's a relative path from uploads, prepend /api base path (which is proxied/rewritten)
+    return `/api${path}`;
   };
 
   return (
