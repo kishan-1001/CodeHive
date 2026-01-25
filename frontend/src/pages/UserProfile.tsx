@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import { authAPI, userProfileAPI, leaderboardAPI } from '../services/api';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const API_BASE_URL = 'http://localhost:3001'; // Default localhost
+
 
 interface UserProfileData {
     name: string;
@@ -251,8 +251,8 @@ const UserProfile = () => {
     const getAvatarSrc = (path: string | null) => {
         if (!path) return '';
         if (path.startsWith('http')) return path;
-        // If it's a relative path from uploads, prepend base URL
-        return `${API_BASE_URL}${path}`;
+        // If it's a relative path from uploads, prepend /api base path (which is proxied/rewritten)
+        return `/api${path}`;
     };
 
     const formatDate = (dateString: string) => {
