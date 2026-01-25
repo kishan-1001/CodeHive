@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Loader2, Shield, User, Search } from 'lucide-react';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ErrorModal from '../../components/ErrorModal';
@@ -6,6 +7,7 @@ import ErrorModal from '../../components/ErrorModal';
 interface UserData {
     id: number;
     name: string;
+    username: string;
     email: string;
     provider: string;
     role: string;
@@ -126,7 +128,10 @@ const UserManagement: React.FC = () => {
                                             <User className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-white">{user.name}</p>
+                                            <Link to={`/profile/${user.username}`} className="font-medium text-white hover:text-amber-500 hover:underline transition-colors">
+                                                {user.name}
+                                            </Link>
+                                            <div className="text-xs text-gray-500">@{user.username}</div>
                                             <p className="text-xs text-gray-500">{user.email}</p>
                                         </div>
                                     </div>

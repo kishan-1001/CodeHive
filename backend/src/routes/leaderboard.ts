@@ -1,6 +1,6 @@
 import express from 'express';
 import { pool } from '../config/db';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, optionalAuthenticateToken } from '../middleware/auth';
 import { GlobalLeaderboardService } from '../services/globalLeaderboard';
 import { PlatformFetcherService } from '../services/platformFetcher';
 
@@ -104,20 +104,23 @@ const calculateUserScore = async (userId: number) => {
 // --- Routes ---
 
 // Get Global Leaderboard
-router.get('/', async (req, res) => {
+router.get('/', optionalAuthenticateToken, async (req: any, res) => {
     try {
+        const isAdmin = req.user?.role === 'admin';
+        console.log(`Leaderboard request. User role: ${req.user?.role}, Is Admin: ${isAdmin}`);
+
         // Option: Limit to top 100
         const result = await pool.query(`
             SELECT 
                 l.*,
-                CASE WHEN u.is_public = FALSE THEN 'Anonymous' ELSE u.name END as name,
-                CASE WHEN u.is_public = FALSE THEN NULL ELSE u.username END as username,
-                CASE WHEN u.is_public = FALSE THEN NULL ELSE u.avatar_url END as avatar_url
+                CASE WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN 'Anonymous' ELSE u.name END as name,
+                CASE WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN NULL ELSE u.username END as username,
+                CASE WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN NULL ELSE u.avatar_url END as avatar_url
             FROM leaderboard l
             JOIN users u ON l.user_id = u.id
             ORDER BY l.total_score DESC
             LIMIT 100
-        `);
+        `, [isAdmin]); // Pass isAdmin as parameter
 
         // Add implicit rank
         const leaderboard = result.rows.map((row, index) => ({

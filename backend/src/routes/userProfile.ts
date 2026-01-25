@@ -675,15 +675,16 @@ router.get('/public/:username', authenticateToken, async (req: any, res) => {
 
         const targetUser = userRes.rows[0];
 
-        // Check visibility
-        if (targetUser.is_public === false) {
+        const userId = targetUser.id;
+        const viewerId = req.user.id;
+
+        // Check visibility: Allow if public OR if viewer is the owner OR if viewer is admin
+        if (targetUser.is_public === false && viewerId !== userId && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'This profile is private.' });
         }
 
-        const userId = targetUser.id;
-
         // VIEW TRACKING LOGIC
-        const viewerId = req.user.id;
+        // viewerId already declared above
         if (viewerId !== userId) { // Don't count self-views
             // Check for recent view (24h cooldown)
             const recentView = await pool.query(`

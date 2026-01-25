@@ -11,7 +11,7 @@ router.use(authenticateToken, isAdmin);
 // 1. List All Users
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, name, email, provider, role, created_at FROM users ORDER BY created_at DESC');
+        const result = await pool.query('SELECT id, name, username, email, provider, role, created_at FROM users ORDER BY created_at DESC');
         res.json(result.rows);
     } catch (err: any) {
         console.error('Error fetching users:', err);
