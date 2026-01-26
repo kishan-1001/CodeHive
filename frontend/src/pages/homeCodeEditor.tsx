@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 const HomeCodeEditor: React.FC = () => {
   const [code, setCode] = useState<string>('#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}');
@@ -22,7 +22,7 @@ const HomeCodeEditor: React.FC = () => {
     { value: 'c', label: 'C' },
     { value: 'cpp', label: 'C++' },
     { value: 'python', label: 'Python' },
-     { value: 'java', label: 'Java' },
+    { value: 'java', label: 'Java' },
     { value: 'javascript', label: 'JavaScript' }
 
   ];
@@ -36,7 +36,15 @@ const HomeCodeEditor: React.FC = () => {
       wsRef.current.close();
     }
 
-    wsRef.current = new WebSocket('ws://localhost:3001');
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+    // Construct the full URL.
+    // In prod, we use /api/ws to route through Vercel proxy.
+    const wsUrl = window.location.hostname === 'localhost'
+      ? 'ws://localhost:3001'
+      : `${protocol}//${window.location.host}/api/ws`;
+
+    wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
       setIsRunning(true);
