@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { pool } from '../config/db';
+import { executionLimiter } from '../utils/executionLimiter';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -85,149 +86,162 @@ router.post('/', async (req, res) => {
     }
     const encodedInput = processedInput ? Buffer.from(processedInput).toString('base64') : null;
 
-    // Check Docker
-    if (!(await isDockerRunning())) {
-      throw new Error('Docker is not running. Please start Docker Desktop.');
+    // Check Concurrency Limit
+    if (!executionLimiter.tryAcquire()) {
+      return res.status(429).json({
+        error: {
+          type: 'SERVER_BUSY',
+          message: 'Server is currently busy (max 3 concurrent executions). Please wait a moment and try again.'
+        }
+      });
     }
 
-    const COMPILATION_ERROR_CODE = 123;
-
-    if (['c', 'cpp', 'java'].includes(language)) {
-      // Compiled languages: Compile then Run in SAME container
-      let compileCmd = '';
-      let runCmd = '';
-      let image = '';
-      let sourceFile = '';
-
-      if (language === 'c') {
-        image = 'gcc:latest';
-        sourceFile = '/tmp/code.c';
-        // Setup source -> Compile (exit 123 if fail) -> Run
-        compileCmd = `gcc ${sourceFile} -o /tmp/code`;
-        runCmd = '/tmp/code';
-      } else if (language === 'cpp') {
-        image = 'gcc:latest';
-        sourceFile = '/tmp/code.cpp';
-        compileCmd = `g++ ${sourceFile} -o /tmp/code`;
-        runCmd = '/tmp/code';
-      } else if (language === 'java') {
-        image = 'amazoncorretto:11';
-        sourceFile = '/tmp/Main.java';
-        compileCmd = `javac ${sourceFile}`;
-        runCmd = 'java -cp /tmp Main';
+    try {
+      // Check Docker
+      if (!(await isDockerRunning())) {
+        throw new Error('Docker is not running. Please start Docker Desktop.');
       }
 
-      // Construct command: setup source && (compile || exit 123) && run
-      // input handling: echo input | run
-      let finalRunCmd = runCmd;
-      if (encodedInput) {
-        finalRunCmd = `echo "${encodedInput}" | base64 -d | ${runCmd}`;
-      }
+      const COMPILATION_ERROR_CODE = 123;
 
-      const shellCommand = `echo "${encodedCode}" | base64 -d > ${sourceFile} && (${compileCmd} || exit ${COMPILATION_ERROR_CODE}) && ${finalRunCmd}`;
-      const dockerCommand = `docker run --rm -i ${image} sh -c "${shellCommand}"`;
+      if (['c', 'cpp', 'java'].includes(language)) {
+        // Compiled languages: Compile then Run in SAME container
+        let compileCmd = '';
+        let runCmd = '';
+        let image = '';
+        let sourceFile = '';
 
-      try {
-        const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 }); // 10s runtime limit
+        if (language === 'c') {
+          image = 'gcc:latest';
+          sourceFile = '/tmp/code.c';
+          // Setup source -> Compile (exit 123 if fail) -> Run
+          compileCmd = `gcc ${sourceFile} -o /tmp/code`;
+          runCmd = '/tmp/code';
+        } else if (language === 'cpp') {
+          image = 'gcc:latest';
+          sourceFile = '/tmp/code.cpp';
+          compileCmd = `g++ ${sourceFile} -o /tmp/code`;
+          runCmd = '/tmp/code';
+        } else if (language === 'java') {
+          image = 'amazoncorretto:11';
+          sourceFile = '/tmp/Main.java';
+          compileCmd = `javac ${sourceFile}`;
+          runCmd = 'java -cp /tmp Main';
+        }
 
-        // Success (Exit code 0)
-        res.json({ output: stdout });
+        // Construct command: setup source && (compile || exit 123) && run
+        // input handling: echo input | run
+        let finalRunCmd = runCmd;
+        if (encodedInput) {
+          finalRunCmd = `echo "${encodedInput}" | base64 -d | ${runCmd}`;
+        }
 
-      } catch (error: any) {
-        // Failed (Exit code != 0)
-        if (error.killed) {
-          return res.json({
-            output: '',
-            error: { type: 'TIME_LIMIT_EXCEEDED', message: 'Time Limit Exceeded', line: null }
+        const shellCommand = `echo "${encodedCode}" | base64 -d > ${sourceFile} && (${compileCmd} || exit ${COMPILATION_ERROR_CODE}) && ${finalRunCmd}`;
+        const dockerCommand = `docker run --rm -i ${image} sh -c "${shellCommand}"`;
+
+        try {
+          const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 }); // 10s runtime limit
+
+          // Success (Exit code 0)
+          res.json({ output: stdout });
+
+        } catch (error: any) {
+          // Failed (Exit code != 0)
+          if (error.killed) {
+            return res.json({
+              output: '',
+              error: { type: 'TIME_LIMIT_EXCEEDED', message: 'Time Limit Exceeded', line: null }
+            });
+          }
+
+          const stderr = error.stderr || error.message || '';
+          const parsed = parseError(stderr, language, lineOffset, code);
+          const isCompilationError = error.code === COMPILATION_ERROR_CODE;
+
+          res.json({
+            output: error.stdout || '', // Partial stdout might exist
+            error: {
+              type: isCompilationError ? 'COMPILATION_ERROR' : 'RUNTIME_ERROR',
+              message: parsed.message,
+              line: parsed.line
+            }
           });
         }
 
-        const stderr = error.stderr || error.message || '';
-        const parsed = parseError(stderr, language, lineOffset, code);
-        const isCompilationError = error.code === COMPILATION_ERROR_CODE;
+      } else {
+        // Interpreted languages (Python, JS)
+        let image = '';
+        let command = '';
 
-        res.json({
-          output: error.stdout || '', // Partial stdout might exist
-          error: {
-            type: isCompilationError ? 'COMPILATION_ERROR' : 'RUNTIME_ERROR',
-            message: parsed.message,
-            line: parsed.line
+        if (language === 'python') {
+          image = 'python:3.9-alpine';
+          command = `echo "${encodedCode}" | base64 -d > /tmp/code.py`;
+          if (encodedInput) {
+            command += ` && echo "${encodedInput}" | base64 -d | python3 -u /tmp/code.py`;
+          } else {
+            command += ` && python3 -u /tmp/code.py`;
           }
-        });
-      }
-
-    } else {
-      // Interpreted languages (Python, JS)
-      let image = '';
-      let command = '';
-
-      if (language === 'python') {
-        image = 'python:3.9-alpine';
-        command = `echo "${encodedCode}" | base64 -d > /tmp/code.py`;
-        if (encodedInput) {
-          command += ` && echo "${encodedInput}" | base64 -d | python3 -u /tmp/code.py`;
-        } else {
-          command += ` && python3 -u /tmp/code.py`;
+        } else if (language === 'javascript') {
+          image = 'node:18-alpine';
+          command = `echo "${encodedCode}" | base64 -d > /tmp/code.js`;
+          if (encodedInput) {
+            command += ` && echo "${encodedInput}" | base64 -d | node --input-type=module /tmp/code.js`;
+          } else {
+            command += ` && node --input-type=module /tmp/code.js`;
+          }
         }
-      } else if (language === 'javascript') {
-        image = 'node:18-alpine';
-        command = `echo "${encodedCode}" | base64 -d > /tmp/code.js`;
-        if (encodedInput) {
-          command += ` && echo "${encodedInput}" | base64 -d | node --input-type=module /tmp/code.js`;
-        } else {
-          command += ` && node --input-type=module /tmp/code.js`;
-        }
-      }
 
-      const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
+        const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
 
-      try {
-        const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });
+        try {
+          const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });
 
-        // Clean stderr for some specific unwanted messages (e.g. node experimental warnings)
-        let filteredStderr = cleanStderr(stderr);
+          // Clean stderr for some specific unwanted messages (e.g. node experimental warnings)
+          let filteredStderr = cleanStderr(stderr);
 
-        if (filteredStderr) {
-          // Even with exit code 0, stderr might have warnings/errors
-          // But typically if it didn't throw, it's fine, unless it's a specific language behavior.
-          // Python prints to stderr on error and exits non-zero, so we usually catch it in catch block globally?
-          // Wait, execAsync throws if exit code != 0.
-          // So if we are here, exit code is 0.
-          // Some logging might go to stderr.
-        }
-        res.json({ output: stdout });
+          if (filteredStderr) {
+            // Even with exit code 0, stderr might have warnings/errors
+            // But typically if it didn't throw, it's fine, unless it's a specific language behavior.
+            // Python prints to stderr on error and exits non-zero, so we usually catch it in catch block globally?
+            // Wait, execAsync throws if exit code != 0.
+            // So if we are here, exit code is 0.
+            // Some logging might go to stderr.
+          }
+          res.json({ output: stdout });
 
-      } catch (error: any) {
-        if (error.killed) {
-          return res.json({
-            output: '',
-            error: { type: 'TIME_LIMIT_EXCEEDED', message: 'Time Limit Exceeded', line: null }
+        } catch (error: any) {
+          if (error.killed) {
+            return res.json({
+              output: '',
+              error: { type: 'TIME_LIMIT_EXCEEDED', message: 'Time Limit Exceeded', line: null }
+            });
+          }
+
+          const stderr = error.stderr || error.message || '';
+          let filteredStderr = cleanStderr(stderr);
+
+          // Distinguish checking logic?
+          // Python: SyntaxError vs NameError/etc
+          const parsed = parseError(filteredStderr, language, lineOffset, code);
+
+          // Heuristic for compilation vs runtime for interpreted
+          let type = 'RUNTIME_ERROR';
+          if (language === 'python' && filteredStderr.includes('SyntaxError')) type = 'COMPILATION_ERROR';
+          if (language === 'javascript' && filteredStderr.includes('SyntaxError')) type = 'COMPILATION_ERROR';
+
+          res.json({
+            output: error.stdout || '',
+            error: {
+              type: type,
+              message: parsed.message,
+              line: parsed.line
+            }
           });
         }
-
-        const stderr = error.stderr || error.message || '';
-        let filteredStderr = cleanStderr(stderr);
-
-        // Distinguish checking logic?
-        // Python: SyntaxError vs NameError/etc
-        const parsed = parseError(filteredStderr, language, lineOffset, code);
-
-        // Heuristic for compilation vs runtime for interpreted
-        let type = 'RUNTIME_ERROR';
-        if (language === 'python' && filteredStderr.includes('SyntaxError')) type = 'COMPILATION_ERROR';
-        if (language === 'javascript' && filteredStderr.includes('SyntaxError')) type = 'COMPILATION_ERROR';
-
-        res.json({
-          output: error.stdout || '',
-          error: {
-            type: type,
-            message: parsed.message,
-            line: parsed.line
-          }
-        });
       }
+    } finally {
+      executionLimiter.release();
     }
-
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Execution failed' });
   }

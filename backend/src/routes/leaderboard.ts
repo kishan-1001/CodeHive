@@ -109,18 +109,32 @@ router.get('/', optionalAuthenticateToken, async (req: any, res) => {
         const isAdmin = req.user?.role === 'admin';
         console.log(`Leaderboard request. User role: ${req.user?.role}, Is Admin: ${isAdmin}`);
 
+        const currentUserId = req.user?.id || 0;
+
         // Option: Limit to top 100
         const result = await pool.query(`
             SELECT 
                 l.*,
-                CASE WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN 'Anonymous' ELSE u.name END as name,
-                CASE WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN NULL ELSE u.username END as username,
-                CASE WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN NULL ELSE u.avatar_url END as avatar_url
+                CASE 
+                    WHEN u.id = $2 THEN u.name
+                    WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN 'Anonymous' 
+                    ELSE u.name 
+                END as name,
+                CASE 
+                    WHEN u.id = $2 THEN u.username
+                    WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN NULL 
+                    ELSE u.username 
+                END as username,
+                CASE 
+                    WHEN u.id = $2 THEN u.avatar_url
+                    WHEN u.is_public = FALSE AND $1::boolean = FALSE THEN NULL 
+                    ELSE u.avatar_url 
+                END as avatar_url
             FROM leaderboard l
             JOIN users u ON l.user_id = u.id
             ORDER BY l.total_score DESC
             LIMIT 100
-        `, [isAdmin]); // Pass isAdmin as parameter
+        `, [isAdmin, currentUserId]); // Pass isAdmin and currentUserId
 
         // Add implicit rank
         const leaderboard = result.rows.map((row, index) => ({

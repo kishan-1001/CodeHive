@@ -91,7 +91,7 @@ const Leaderboard: React.FC = () => {
   const getAvatarSrc = (path: string | null) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `http://localhost:3001${path}`;
+    return `/api${path}`;
   };
 
   if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-amber-500">Loading Leaderboard...</div>;
@@ -256,7 +256,7 @@ const Leaderboard: React.FC = () => {
                       {myRankEntry.username ? (
                         <Link to={`/profile/${myRankEntry.username}`} className="flex items-center gap-4 group/link">
                           <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-amber-500 transition-all">
-                            <img src={getAvatarSrc(myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                            <img src={getAvatarSrc(currentUser?.avatar_url || myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
                           </div>
                           <div className="min-w-0">
                             <div className="font-bold text-white truncate group-hover/link:text-amber-400 transition-colors">{myRankEntry.name || myRankEntry.username} (You)</div>
@@ -266,7 +266,7 @@ const Leaderboard: React.FC = () => {
                       ) : (
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-amber-500 transition-all">
-                            <img src={getAvatarSrc(myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                            <img src={getAvatarSrc(currentUser?.avatar_url || myRankEntry.avatar_url) || `https://ui-avatars.com/api/?name=${myRankEntry.name}&background=random`} alt="" className="w-full h-full object-cover" />
                           </div>
                           <div className="min-w-0">
                             <div className="font-bold text-white truncate">{myRankEntry.name || "Unknown"} (You)</div>
@@ -310,7 +310,7 @@ const Leaderboard: React.FC = () => {
                   {user.username ? (
                     <Link to={`/profile/${user.username}`} className="flex items-center gap-4 group/link w-full">
                       <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
-                        <img src={getAvatarSrc(user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                        <img src={getAvatarSrc((currentUser && user.user_id === currentUser.id) ? currentUser.avatar_url : user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-white truncate group-hover/link:text-amber-400 transition-colors">{user.name || user.username}</div>
@@ -320,7 +320,7 @@ const Leaderboard: React.FC = () => {
                   ) : (
                     <div className="flex items-center gap-4 w-full">
                       <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent transition-all">
-                        <img src={getAvatarSrc(user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
+                        <img src={getAvatarSrc((currentUser && user.user_id === currentUser.id) ? currentUser.avatar_url : user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="" className="w-full h-full object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-white truncate">{user.name || "Unknown"}</div>

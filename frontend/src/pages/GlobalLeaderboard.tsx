@@ -111,7 +111,7 @@ const GlobalLeaderboard = () => {
     const getAvatarSrc = (path: string | null) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        return `http://localhost:3001${path}`;
+        return `/api${path}`;
     };
 
     const getPlatformIcon = (platform: string | null) => {
