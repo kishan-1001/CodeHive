@@ -1,0 +1,9 @@
+# Security
+*.pem
+node_modules/
+.env
+dist/
+coverage/
+
+# Misc
+.DS_Store
