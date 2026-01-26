@@ -42,7 +42,7 @@ const HomeCodeEditor: React.FC = () => {
       ? 'ws://localhost:3001'
       : 'wss://16.170.220.100.nip.io/ws';
 
-    console.log('🔌 Attempting WebSocket connection to:', wsUrl);
+    console.log('🔌 Attempting SECURE WebSocket connection to:', wsUrl);
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {

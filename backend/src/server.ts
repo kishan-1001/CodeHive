@@ -145,10 +145,11 @@ wss.on('connection', (ws) => {
             break;
           default:
             ws.send(JSON.stringify({ type: 'error', message: 'Unsupported language' }));
+            console.error('Unsupported language:', language);
             return;
         }
 
-        console.log('Spawning Docker process with command:', dockerCommand);
+        console.log('🛠️ Spawning Docker process with image:', image, 'and command:', dockerCommand);
 
         currentProcess = spawn('docker', ['run', '--rm', '-i', image, 'sh', '-c', dockerCommand], {
           stdio: ['pipe', 'pipe', 'pipe']
@@ -156,6 +157,7 @@ wss.on('connection', (ws) => {
 
         // Send ready signal immediately
         ws.send(JSON.stringify({ type: 'ready' }));
+        console.log('Sent "ready" signal to client.');
 
         currentProcess.stdout.on('data', (data: Buffer) => {
           console.log('Received stdout data:', data.toString());
@@ -163,18 +165,18 @@ wss.on('connection', (ws) => {
         });
 
         currentProcess.stderr.on('data', (data: Buffer) => {
-          console.log('Received stderr data:', data.toString());
+          console.log('⚠️ Received stderr data:', data.toString());
           ws.send(JSON.stringify({ type: 'output', data: data.toString() }));
         });
 
         currentProcess.on('close', (code: number) => {
-          console.log('Process closed with code:', code);
+          console.log(`🏁 Process closed with code: ${code}`);
           ws.send(JSON.stringify({ type: 'end' }));
           currentProcess = null;
         });
 
         currentProcess.on('error', (error: Error) => {
-          console.log('Process error:', error.message);
+          console.log('❌ Process error:', error.message);
           ws.send(JSON.stringify({ type: 'error', message: error.message }));
           currentProcess = null;
         });
