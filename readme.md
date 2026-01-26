@@ -1,4 +1,4 @@
-# CodeHive 🐝
+# CodeHive 🐝 <sub>[🔗 Click here for Live Demo](https://code-hive-iota.vercel.app)</sub>
 
 **The Ultimate Competitive Programming & Coding Platform**
 
@@ -10,6 +10,13 @@ CodeHive is a modern, feature-rich coding platform designed to help developers m
 
 ## 🚀 Key Features
 
+
+### 🧠 Knowledge Drop
+Share your coding insights and articles with the community. (New: Now featuring author profile pictures!).
+<p align="center">
+  <img src="frontend/public/knowledge drop.png" width="800" alt="Knowledge Drop" />
+</p>
+
 ### ⚔️ Instant Arena 
 Instant Arena lets you create custom coding contests tailored to specific topics, difficulty levels, and target companies. Whether you’re preparing for product-based interviews, sharpening your data structures skills, or testing yourself under timed conditions, Instant Arena gives you full control. You can design challenges around real interview patterns, focus on weak areas, and compete in a distraction-free environment. Each contest is structured to simulate real-world coding assessments, helping you build confidence and speed. With personalized problem sets and a competitive setup, Instant Arena transforms practice into a powerful, focused, and engaging learning experience that pushes you to perform at your best.
 <p align="center">
@@ -17,7 +24,8 @@ Instant Arena lets you create custom coding contests tailored to specific topics
 </p>
 
 ### 🧩 Extensive Problem Library
-Practice with a vast collection of problems categorized by difficulty and topic. Features a powerful Monaco-based code editor with multi-language support.
+
+Explore a comprehensive library of coding problems carefully categorized by topic and difficulty level to support learners at every stage. Practice seamlessly using a powerful Monaco-based code editor that delivers a smooth, professional coding experience. The platform supports five major programming languages—C, C++, Python, Java, and JavaScript—allowing you to code in your preferred language. Whether you’re strengthening fundamentals or preparing for interviews, this rich problem set and flexible editor help you learn, practice, and improve efficiently.
 <p align="center">
   <img src="frontend/public/problem page.png" width="800" alt="Problem List" />
 </p>
@@ -75,12 +83,6 @@ Comprehensive tools for administrators to manage problems, contests, and users.
 </p>
 <p align="center">
   <img src="frontend/public/Screenshot 2026-01-26 015418.png" width="800" alt="Admin User Management" />
-</p>
-
-### 🧠 Knowledge Drop
-Share your coding insights and articles with the community. (New: Now featuring author profile pictures!).
-<p align="center">
-  <img src="frontend/public/knowledge drop.png" width="800" alt="Knowledge Drop" />
 </p>
 
 ---
@@ -194,3 +196,6 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 ## 📄 License
 
 MIT License.
+
+
+
