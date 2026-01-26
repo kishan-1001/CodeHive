@@ -36,13 +36,11 @@ const HomeCodeEditor: React.FC = () => {
       wsRef.current.close();
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-    // Construct the full URL.
-    // In prod, we use /api/ws to route through Vercel proxy.
+    // Use Localhost for development, otherwise use our NEW Secure Backend directly.
+    // This bypasses Vercel entirely.
     const wsUrl = window.location.hostname === 'localhost'
       ? 'ws://localhost:3001'
-      : `${protocol}//${window.location.host}/api/ws`;
+      : 'wss://16.170.220.100.nip.io/ws';
 
     console.log('🔌 Attempting WebSocket connection to:', wsUrl);
     wsRef.current = new WebSocket(wsUrl);
