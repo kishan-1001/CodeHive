@@ -44,6 +44,7 @@ const HomeCodeEditor: React.FC = () => {
       ? 'ws://localhost:3001'
       : `${protocol}//${window.location.host}/api/ws`;
 
+    console.log('🔌 Attempting WebSocket connection to:', wsUrl);
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
