@@ -181,12 +181,16 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
         });
 
         // 2. Get User's Solved Problems Count per Difficulty
-        // Count distinct problem_id for 'AC' verdict
+        // Count distinct problem_id for 'AC' verdict from both submissions and contest_submissions
         const solvedProblemsRes = await pool.query(`
             SELECT 
                 p.difficulty, 
                 COUNT(DISTINCT s.problem_id) as count 
-            FROM submissions s
+            FROM (
+                SELECT problem_id, user_id, verdict FROM submissions
+                UNION ALL
+                SELECT problem_id, user_id, verdict FROM contest_submissions
+            ) s
             JOIN problems p ON s.problem_id = p.id
             WHERE s.user_id = $1 AND s.verdict = 'AC'
             GROUP BY p.difficulty
@@ -288,16 +292,18 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
         if (yearsActive >= 4) badges.push({ name: '4 Years Badge', image: '/4year.png', description: 'Member for 4+ years' });
         if (yearsActive >= 5) badges.push({ name: '5 Years Badge', image: '/5year.png', description: 'Member for 5+ years' });
 
-        // -- Rank/Score Badges --
-        // -- Rank/Score Badges (Exclusive: Show only the highest earned) --
+        // -- Rank/Score Badges (Based on Internal CodeHive Score) --
+        // Weights: Easy=2, Medium=5, Hard=10
+        const codeHiveScore = (solvedStats.Easy * 2) + (solvedStats.Medium * 5) + (solvedStats.Hard * 10);
+
         let rankBadge = null;
-        if (universalScore >= 20000) {
+        if (codeHiveScore >= 20000) {
             rankBadge = { name: 'Expert', image: '/expert.png', description: 'Score 20000+' };
-        } else if (universalScore >= 10000) {
+        } else if (codeHiveScore >= 10000) {
             rankBadge = { name: 'Pro', image: '/pro.png', description: 'Score 10000+' };
-        } else if (universalScore >= 5000) {
+        } else if (codeHiveScore >= 5000) {
             rankBadge = { name: 'Intermediate', image: '/intermediate.png', description: 'Score 5000+' };
-        } else if (universalScore >= 100) {
+        } else if (codeHiveScore >= 100) {
             rankBadge = { name: 'Beginner', image: '/beginner.png', description: 'Score 100+' };
         }
 
@@ -723,7 +729,11 @@ router.get('/public/:username', authenticateToken, async (req: any, res) => {
         // B. Get Solved Problems Count
         const solvedProblemsRes = await pool.query(`
             SELECT p.difficulty, COUNT(DISTINCT s.problem_id) as count 
-            FROM submissions s
+            FROM (
+                SELECT problem_id, user_id, verdict FROM submissions
+                UNION ALL
+                SELECT problem_id, user_id, verdict FROM contest_submissions
+            ) s
             JOIN problems p ON s.problem_id = p.id
             WHERE s.user_id = $1 AND s.verdict = 'AC'
             GROUP BY p.difficulty
@@ -797,12 +807,22 @@ router.get('/public/:username', authenticateToken, async (req: any, res) => {
         if (yearsActive >= 4) badges.push({ name: '4 Years Badge', image: '/4year.png', description: 'Member for 4+ years' });
         if (yearsActive >= 5) badges.push({ name: '5 Years Badge', image: '/5year.png', description: 'Member for 5+ years' });
 
+        // -- Rank/Score Badges (Based on Internal CodeHive Score) --
+        const codeHiveScore = (solvedStats.Easy * 2) + (solvedStats.Medium * 5) + (solvedStats.Hard * 10);
+
         let rankBadge = null;
-        if (universalScore >= 20000) rankBadge = { name: 'Expert', image: '/expert.png', description: 'Score 20000+' };
-        else if (universalScore >= 10000) rankBadge = { name: 'Pro', image: '/pro.png', description: 'Score 10000+' };
-        else if (universalScore >= 5000) rankBadge = { name: 'Intermediate', image: '/intermediate.png', description: 'Score 5000+' };
-        else if (universalScore >= 100) rankBadge = { name: 'Beginner', image: '/beginner.png', description: 'Score 100+' };
-        if (rankBadge) badges.push(rankBadge);
+        if (codeHiveScore >= 20000) {
+            rankBadge = { name: 'Expert', image: '/expert.png', description: 'Score 20000+' };
+        } else if (codeHiveScore >= 10000) {
+            rankBadge = { name: 'Pro', image: '/pro.png', description: 'Score 10000+' };
+        } else if (codeHiveScore >= 5000) {
+            rankBadge = { name: 'Intermediate', image: '/intermediate.png', description: 'Score 5000+' };
+        } else if (codeHiveScore >= 100) {
+            rankBadge = { name: 'Beginner', image: '/beginner.png', description: 'Score 100+' };
+        }
+        if (rankBadge) {
+            badges.push(rankBadge);
+        }
 
         // Return Data
         res.json({

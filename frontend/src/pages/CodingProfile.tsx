@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import DeleteProfileModal from '../components/DeleteProfileModal';
 import SaveRequiredModal from '../components/SaveRequiredModal';
 import VerificationFailureModal from '../components/VerificationFailureModal';
+import InvalidUsernameModal from '../components/InvalidUsernameModal';
 
 const CodingProfile = () => {
     const navigate = useNavigate();
@@ -31,6 +32,9 @@ const CodingProfile = () => {
     // verification failure state
     const [failureModalOpen, setFailureModalOpen] = useState(false);
     const [verificationError, setVerificationError] = useState<string | null>(null);
+
+    // invalid username state
+    const [invalidUsernameModalOpen, setInvalidUsernameModalOpen] = useState(false);
 
     const [profiles, setProfiles] = useState({
         leetcode: { username: '', verified: false },
@@ -75,6 +79,13 @@ const CodingProfile = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+
+        // Check for URL-like patterns
+        if (/https?:\/\/|www\.|\//.test(value)) {
+            setInvalidUsernameModalOpen(true);
+            return; // Reject the input
+        }
+
         setProfiles(prev => ({
             ...prev,
             [name]: {
@@ -427,6 +438,12 @@ const CodingProfile = () => {
                 <VerificationFailureModal
                     error={verificationError}
                     onClose={() => setFailureModalOpen(false)}
+                />
+            )}
+            {/* Invalid Username Modal */}
+            {invalidUsernameModalOpen && (
+                <InvalidUsernameModal
+                    onClose={() => setInvalidUsernameModalOpen(false)}
                 />
             )}
         </div>
