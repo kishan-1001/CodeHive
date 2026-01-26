@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/ws",
+      "destination": "http://16.170.220.100.nip.io:3001/"
+    },
+    {
       "source": "/api/:match*",
       "destination": "http://16.170.220.100.nip.io:3001/api/:match*"
     },
