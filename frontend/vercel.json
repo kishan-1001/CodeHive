@@ -1,15 +1,12 @@
 {
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "http://16.170.220.100.nip.io:3001/api/$1"
-        },
-        {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/index.html"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "http://16.170.220.100.nip.io:3001/api/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
