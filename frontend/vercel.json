@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/ws",
-      "destination": "http://16.170.220.100.nip.io:3001/"
+      "destination": "http://16.170.220.100.nip.io:3001/ws"
     },
     {
       "source": "/api/:match*",
