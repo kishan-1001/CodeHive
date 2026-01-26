@@ -349,6 +349,11 @@ const Home: React.FC = () => {
     }
   }, [navigate]);
 
+  // Prevent flash of landing page if logged in
+  if (sessionStorage.getItem('token')) {
+    return null; // Or a loading spinner
+  }
+
 
   const handleSignInClick = () => {
     setIsLoginModalOpen(true);

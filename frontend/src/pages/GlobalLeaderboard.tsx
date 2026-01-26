@@ -103,10 +103,7 @@ const GlobalLeaderboard = () => {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/home');
-    };
+
 
     const getAvatarSrc = (path: string | null) => {
         if (!path) return null;
@@ -128,7 +125,7 @@ const GlobalLeaderboard = () => {
 
     return (
         <div className="relative min-h-screen bg-gray-950 text-white selection:bg-amber-500/30 font-sans">
-            <Header onSignOut={handleLogout} />
+            <Header />
 
             <div className="min-h-screen p-8 pt-24">
                 <div className="max-w-6xl mx-auto">

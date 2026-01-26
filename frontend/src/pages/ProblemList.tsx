@@ -24,10 +24,7 @@ const ProblemList: React.FC = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const topicSlug = searchParams.get('topic');
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/home');
-  };
+
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -96,7 +93,7 @@ const ProblemList: React.FC = () => {
       {/* Background Orbs */}
       <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] -z-10"></div>
 
-      <Header onSignOut={handleLogout} />
+      <Header />
 
       <div className="pt-24 px-6">
         <div className="max-w-4xl mx-auto">

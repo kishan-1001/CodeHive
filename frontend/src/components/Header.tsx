@@ -4,7 +4,7 @@ import { User, LogOut, ChevronDown } from 'lucide-react';
 import { authAPI } from '../services/api';
 
 interface HeaderProps {
-  onSignOut: () => void;
+  onSignOut?: () => void;
   onKnowledgeDropClick?: () => void;
 }
 
@@ -13,8 +13,6 @@ interface UserData {
   email: string;
   avatar_url: string | null;
 }
-
-
 
 const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -51,6 +49,12 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  const handleSignOut = () => {
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('token'); // Clear both to be safe/consistent
+    navigate('/home');
+  }
 
   const navItems = [
     { name: 'Problem', path: '/problem' },
@@ -185,7 +189,11 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
               </button>
               <button
                 onClick={() => {
-                  onSignOut();
+                  if (onSignOut) {
+                    onSignOut();
+                  } else {
+                    handleSignOut();
+                  }
                   setIsDropdownOpen(false);
                 }}
                 className="flex items-center w-full px-4 py-3 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors"

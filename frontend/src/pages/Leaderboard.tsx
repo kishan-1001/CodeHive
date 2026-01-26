@@ -83,10 +83,7 @@ const Leaderboard: React.FC = () => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('token');
-    navigate('/home');
-  };
+
 
   const getAvatarSrc = (path: string | null) => {
     if (!path) return null;
@@ -118,7 +115,7 @@ const Leaderboard: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-gray-950 text-white selection:bg-amber-500/30 font-sans">
-      <Header onSignOut={handleLogout} />
+      <Header />
 
       {/* Controls - Absolute Positioned to Screen Left */}
       <div className="absolute top-28 left-4 md:left-8 z-10 flex items-center gap-4">

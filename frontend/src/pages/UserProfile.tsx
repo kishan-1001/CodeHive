@@ -166,10 +166,7 @@ const UserProfile = () => {
         }
     };
 
-    const handleLogout = () => {
-        sessionStorage.removeItem('token');
-        navigate('/home');
-    };
+
 
     const openEditModal = () => {
         if (user) {
@@ -351,7 +348,7 @@ const UserProfile = () => {
 
     return (
         <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-amber-500/30">
-            <Header onSignOut={handleLogout} />
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 py-8 pt-24 grid grid-cols-1 lg:grid-cols-4 gap-6">
 

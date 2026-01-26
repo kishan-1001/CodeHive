@@ -21,6 +21,7 @@ import AuthCallback from "./pages/AuthCallback.tsx";
 import Legal from "./pages/Legal.tsx";
 
 
+import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 import AdminRoute from "./components/auth/AdminRoute.tsx";
 import AdminLayout from "./layouts/AdminLayout.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
@@ -35,29 +36,33 @@ import UserManagement from "./pages/admin/UserManagement.tsx";
 const App: React.FC = () => {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/home" element={<Home />} />
       <Route path="/about" element={<AboutUs />} />
       <Route path="/career" element={<Career />} />
-      <Route path="/explore" element={<Explore />} />
-      <Route path="/problem" element={<Problem />} />
-      <Route path="/problems" element={<ProblemList />} />
-      <Route path="/problems/:id" element={<ProblemDetail />} />
-      <Route path="/contest" element={<InstantArena />} />
-      <Route path="/arena/:sessionId" element={<ArenaSession />} />
-      <Route path="/arena/:sessionId/feedback" element={<ArenaFeedback />} />
-      <Route path="/weekly-contest" element={<WeeklyContest />} />
-      <Route path="/weekly-contest/:id" element={<ContestLive />} />
-      <Route path="/weekly-contest/:id/feedback" element={<ContestFeedback />} />
-      <Route path="/leaderboard" element={<Leaderboard />} />
-      <Route path="/global-leaderboard" element={<GlobalLeaderboard />} />
-      <Route path="/profile" element={<UserProfile />} />
-      <Route path="/profile/:username" element={<UserProfile />} />
-      <Route path="/coding-profile" element={<CodingProfile />} />
       <Route path="/legal" element={<Legal />} />
-
-      <Route path="/editor" element={<HomeCodeEditor />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Protected User Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/problem" element={<Problem />} />
+        <Route path="/problems" element={<ProblemList />} />
+        <Route path="/problems/:id" element={<ProblemDetail />} />
+        <Route path="/contest" element={<InstantArena />} />
+        <Route path="/arena/:sessionId" element={<ArenaSession />} />
+        <Route path="/arena/:sessionId/feedback" element={<ArenaFeedback />} />
+        <Route path="/weekly-contest" element={<WeeklyContest />} />
+        <Route path="/weekly-contest/:id" element={<ContestLive />} />
+        <Route path="/weekly-contest/:id/feedback" element={<ContestFeedback />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/global-leaderboard" element={<GlobalLeaderboard />} />
+        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/profile/:username" element={<UserProfile />} />
+        <Route path="/coding-profile" element={<CodingProfile />} />
+        <Route path="/editor" element={<HomeCodeEditor />} />
+      </Route>
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminRoute />}>

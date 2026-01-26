@@ -254,7 +254,7 @@ const InstantArena: React.FC = () => {
       <div className="absolute top-20 left-20 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px] -z-10"></div>
       <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[150px] -z-10"></div>
 
-      <Header onSignOut={handleLogout} />
+      <Header />
 
       <div className="pt-32 px-6 pb-20">
         <div className="max-w-4xl mx-auto">

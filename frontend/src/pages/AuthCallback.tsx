@@ -18,7 +18,7 @@ const AuthCallback: React.FC = () => {
                     const user = await authAPI.getMe();
                     // Store user info if needed, e.g. for header
                     sessionStorage.setItem('user', JSON.stringify(user));
-                    navigate('/explore');
+                    navigate('/explore', { replace: true });
                 } catch (err: any) {
                     console.error('Auth verification failed', err);
                     setError(err.message || 'Authentication failed. Please try again.');

@@ -37,10 +37,7 @@ const Explore: React.FC = () => {
   const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/home');
-  };
+
 
   const handleKnowledgeDropClick = () => {
     setIsKnowledgeDropOpen(true);
@@ -115,7 +112,6 @@ const Explore: React.FC = () => {
       <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] -z-10"></div>
 
       <Header
-        onSignOut={handleLogout}
         onKnowledgeDropClick={handleKnowledgeDropClick}
       />
 
