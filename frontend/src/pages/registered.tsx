@@ -57,13 +57,13 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onSignIn
 
     try {
       const response = await authAPI.verifyOTP({ email: registeredEmail, otp });
-      localStorage.setItem('token', response.token);
+      sessionStorage.setItem('token', response.token);
       setSuccess(true);
       setTimeout(() => {
         onClose();
         setSuccess(false);
         setIsLoading(false);
-        navigate('/explore');
+        navigate('/explore', { replace: true });
       }, 2000);
     } catch (err: any) {
       setError(err.message);

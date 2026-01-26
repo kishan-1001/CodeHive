@@ -2,7 +2,7 @@ const API_BASE_URL = '/api';
 
 export const api = {
   async post(endpoint: string, data: any) {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -21,7 +21,7 @@ export const api = {
   },
 
   async get(endpoint: string) {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
       headers: {
@@ -39,7 +39,7 @@ export const api = {
   },
 
   async put(endpoint: string, data: any) {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: {
@@ -58,7 +58,7 @@ export const api = {
   },
 
   async delete(endpoint: string) {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
       headers: {
@@ -76,7 +76,7 @@ export const api = {
   },
 
   async uploadFile(endpoint: string, formData: FormData) {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {

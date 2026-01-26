@@ -15,7 +15,7 @@ const AdminDashboard: React.FC = () => {
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/admin/stats', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });

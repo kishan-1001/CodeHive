@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import { ArrowLeft, Play, Terminal, Check, List, Clock, Maximize, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Play, Terminal, Check, List, Clock, Maximize, AlertTriangle, ShieldAlert, Cpu } from 'lucide-react';
 import { arenaAPI, problemsAPI } from '../services/api';
 import SubmissionResultModal from '../components/SubmissionResultModal';
 
@@ -109,6 +109,40 @@ const ArenaSession: React.FC = () => {
         loadSession();
     }, [sessionId]);
 
+
+    // Auto Submit All Wrapper
+    const handleAutoSubmitAll = async (reason: string = "Time's Up!") => {
+        if (isSubmitting || isFinishing) return;
+        setIsSubmitting(true);
+        setIsFinishing(true); // Start full screen loader
+
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(err => console.log(err));
+        }
+
+        console.log(`Auto-submitting due to: ${reason}`);
+
+        for (const p of sessionProblems) {
+            const codeToSubmit = drafts[p.id];
+            if (!codeToSubmit) continue;
+
+            try {
+                await arenaAPI.submitSolution({
+                    code: codeToSubmit,
+                    language: language,
+                    problem_id: p.id,
+                    session_id: session.id
+                });
+            } catch (e) {
+                console.error(`Failed to auto-submit problem ${p.id}`, e);
+            }
+        }
+
+        setIsSubmitting(false);
+        // Delay slightly if needed, but primarily just navigate
+        navigate(`/arena/${sessionId}/feedback`);
+    };
+
     // Initialize Timer
     useEffect(() => {
         if (!session?.expires_at) return;
@@ -136,38 +170,10 @@ const ArenaSession: React.FC = () => {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [session?.expires_at, isExpired]);
+    }, [session?.expires_at, isExpired, handleAutoSubmitAll]);
 
 
-    // Auto Submit All Wrapper
-    const handleAutoSubmitAll = async (reason: string = "Time's Up!") => {
-        if (isSubmitting) return;
-        setIsSubmitting(true);
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(err => console.log(err));
-        }
 
-        console.log(`Auto-submitting due to: ${reason}`);
-
-        for (const p of sessionProblems) {
-            const codeToSubmit = drafts[p.id];
-            if (!codeToSubmit) continue;
-
-            try {
-                await arenaAPI.submitSolution({
-                    code: codeToSubmit,
-                    language: language,
-                    problem_id: p.id,
-                    session_id: session.id
-                });
-            } catch (e) {
-                console.error(`Failed to auto-submit problem ${p.id}`, e);
-            }
-        }
-
-        setIsSubmitting(false);
-        navigate(`/arena/${sessionId}/feedback`);
-    };
 
     // Proctoring: Start Exam (Enter Fullscreen)
     const handleStartExam = () => {
@@ -305,6 +311,8 @@ const ArenaSession: React.FC = () => {
     }, [hasStarted]);
 
     // Finish Session Manually
+    const [isFinishing, setIsFinishing] = useState(false);
+
     const handleFinish = async () => {
         setShowFinishConfirmation(true);
     };
@@ -314,7 +322,11 @@ const ArenaSession: React.FC = () => {
         handleAutoSubmitAll("User Finished");
     };
 
-    // Code Loading & Template Logic
+
+
+    // ... (rest of code)
+
+
     useEffect(() => {
         const fetchProblemDetails = async () => {
             if (sessionProblems.length === 0) return;
@@ -402,7 +414,7 @@ const ArenaSession: React.FC = () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
                         code,
@@ -589,6 +601,20 @@ const ArenaSession: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-gray-900 text-white overflow-hidden relative">
+
+            {/* 0. Finishing Overlay (Highest Priority) */}
+            {isFinishing && (
+                <div className="absolute inset-0 z-[100] bg-gray-950 flex flex-col items-center justify-center animate-in fade-in duration-300">
+                    <div className="relative">
+                        <div className="w-24 h-24 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Cpu className="w-10 h-10 text-amber-400 animate-pulse" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mt-8 animate-pulse">Finishing Exam...</h2>
+                    <p className="text-gray-400 mt-2">Analyzing your performance</p>
+                </div>
+            )}
 
             {/* 2. Warning Overlay (Blocking) */}
             {showWarningOverlay && (

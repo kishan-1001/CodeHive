@@ -31,7 +31,7 @@ const UserManagement: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/admin/users', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -57,7 +57,7 @@ const UserManagement: React.FC = () => {
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
 
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/users/${userId}/role`, {
                 method: 'PUT',
                 headers: {

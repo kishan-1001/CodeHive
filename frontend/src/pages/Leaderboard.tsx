@@ -29,7 +29,7 @@ const Leaderboard: React.FC = () => {
 
   const fetchCurrentUser = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) return;
 
       const res = await fetch('/api/auth/me', {
@@ -47,7 +47,7 @@ const Leaderboard: React.FC = () => {
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch('/api/leaderboard', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       const data = await res.json();
       setLeaderboard(data);
@@ -63,7 +63,7 @@ const Leaderboard: React.FC = () => {
     try {
       await fetch('/api/leaderboard/sync', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       await fetchLeaderboard(); // Reload after sync
     } catch (error) {
@@ -84,7 +84,7 @@ const Leaderboard: React.FC = () => {
   }, [searchQuery]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     navigate('/home');
   };
 

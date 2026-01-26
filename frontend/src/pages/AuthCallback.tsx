@@ -13,11 +13,11 @@ const AuthCallback: React.FC = () => {
             const token = searchParams.get('token');
 
             if (token) {
-                localStorage.setItem('token', token);
+                sessionStorage.setItem('token', token);
                 try {
                     const user = await authAPI.getMe();
                     // Store user info if needed, e.g. for header
-                    localStorage.setItem('user', JSON.stringify(user));
+                    sessionStorage.setItem('user', JSON.stringify(user));
                     navigate('/explore');
                 } catch (err: any) {
                     console.error('Auth verification failed', err);

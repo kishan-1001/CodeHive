@@ -342,6 +342,13 @@ const Home: React.FC = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
+  useEffect(() => {
+    const token = sessionStorage.getItem('token');
+    if (token) {
+      navigate('/explore', { replace: true });
+    }
+  }, [navigate]);
+
 
   const handleSignInClick = () => {
     setIsLoginModalOpen(true);

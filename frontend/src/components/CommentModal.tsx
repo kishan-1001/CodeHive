@@ -9,6 +9,7 @@ interface Comment {
   content: string;
   created_at: string;
   author_name: string;
+  avatar_url?: string;
 }
 
 interface CommentModalProps {
@@ -115,21 +116,29 @@ const CommentModal: React.FC<CommentModalProps> = ({
               {comments
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .map((comment) => (
-                <div key={comment.id} className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-amber-400" />
+                  <div key={comment.id} className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-full bg-amber-400/10 flex items-center justify-center overflow-hidden shrink-0">
+                        {comment.avatar_url ? (
+                          <img
+                            src={comment.avatar_url}
+                            alt={comment.author_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-4 h-4 text-amber-400" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-white font-medium text-sm">{comment.author_name}</span>
+                        <span className="text-gray-400 text-xs ml-2">
+                          {new Date(comment.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <span className="text-white font-medium text-sm">{comment.author_name}</span>
-                      <span className="text-gray-400 text-xs ml-2">
-                        {new Date(comment.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">{comment.content}</p>
                   </div>
-                  <p className="text-gray-300 text-sm leading-relaxed">{comment.content}</p>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>

@@ -66,6 +66,7 @@ const ContestLive: React.FC = () => {
     const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
     const [showProctorModal, setShowProctorModal] = useState(false);
     const [showFinishedModal, setShowFinishedModal] = useState(false);
+    const [isFinishing, setIsFinishing] = useState(false);
 
     // Refs
     const editorRef = useRef<any>(null);
@@ -76,17 +77,22 @@ const ContestLive: React.FC = () => {
     };
 
     const confirmFinish = async () => {
+        if (isFinishing) return;
+        setIsFinishing(true); // Start loader
+        setShowFinishConfirmation(false);
+
         try {
             await fetch(`/api/contests/${id}/finish`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
             });
         } catch (e) { console.error("Finish error", e); }
-
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(err => console.error("Exit FS error:", err));
+        finally {
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(err => console.error("Exit FS error:", err));
+            }
+            navigate(`/weekly-contest/${id}/feedback`);
         }
-        navigate(`/weekly-contest/${id}/feedback`);
     };
 
     const languages = [
@@ -110,7 +116,7 @@ const ContestLive: React.FC = () => {
         if (!id) return;
         const fetchContest = async () => {
             try {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token');
                 const res = await fetch(`/api/contests/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -183,10 +189,7 @@ const ContestLive: React.FC = () => {
                     setStatus('live'); // Auto start
                 } else if (nextStatus === 'live') {
                     setStatus('ended'); // Auto end
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen().catch(err => console.error("Exit FS error:", err));
-                    }
-                    // Optional: force submit?
+                    confirmFinish(); // Auto redirect
                 }
                 setTimeLeft('00:00:00');
             } else {
@@ -335,7 +338,7 @@ const ContestLive: React.FC = () => {
                 // Call finish API
                 fetch(`/api/contests/${id}/finish`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
                 }).finally(() => {
                     navigate(`/weekly-contest/${id}/feedback`);
                 });
@@ -410,7 +413,7 @@ const ContestLive: React.FC = () => {
         for (let i = 0; i < currentProblem.sample_test_cases.length; i++) {
             const testCase = currentProblem.sample_test_cases[i];
             try {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token');
                 const response = await fetch('/api/execute', {
                     method: 'POST',
                     headers: {
@@ -455,7 +458,7 @@ const ContestLive: React.FC = () => {
         setSubmissionResult(null);
 
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/contests/${id}/submit`, {
                 method: 'POST',
                 headers: {
@@ -649,6 +652,20 @@ const ContestLive: React.FC = () => {
     // 2. LIVE ARENA UI
     return (
         <div className="flex h-screen bg-gray-950 text-white overflow-hidden font-sans">
+            {/* 0. Finishing Overlay (Highest Priority) */}
+            {isFinishing && (
+                <div className="absolute inset-0 z-[100] bg-gray-950 flex flex-col items-center justify-center animate-in fade-in duration-300">
+                    <div className="relative">
+                        <div className="w-24 h-24 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Trophy className="w-10 h-10 text-amber-400 animate-pulse" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mt-8 animate-pulse">Finishing Contest...</h2>
+                    <p className="text-gray-400 mt-2">Calculating final rank</p>
+                </div>
+            )}
+
             {/* Finished Contest Modal (Professional) */}
             {showFinishedModal && id && (
                 <ContestAlreadyFinishedModal

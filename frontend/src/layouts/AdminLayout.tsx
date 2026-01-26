@@ -7,7 +7,7 @@ const AdminLayout: React.FC = () => {
     const location = useLocation();
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         navigate('/home');
     };
 
