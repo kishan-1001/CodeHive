@@ -159,7 +159,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
-              onClick={() => window.location.href = 'http://localhost:3001/api/auth/google'}
+              onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/google`}
               className="flex items-center justify-center px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -172,7 +172,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
             </button>
             <button
               type="button"
-              onClick={() => window.location.href = 'http://localhost:3001/api/auth/github'}
+              onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/github`}
               className="w-full flex items-center justify-center px-4 py-2 border border-gray-600 rounded-lg text-white hover:bg-gray-700 transition-colors"
             >
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
