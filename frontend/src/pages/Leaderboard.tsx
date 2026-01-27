@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { Medal, Crown, RefreshCw, Search } from 'lucide-react';
 
@@ -16,7 +16,7 @@ interface LeaderboardUser {
 }
 
 const Leaderboard: React.FC = () => {
-  const navigate = useNavigate();
+
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
