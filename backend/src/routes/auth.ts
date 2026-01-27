@@ -7,8 +7,30 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { emailService } from '../services/emailService';
 import fs from 'fs';
 import path from 'path';
+import { LeaderboardService } from '../services/leaderboardService';
+import { GlobalLeaderboardService } from '../services/globalLeaderboard';
+import { PlatformFetcherService } from '../services/platformFetcher';
 
 const router = Router();
+
+// Helper to trigger background refresh
+const triggerLeaderboardRefresh = (userId: number) => {
+  // Fire and forget - don't await
+  (async () => {
+    try {
+      console.log(`[Background] Refreshing leaderboards for user ${userId}`);
+      // Internal stats (Fast)
+      await LeaderboardService.calculateUserScore(userId);
+
+      // Global stats (Slow - External fetch)
+      await PlatformFetcherService.fetchAndUpsertUserStats(userId);
+      await GlobalLeaderboardService.updateUserGlobalScore(userId);
+      console.log(`[Background] Leaderboard refresh complete for user ${userId}`);
+    } catch (err) {
+      console.error(`[Background] Error refreshing leaderboards for user ${userId}:`, err);
+    }
+  })();
+};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -80,6 +102,9 @@ router.post('/register', async (req, res) => {
     // Log the request
     console.log(`OTP sent to ${email} for registration`);
 
+    // Trigger initial leaderboard setup (empty stats but good to init)
+    triggerLeaderboardRefresh(user.id);
+
     res.status(201).json({
       message: 'Registration successful. Please check your email for OTP verification.',
       user: user
@@ -138,6 +163,9 @@ router.post('/verify-otp', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Trigger refresh on successful verification
+    triggerLeaderboardRefresh(user.id);
+
     res.json({
       message: 'Account verified successfully',
       token,
@@ -180,6 +208,9 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Trigger refresh on login
+    triggerLeaderboardRefresh(user.id);
+
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     console.error('Login error:', error);
@@ -208,6 +239,10 @@ router.get(
 
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    // Trigger refresh on OAuth login
+    triggerLeaderboardRefresh(user.id);
+
     res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   }
 );
@@ -233,6 +268,10 @@ router.get(
 
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    // Trigger refresh on GitHub login
+    triggerLeaderboardRefresh(user.id);
+
     res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   }
 );
