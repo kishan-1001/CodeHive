@@ -81,10 +81,10 @@ export class GlobalLeaderboardService {
                 ) as platform_details
             FROM global_leaderboard gl
             JOIN users u ON gl.user_id = u.id
-            WHERE u.name ILIKE $3 OR u.email ILIKE $3
+            WHERE u.name ILIKE $3 OR u.email ILIKE $3 OR u.username ILIKE $3 OR CAST(u.id AS TEXT) = $4
             ORDER BY gl.universal_score DESC
             LIMIT $1 OFFSET $2
-        `, [limit, offset, `%${search}%`]); // Note: Rank might be relative to page if not careful, but DENSE_RANK over full set is ignored by LIMIT
+        `, [limit, offset, `%${search}%`, search]); // $3 is pattern, $4 is exact search string (for ID)
 
         // Correct Rank Calculation:
         // DENSE_RANK applies to the result set. For global offset, we might need a subquery or window function over all.
@@ -121,10 +121,10 @@ export class GlobalLeaderboardService {
                     WHERE upp.user_id = ru.user_id AND upp.is_verified = true
                 ) as platform_details
             FROM RankedUsers ru
-            WHERE ru.name ILIKE $3 OR ru.email ILIKE $3
+            WHERE ru.name ILIKE $3 OR ru.email ILIKE $3 OR ru.username ILIKE $3 OR CAST(ru.user_id AS TEXT) = $4
             ORDER BY ru.rank ASC
             LIMIT $1 OFFSET $2
-        `, [limit, offset, `%${search}%`]);
+        `, [limit, offset, `%${search}%`, search]);
 
         return rankResult.rows;
     }
@@ -134,8 +134,8 @@ export class GlobalLeaderboardService {
             SELECT COUNT(*) 
             FROM global_leaderboard gl
             JOIN users u ON gl.user_id = u.id
-            WHERE u.name ILIKE $1 OR u.email ILIKE $1
-        `, [`%${search}%`]);
+            WHERE u.name ILIKE $1 OR u.email ILIKE $1 OR u.username ILIKE $1 OR CAST(u.id AS TEXT) = $2
+        `, [`%${search}%`, search]);
         return parseInt(result.rows[0].count);
     }
 

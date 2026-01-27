@@ -95,7 +95,8 @@ const Leaderboard: React.FC = () => {
 
   const filteredLeaderboard = leaderboard.filter(user =>
     (user.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-    (user.username?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    (user.username?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    user.user_id.toString().includes(searchQuery)
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
