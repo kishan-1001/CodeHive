@@ -27,7 +27,7 @@ Instant Arena lets you create custom coding contests tailored to specific topics
 
 Explore a comprehensive library of coding problems carefully categorized by topic and difficulty level to support learners at every stage. Practice seamlessly using a powerful Monaco-based code editor that delivers a smooth, professional coding experience. The platform supports five major programming languages—C, C++, Python, Java, and JavaScript—allowing you to code in your preferred language. Whether you’re strengthening fundamentals or preparing for interviews, this rich problem set and flexible editor help you learn, practice, and improve efficiently.
 <p align="center">
-  <img src="frontend/public/problem page.png" width="800" alt="Problem List" />
+  <img src="frontend/public/problemoverview.jpeg" width="800" alt="Problem Overview" />
 </p>
 <p align="center">
   <img src="frontend/public/topic wise proble page.png" width="48%" alt="Topic Wise Problems" />
