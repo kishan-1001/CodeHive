@@ -5,11 +5,32 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
-// Get all topics
+// Get all topics with problem counts
 router.get('/topics', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM topics ORDER BY name');
-        res.json(result.rows);
+        const userId = getUserIdFromToken(req);
+
+        const result = await pool.query(`
+            SELECT 
+                t.id, 
+                t.name, 
+                t.slug, 
+                COUNT(DISTINCT pt.problem_id) as total_problems,
+                COUNT(DISTINCT CASE WHEN s.verdict = 'AC' THEN pt.problem_id END) as solved_problems
+            FROM topics t
+            LEFT JOIN problem_topics pt ON t.id = pt.topic_id
+            LEFT JOIN submissions s ON pt.problem_id = s.problem_id AND s.user_id = $1
+            GROUP BY t.id, t.name, t.slug
+            ORDER BY t.name
+        `, [userId || -1]); // Use -1 or dummy value if no user found to prevent matching null
+
+        // Ensure counts are numbers
+        const topics = result.rows.map(row => ({
+            ...row,
+            total_problems: parseInt(row.total_problems || '0', 10),
+            solved_problems: parseInt(row.solved_problems || '0', 10)
+        }));
+        res.json(topics);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
