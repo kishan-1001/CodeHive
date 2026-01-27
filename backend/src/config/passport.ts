@@ -64,7 +64,7 @@ passport.use(
                     // If user exists but no provider_id (linked via email only), update it
                     if (!user.provider_id) {
                         const updatedUser = await pool.query(
-                            'UPDATE users SET provider = $1, provider_id = $2, avatar_url = $3 WHERE id = $4 RETURNING *',
+                            'UPDATE users SET provider = $1, provider_id = $2, avatar_url = $3, is_verified = true WHERE id = $4 RETURNING *',
                             ['google', googleId, photo, user.id]
                         );
                         return done(null, updatedUser.rows[0]);
@@ -78,8 +78,8 @@ passport.use(
 
                 // Create new user
                 const newUser = await pool.query(
-                    'INSERT INTO users (name, email, password, provider, provider_id, avatar_url, username) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-                    [name, email, null, 'google', googleId, photo, username]
+                    'INSERT INTO users (name, email, password, provider, provider_id, avatar_url, username, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+                    [name, email, null, 'google', googleId, photo, username, true]
                 );
 
                 return done(null, newUser.rows[0]);
@@ -123,7 +123,7 @@ passport.use(
                     // If user exists but no provider_id (linked via email only), update it
                     if (!user.provider_id) {
                         const updatedUser = await pool.query(
-                            'UPDATE users SET provider = $1, provider_id = $2, avatar_url = $3 WHERE id = $4 RETURNING *',
+                            'UPDATE users SET provider = $1, provider_id = $2, avatar_url = $3, is_verified = true WHERE id = $4 RETURNING *',
                             ['github', githubId, photo, user.id]
                         );
                         return done(null, updatedUser.rows[0]);
@@ -139,8 +139,8 @@ passport.use(
 
                 // Create new user
                 const newUser = await pool.query(
-                    'INSERT INTO users (name, email, password, provider, provider_id, avatar_url, username) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-                    [name, email, null, 'github', githubId, photo, username]
+                    'INSERT INTO users (name, email, password, provider, provider_id, avatar_url, username, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+                    [name, email, null, 'github', githubId, photo, username, true]
                 );
 
                 return done(null, newUser.rows[0]);

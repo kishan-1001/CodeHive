@@ -56,29 +56,44 @@ router.post('/register', async (req, res) => {
 
     // Check if user already exists (email or username)
     // We can do this in one query or separate for better error messages
-    const existingEmail = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existingEmail.rows.length > 0) {
-      return res.status(400).json({ message: 'User with this email already exists' });
-    }
+    const existingEmail = await pool.query('SELECT id, is_verified FROM users WHERE email = $1', [email]);
+    let userId: number;
 
-    if (username) {
-      const existingUsername = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
-      if (existingUsername.rows.length > 0) {
-        return res.status(400).json({ message: 'Username is already taken' });
-      }
-    }
-
-    // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Insert user
-    // Now including username in INSERT
-    const userResult = await pool.query(
-      'INSERT INTO users (name, email, password, username, provider) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, username',
-      [name, email, hashedPassword, username || null, 'local']
-    );
-    const user = userResult.rows[0];
+    if (existingEmail.rows.length > 0) {
+      const existingUser = existingEmail.rows[0];
+      if (existingUser.is_verified) {
+        return res.status(400).json({ message: 'User with this email already exists' });
+      } else {
+        // User exists but is NOT verified. We treat this as a retry.
+        // We update the existing record with new details (in case they changed name/password)
+        console.log(`Unverified user ${email} re-registering. Updating details.`);
+
+        // Update user
+        await pool.query(
+          'UPDATE users SET name = $1, password = $2, username = $3 WHERE id = $4',
+          [name, hashedPassword, username || null, existingUser.id]
+        );
+        userId = existingUser.id;
+      }
+    } else {
+      // New user
+      if (username) {
+        const existingUsername = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        if (existingUsername.rows.length > 0) {
+          return res.status(400).json({ message: 'Username is already taken' });
+        }
+      }
+
+      // Insert user
+      const userResult = await pool.query(
+        'INSERT INTO users (name, email, password, username, provider, is_verified) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [name, email, hashedPassword, username || null, 'local', false]
+      );
+      userId = userResult.rows[0].id;
+    }
 
     // Generate OTP
     const otp = emailService.generateOTP();
@@ -88,7 +103,7 @@ router.post('/register', async (req, res) => {
     // Insert OTP verification
     await pool.query(
       'INSERT INTO otp_verifications (user_id, email, otp_hash, purpose, expires_at) VALUES ($1, $2, $3, $4, $5)',
-      [user.id, email, otpHash, 'register', otpExpiresAt]
+      [userId, email, otpHash, 'register', otpExpiresAt]
     );
 
     // Send OTP email
@@ -103,11 +118,11 @@ router.post('/register', async (req, res) => {
     console.log(`OTP sent to ${email} for registration`);
 
     // Trigger initial leaderboard setup (empty stats but good to init)
-    triggerLeaderboardRefresh(user.id);
+    triggerLeaderboardRefresh(userId);
 
     res.status(201).json({
       message: 'Registration successful. Please check your email for OTP verification.',
-      user: user
+      user: { id: userId, name, email, username }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -142,6 +157,12 @@ router.post('/verify-otp', async (req, res) => {
     await pool.query(
       'UPDATE otp_verifications SET used = true WHERE id = $1',
       [otpRecord.id]
+    );
+
+    // Mark user as verified
+    await pool.query(
+      'UPDATE users SET is_verified = true WHERE id = $1',
+      [otpRecord.user_id]
     );
 
     // Find user
@@ -183,7 +204,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     // Find user
-    const result = await pool.query('SELECT id, name, email, password, role FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT id, name, email, password, role, is_verified FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -199,6 +220,11 @@ router.post('/login', async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Check verification status
+    if (!user.is_verified) {
+      return res.status(403).json({ message: 'Please verify your email address before logging in' });
     }
 
     // Generate JWT
