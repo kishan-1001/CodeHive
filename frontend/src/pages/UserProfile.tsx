@@ -247,7 +247,18 @@ const UserProfile = () => {
 
     const getAvatarSrc = (path: string | null) => {
         if (!path) return '';
-        if (path.startsWith('http')) return path;
+        if (path.startsWith('http')) {
+            // Fix for Google low-res images
+            if (path.includes('googleusercontent.com')) {
+                // Replace size param (e.g. =s96-c) with =s400 for higher quality
+                return path.replace(/=s\d+(-c)?/g, '=s400');
+            }
+            // Fix for GitHub low-res images if needed (usually they are fine but good to ensure)
+            if (path.includes('githubusercontent.com') && !path.includes('?v=')) {
+                return `${path}?size=400`;
+            }
+            return path;
+        }
         // If it's a relative path from uploads, prepend /api base path (which is proxied/rewritten)
         return `/api${path}`;
     };
@@ -650,155 +661,183 @@ const UserProfile = () => {
             {/* Edit Profile Modal */}
             {
                 isEditModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
-                                <h3 className="text-lg font-bold text-white">Edit Profile</h3>
-                                <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+                        <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0 bg-gray-900/95 backdrop-blur">
+                                <h3 className="text-xl font-bold text-white">Edit Profile</h3>
+                                <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded-lg">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-                            <form onSubmit={handleSaveProfile} className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-400 mb-1">Full Name</label>
-                                    <input
-                                        type="text"
-                                        value={editForm.name}
-                                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                                        placeholder="Your Name"
-                                        required
-                                    />
-                                </div>
 
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-400 mb-1">Profile Picture</label>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-20 h-20 bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex-shrink-0">
-                                            {previewUrl || editForm.avatar_url ? (
-                                                <img
-                                                    src={previewUrl || getAvatarSrc(editForm.avatar_url)}
-                                                    alt="Preview"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                                    <ImageIcon className="w-8 h-8" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="cursor-pointer">
+                            <form onSubmit={handleSaveProfile} className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+                                    {/* Left Column: Avatar */}
+                                    <div className="md:col-span-4 flex flex-col items-center space-y-4">
+                                        <div className="relative group">
+                                            <div className="w-48 h-48 bg-gray-800 rounded-2xl overflow-hidden border-2 border-gray-700 shadow-xl">
+                                                {previewUrl || editForm.avatar_url ? (
+                                                    <img
+                                                        src={previewUrl || getAvatarSrc(editForm.avatar_url)}
+                                                        alt="Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gray-800">
+                                                        <ImageIcon className="w-12 h-12 opacity-50" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <label className="absolute inset-x-0 bottom-0 p-3 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex justify-center items-center gap-2 text-white hover:bg-black/70">
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={handleFileChange}
                                                     className="hidden"
                                                 />
-                                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm text-gray-300 transition-colors">
-                                                    <Upload className="w-4 h-4" />
-                                                    Upload New Image
-                                                </div>
+                                                <Upload className="w-4 h-4" />
+                                                <span className="text-sm font-medium">Change Photo</span>
                                             </label>
-                                            <p className="text-xs text-gray-500 mt-2">Recommended: Square image, max 5MB</p>
+                                        </div>
+                                        <p className="text-xs text-gray-500 text-center px-4">
+                                            Recommended: Square image, max 5MB.
+                                        </p>
+                                    </div>
+
+                                    {/* Right Column: Details */}
+                                    <div className="md:col-span-8 space-y-6">
+
+                                        {/* Basic Info Row */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Full Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.name}
+                                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                                    className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                                                    placeholder="Your Name"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Username</label>
+                                                <input
+                                                    type="text"
+                                                    value={user?.username || ''}
+                                                    readOnly
+                                                    disabled
+                                                    className="w-full bg-gray-800/30 border border-gray-800 rounded-lg px-4 py-2.5 text-gray-500 text-sm cursor-not-allowed select-none"
+                                                    title="Username cannot be changed"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Bio */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Bio</label>
+                                            <textarea
+                                                value={editForm.bio}
+                                                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                                                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all min-h-[80px] resize-none"
+                                                placeholder="Tell the community about yourself..."
+                                            />
+                                        </div>
+
+                                        {/* Social Links Grid */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                <Globe className="w-3 h-3" /> Social Presence
+                                            </h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="relative">
+                                                    <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.github}
+                                                        onChange={(e) => setEditForm({ ...editForm, github: e.target.value })}
+                                                        className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600"
+                                                        placeholder="GitHub URL"
+                                                    />
+                                                </div>
+                                                <div className="relative">
+                                                    <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.linkedin}
+                                                        onChange={(e) => setEditForm({ ...editForm, linkedin: e.target.value })}
+                                                        className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600"
+                                                        placeholder="LinkedIn URL"
+                                                    />
+                                                </div>
+                                                <div className="relative">
+                                                    <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.twitter}
+                                                        onChange={(e) => setEditForm({ ...editForm, twitter: e.target.value })}
+                                                        className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600"
+                                                        placeholder="Twitter URL"
+                                                    />
+                                                </div>
+                                                <div className="relative">
+                                                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.website}
+                                                        onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                                                        className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600"
+                                                        placeholder="Website URL"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            </form>
 
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-400 mb-1">Bio</label>
-                                    <textarea
-                                        value={editForm.bio}
-                                        onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500 min-h-[80px]"
-                                        placeholder="Tell us about yourself..."
-                                    />
-                                </div>
-
-                                <div className="pt-2">
-                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Social Links</h4>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <Github className="w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                value={editForm.github}
-                                                onChange={(e) => setEditForm({ ...editForm, github: e.target.value })}
-                                                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                                                placeholder="GitHub Profile URL"
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Linkedin className="w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                value={editForm.linkedin}
-                                                onChange={(e) => setEditForm({ ...editForm, linkedin: e.target.value })}
-                                                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                                                placeholder="LinkedIn Profile URL"
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Twitter className="w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                value={editForm.twitter}
-                                                onChange={(e) => setEditForm({ ...editForm, twitter: e.target.value })}
-                                                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                                                placeholder="Twitter Profile URL"
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Globe className="w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                value={editForm.website}
-                                                onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
-                                                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                                                placeholder="Portfolio / Website URL"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <div className="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700 mt-4 mb-6">
-                                    <div className="flex flex-col">
-                                        <span className="text-white font-medium">Public Profile</span>
-                                        <span className="text-xs text-gray-400">Allow others to view your stats and activity.</span>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
+                            <div className="p-4 border-t border-gray-800 bg-gray-900/95 backdrop-blur flex items-center justify-between flex-shrink-0">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className="relative">
                                         <input
                                             type="checkbox"
                                             className="sr-only peer"
                                             checked={editForm.is_public}
                                             onChange={(e) => setEditForm({ ...editForm, is_public: e.target.checked })}
                                         />
-                                        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                                    </label>
-                                </div>
+                                        <div className="w-10 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 transition-colors"></div>
+                                    </div>
+                                    <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors select-none">Make Stats Public</span>
+                                </label>
 
-                                <div className="pt-4 flex justify-end gap-3">
+                                <div className="flex gap-3">
                                     <button
                                         type="button"
                                         onClick={() => setIsEditModalOpen(false)}
-                                        className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+                                        className="px-4 py-2 bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white text-sm font-medium rounded-lg transition-colors border border-transparent hover:border-gray-700"
                                     >
                                         Cancel
                                     </button>
                                     <button
-                                        type="submit"
+                                        onClick={handleSaveProfile}
                                         disabled={saving}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-6 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-white text-sm font-bold rounded-lg transition-all shadow-lg hover:shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
-                                        {saving ? 'Saving...' : (
+                                        {saving ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                Saving...
+                                            </>
+                                        ) : (
                                             <>
                                                 <Save className="w-4 h-4" /> Save Changes
                                             </>
                                         )}
                                     </button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 )
