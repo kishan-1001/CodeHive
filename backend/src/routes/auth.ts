@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import { pool } from '../config/db';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { emailService } from '../services/emailService';
+import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 
@@ -12,6 +14,23 @@ const router = Router();
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, username } = req.body;
+
+    // Check for disposable email
+    try {
+      const emailDomain = email.split('@')[1];
+      const configPath = path.join(__dirname, '../config/disposable_emails.json');
+      const data = fs.readFileSync(configPath, 'utf8');
+      const disposableEmails = JSON.parse(data);
+
+      if (disposableEmails.includes(emailDomain)) {
+        return res.status(400).json({
+          message: "Nice try! 🎭 But we don't accept burner emails here. Please use a real email address to join the hive! 🐝"
+        });
+      }
+    } catch (err) {
+      console.error('Error checking disposable email:', err);
+      // Proceed if check fails (fail open) or handle error
+    }
 
     // Check if user already exists (email or username)
     // We can do this in one query or separate for better error messages
