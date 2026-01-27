@@ -4,7 +4,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 const AdminRoute: React.FC = () => {
     // Helper to decode JWT payload safely (basic decode, no validation)
     const getUserRole = () => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (!token) return null;
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));

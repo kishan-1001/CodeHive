@@ -43,6 +43,7 @@ const App: React.FC = () => {
       <Route path="/career" element={<Career />} />
       <Route path="/legal" element={<Legal />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/editor" element={<HomeCodeEditor />} />
 
       {/* Protected User Routes */}
       <Route element={<ProtectedRoute />}>
@@ -61,7 +62,7 @@ const App: React.FC = () => {
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/profile/:username" element={<UserProfile />} />
         <Route path="/coding-profile" element={<CodingProfile />} />
-        <Route path="/editor" element={<HomeCodeEditor />} />
+
       </Route>
 
       {/* Admin Routes */}
