@@ -11,6 +11,7 @@ interface KnowledgeDropModalProps {
 const KnowledgeDropModal: React.FC<KnowledgeDropModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -23,6 +24,7 @@ const KnowledgeDropModal: React.FC<KnowledgeDropModalProps> = ({ isOpen, onClose
             onClose();
             setTitle('');
             setContent('');
+
             onSuccess?.();
         } catch (error) {
             console.error('Error creating post:', error);
@@ -100,6 +102,8 @@ const KnowledgeDropModal: React.FC<KnowledgeDropModalProps> = ({ isOpen, onClose
                             ></textarea>
                         </div>
                     </div>
+
+
 
                     {/* Submit Button */}
                     <button

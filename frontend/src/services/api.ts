@@ -145,6 +145,20 @@ export const postsAPI = {
   async getComments(postId: number) {
     return api.get(`/posts/${postId}/comments`);
   },
+
+
+
+  async getTopContributors() {
+    return api.get('/posts/top-contributors');
+  },
+
+  async getSavedPosts() {
+    return api.get('/posts/saved');
+  },
+
+  async toggleSavePost(postId: number) {
+    return api.post(`/posts/${postId}/save`, {});
+  },
 };
 
 export const problemsAPI = {
