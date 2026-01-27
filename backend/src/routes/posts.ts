@@ -157,19 +157,17 @@ router.post('/:id/like', authenticateToken, async (req: AuthRequest, res) => {
     }
 });
 
-// Comment on a post
+// Comment on a post (supports threading)
 router.post('/:id/comment', authenticateToken, async (req: AuthRequest, res) => {
     const postId = req.params.id;
     const userId = req.user.id;
-    const { content } = req.body;
+    const { content, parent_id } = req.body;
 
     try {
         const result = await pool.query(
-            'INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING *',
-            [postId, userId, content]
+            'INSERT INTO comments (post_id, user_id, content, parent_id) VALUES ($1, $2, $3, $4) RETURNING *',
+            [postId, userId, content, parent_id || null]
         );
-
-        // Also process tags in comments? Maybe later.
 
         res.status(201).json(result.rows[0]);
     } catch (err: any) {
@@ -231,17 +229,57 @@ router.post('/:id/save', authenticateToken, async (req: AuthRequest, res) => {
 // Get comments for a post
 router.get('/:id/comments', async (req, res) => {
     const postId = req.params.id;
+    let currentUserId = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+        try {
+            const token = authHeader.split(' ')[1];
+            const jwt = require('jsonwebtoken');
+            const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
+            currentUserId = decoded.id;
+        } catch (e) {
+            // Ignore invalid token for public view
+        }
+    }
+
     try {
         const result = await pool.query(`
-      SELECT c.*, u.name as author_name, u.avatar_url
-      FROM comments c
-      JOIN users u ON c.user_id = u.id
-      WHERE post_id = $1
-      ORDER BY c.created_at ASC
-    `, [postId]);
+            SELECT 
+                c.*, 
+                u.name as author_name, 
+                u.avatar_url,
+                (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count,
+                 ${currentUserId ? `CASE WHEN cl.user_id IS NOT NULL THEN true ELSE false END` : 'false'} as is_liked
+            FROM comments c
+            JOIN users u ON c.user_id = u.id
+            ${currentUserId ? `LEFT JOIN comment_likes cl ON c.id = cl.comment_id AND cl.user_id = ${currentUserId}` : ''}
+            WHERE c.post_id = $1
+            ORDER BY c.created_at ASC
+        `, [postId]);
         res.json(result.rows);
     } catch (err: any) {
         console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Like a comment
+router.post('/comments/:id/like', authenticateToken, async (req: AuthRequest, res) => {
+    const commentId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        const check = await pool.query('SELECT * FROM comment_likes WHERE comment_id = $1 AND user_id = $2', [commentId, userId]);
+
+        if (check.rows.length > 0) {
+            await pool.query('DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2', [commentId, userId]);
+            res.json({ message: 'Unliked', is_liked: false });
+        } else {
+            await pool.query('INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2)', [commentId, userId]);
+            res.json({ message: 'Liked', is_liked: true });
+        }
+    } catch (err: any) {
+        console.error('Error toggling comment like:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });

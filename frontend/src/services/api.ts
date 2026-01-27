@@ -138,8 +138,12 @@ export const postsAPI = {
     return api.post(`/posts/${postId}/like`, {});
   },
 
-  async commentOnPost(postId: number, commentData: { content: string }) {
-    return api.post(`/posts/${postId}/comment`, commentData);
+  async commentOnPost(postId: number, data: { content: string; parent_id?: number }) {
+    return api.post(`/posts/${postId}/comment`, data);
+  },
+
+  async likeComment(commentId: number) {
+    return api.post(`/posts/comments/${commentId}/like`, {});
   },
 
   async getComments(postId: number) {
