@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, MessageCircle, User, Heart, Reply, CornerDownRight } from 'lucide-react';
 import { postsAPI } from '../services/api';
+import { Link } from 'react-router-dom';
 
 interface Comment {
   id: number;
@@ -9,6 +10,7 @@ interface Comment {
   content: string;
   created_at: string;
   author_name: string;
+  username: string;
   avatar_url?: string;
   like_count: number;
   is_liked: boolean;
@@ -144,7 +146,11 @@ const CommentModal: React.FC<CommentModalProps> = ({
         )}
         <div className="bg-transparent rounded-lg p-0">
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden shrink-0 border border-gray-700 mt-1">
+            <Link
+              to={`/profile/${comment.username}`}
+              className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden shrink-0 border border-gray-700 mt-1 hover:border-amber-500/50 transition-colors"
+              onClick={onClose}
+            >
               {comment.avatar_url ? (
                 <img
                   src={comment.avatar_url}
@@ -154,11 +160,17 @@ const CommentModal: React.FC<CommentModalProps> = ({
               ) : (
                 <User className="w-4 h-4 text-gray-400" />
               )}
-            </div>
+            </Link>
 
             <div className="flex-1">
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-gray-200 font-semibold text-sm">{comment.author_name}</span>
+                <Link
+                  to={`/profile/${comment.username}`}
+                  className="text-gray-200 font-semibold text-sm hover:text-amber-500 transition-colors"
+                  onClick={onClose}
+                >
+                  {comment.author_name}
+                </Link>
                 <span className="text-gray-500 text-xs">
                   {new Date(comment.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </span>

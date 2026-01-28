@@ -247,6 +247,7 @@ router.get('/:id/comments', async (req, res) => {
             SELECT 
                 c.*, 
                 u.name as author_name, 
+                u.username,
                 u.avatar_url,
                 (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count,
                  ${currentUserId ? `CASE WHEN cl.user_id IS NOT NULL THEN true ELSE false END` : 'false'} as is_liked
