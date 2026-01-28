@@ -76,7 +76,7 @@ const ContestFeedback: React.FC = () => {
         const fetchResults = async () => {
             if (!id) return;
             try {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token');
                 const res = await fetch(`/api/contests/${id}/my-results`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -104,7 +104,7 @@ const ContestFeedback: React.FC = () => {
 
         setAnalyzingMap(prev => ({ ...prev, [problem.id]: true }));
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/ai/feedback', {
                 method: 'POST',
                 headers: {

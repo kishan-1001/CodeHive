@@ -130,7 +130,7 @@ const ArenaFeedback: React.FC = () => {
 
         setAnalyzingMap(prev => ({ ...prev, [problem.id]: true }));
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/ai/feedback', {
                 method: 'POST',
                 headers: {

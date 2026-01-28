@@ -203,7 +203,7 @@ const InstantArena: React.FC = () => {
   const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     navigate('/home');
   };
 
