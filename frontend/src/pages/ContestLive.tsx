@@ -43,7 +43,7 @@ const ContestLive: React.FC = () => {
     // State
     const [status, setStatus] = useState<'loading' | 'upcoming' | 'live' | 'ended'>('loading');
     const [timeLeft, setTimeLeft] = useState<string>('00:00:00');
-    const [drafts, setDrafts] = useState<Record<number, string>>({});
+    const [drafts, setDrafts] = useState<Record<number, Record<string, string>>>({});
     const [solvedProblems, setSolvedProblems] = useState<Set<number>>(new Set());
 
     // Proctoring & Editor State
@@ -227,8 +227,8 @@ const ContestLive: React.FC = () => {
                 setSubmissionResult(null);
 
                 // Load draft or template
-                if (drafts[basicProblem.problem_id]) {
-                    setCode(drafts[basicProblem.problem_id]);
+                if (drafts[basicProblem.problem_id]?.[language]) {
+                    setCode(drafts[basicProblem.problem_id][language]);
                 } else {
                     try {
                         const template = await problemsAPI.getProblemTemplate(basicProblem.problem_id.toString(), language);
@@ -253,14 +253,17 @@ const ContestLive: React.FC = () => {
     useEffect(() => {
         if (!currentProblem) return;
         const fetchTemplate = async () => {
-            if (!drafts[currentProblem.id]) {
-                try {
-                    const template = await problemsAPI.getProblemTemplate(currentProblem.id.toString(), language);
-                    setCode(template.starter_code);
-                } catch {
-                    const langKey = language as keyof typeof boilerplateCode;
-                    setCode(boilerplateCode[langKey] || '// Write code here');
-                }
+            if (drafts[currentProblem.id]?.[language]) {
+                setCode(drafts[currentProblem.id][language]);
+                return;
+            }
+
+            try {
+                const template = await problemsAPI.getProblemTemplate(currentProblem.id.toString(), language);
+                setCode(template.starter_code);
+            } catch {
+                const langKey = language as keyof typeof boilerplateCode;
+                setCode(boilerplateCode[langKey] || '// Write code here');
             }
         };
         fetchTemplate();
@@ -912,7 +915,13 @@ const ContestLive: React.FC = () => {
                                     onChange={(value) => {
                                         const newCode = value || '';
                                         setCode(newCode);
-                                        setDrafts(prev => ({ ...prev, [currentProblem.id]: newCode }));
+                                        setDrafts(prev => ({
+                                            ...prev,
+                                            [currentProblem.id]: {
+                                                ...(prev[currentProblem.id] || {}),
+                                                [language]: newCode
+                                            }
+                                        }));
                                     }}
                                     onMount={(editor, monaco) => {
                                         editorRef.current = editor;

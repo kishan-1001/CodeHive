@@ -27,9 +27,10 @@ const ProblemDetail: React.FC = () => {
     const [problem, setProblem] = useState<Problem | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Editor State
+    // Editors State
     const [code, setCode] = useState<string>('// Loading...');
     const [language, setLanguage] = useState<string>('cpp');
+    const [codeByLanguage, setCodeByLanguage] = useState<{ [key: string]: string }>({}); // Store code per language
     const [testResults, setTestResults] = useState<{ [key: number]: { actual: string; verdict: string; passed: boolean } }>({});
     const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -46,6 +47,7 @@ const ProblemDetail: React.FC = () => {
     const [testCaseHeight, setTestCaseHeight] = useState<number>(33); // percentage of right panel
     const [selectedTestCase, setSelectedTestCase] = useState<number>(0); // selected test case index
 
+    // Boilerplate code...
     const boilerplateCode = {
         c: '#include <stdio.h>\n\nint main() {\n   \n // write your code here \n  \n  return 0;\n}',
         cpp: '#include <iostream>\nusing namespace std;\nint main() {\n    \n // write your code here \n \n    return 0;\n}',
@@ -64,13 +66,24 @@ const ProblemDetail: React.FC = () => {
 
     const fetchStarterCode = async (lang: string) => {
         if (!problem) return;
+
+        // If we already have code for this language in memory, use it
+        if (codeByLanguage[lang]) {
+            setCode(codeByLanguage[lang]);
+            return;
+        }
+
         try {
             const data = await problemsAPI.getProblemTemplate(problem.id.toString(), lang);
             setCode(data.starter_code);
+            // Optionally save the fresh starter code to memory too, so we don't re-fetch even if they type nothing
+            setCodeByLanguage(prev => ({ ...prev, [lang]: data.starter_code }));
         } catch (error) {
             console.error('Error fetching starter code:', error);
             // Fallback to boilerplate if API fails
-            setCode(boilerplateCode[lang as keyof typeof boilerplateCode]);
+            const fallback = boilerplateCode[lang as keyof typeof boilerplateCode] || '';
+            setCode(fallback);
+            setCodeByLanguage(prev => ({ ...prev, [lang]: fallback }));
         }
     };
 
@@ -81,8 +94,12 @@ const ProblemDetail: React.FC = () => {
                 setLoading(true);
                 const data = await problemsAPI.getProblemById(id);
                 setProblem(data);
-                // Fetch starter code for the default language
-                await fetchStarterCode(language);
+                // Reset codeByLanguage when problem changes?
+                // Yes, typically we want fresh start for a new problem unless we persist by problemId too.
+                // For now, in-memory per session means reset.
+                setCodeByLanguage({});
+
+                // We'll let the effect below handle fetching the starter code for the default language.
             } catch (error) {
                 console.error('Error fetching problem:', error);
             } finally {
@@ -94,11 +111,25 @@ const ProblemDetail: React.FC = () => {
     }, [id]);
 
     useEffect(() => {
-        // Fetch starter code when language changes
+        // Fetch starter code (or restore from memory) when language changes
         if (problem) {
             fetchStarterCode(language);
         }
     }, [language, problem]);
+
+
+    const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLanguage = e.target.value;
+
+        // 1. Save current code to state before switching
+        setCodeByLanguage(prev => ({
+            ...prev,
+            [language]: code
+        }));
+
+        // 2. Switch language (useEffect will trigger fetchStarterCode which checks memory)
+        setLanguage(newLanguage);
+    };
 
     // Solution Modal State
     const [showSolutionModal, setShowSolutionModal] = useState(false);
@@ -416,7 +447,7 @@ const ProblemDetail: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <select
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
+                        onChange={handleLanguageChange}
                         className="bg-gray-800 hover:bg-gray-700 text-white text-sm py-1.5 px-3 rounded-lg border border-gray-700 outline-none focus:border-amber-400 transition-colors"
                     >
                         {languages.map((lang) => (

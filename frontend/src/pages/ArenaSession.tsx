@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import { ArrowLeft, Play, Terminal, Check, List, Clock, Maximize, AlertTriangle, ShieldAlert, Cpu } from 'lucide-react';
+import { Play, Terminal, Check, List, Clock, Maximize, AlertTriangle, ShieldAlert, Cpu } from 'lucide-react';
 import { arenaAPI, problemsAPI } from '../services/api';
 import SubmissionResultModal from '../components/SubmissionResultModal';
 
@@ -33,7 +33,7 @@ const ArenaSession: React.FC = () => {
     const [problemLoading, setProblemLoading] = useState(false);
 
     // Drafts State
-    const [drafts, setDrafts] = useState<Record<number, string>>({});
+    const [drafts, setDrafts] = useState<Record<number, Record<string, string>>>({});
 
     // Timer State
     const [timeLeft, setTimeLeft] = useState<string>('00:00:00');
@@ -123,18 +123,23 @@ const ArenaSession: React.FC = () => {
         console.log(`Auto-submitting due to: ${reason}`);
 
         for (const p of sessionProblems) {
-            const codeToSubmit = drafts[p.id];
-            if (!codeToSubmit) continue;
+            const problemDrafts = drafts[p.id];
+            if (!problemDrafts) continue;
 
-            try {
-                await arenaAPI.submitSolution({
-                    code: codeToSubmit,
-                    language: language,
-                    problem_id: p.id,
-                    session_id: session.id
-                });
-            } catch (e) {
-                console.error(`Failed to auto-submit problem ${p.id}`, e);
+            // Submit all drafts for this problem
+            for (const [lang, codeToSubmit] of Object.entries(problemDrafts)) {
+                if (!codeToSubmit) continue;
+
+                try {
+                    await arenaAPI.submitSolution({
+                        code: codeToSubmit,
+                        language: lang,
+                        problem_id: p.id,
+                        session_id: session.id
+                    });
+                } catch (e) {
+                    console.error(`Failed to auto-submit problem ${p.id} (${lang})`, e);
+                }
             }
         }
 
@@ -344,8 +349,8 @@ const ArenaSession: React.FC = () => {
                 setTestResults({});
                 setSubmissionResult(null);
 
-                if (drafts[basicProblem.id]) {
-                    setCode(drafts[basicProblem.id]);
+                if (drafts[basicProblem.id]?.[language]) {
+                    setCode(drafts[basicProblem.id][language]);
                 } else {
                     try {
                         const template = await problemsAPI.getProblemTemplate(basicProblem.id.toString(), language);
@@ -370,14 +375,17 @@ const ArenaSession: React.FC = () => {
     useEffect(() => {
         if (!currentProblem) return;
         const fetchTemplate = async () => {
-            if (!drafts[currentProblem.id]) {
-                try {
-                    const template = await problemsAPI.getProblemTemplate(currentProblem.id.toString(), language);
-                    setCode(template.starter_code);
-                } catch {
-                    const langKey = language as keyof typeof boilerplateCode;
-                    setCode(boilerplateCode[langKey] || '// Write code here');
-                }
+            if (drafts[currentProblem.id]?.[language]) {
+                setCode(drafts[currentProblem.id][language]);
+                return;
+            }
+
+            try {
+                const template = await problemsAPI.getProblemTemplate(currentProblem.id.toString(), language);
+                setCode(template.starter_code);
+            } catch {
+                const langKey = language as keyof typeof boilerplateCode;
+                setCode(boilerplateCode[langKey] || '// Write code here');
             }
         };
         fetchTemplate();
@@ -387,7 +395,13 @@ const ArenaSession: React.FC = () => {
         const newCode = value || '';
         setCode(newCode);
         if (currentProblem) {
-            setDrafts(prev => ({ ...prev, [currentProblem.id]: newCode }));
+            setDrafts(prev => ({
+                ...prev,
+                [currentProblem.id]: {
+                    ...(prev[currentProblem.id] || {}),
+                    [language]: newCode
+                }
+            }));
         }
     };
 

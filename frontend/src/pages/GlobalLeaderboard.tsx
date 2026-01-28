@@ -258,7 +258,10 @@ const GlobalLeaderboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className="col-span-1 md:col-span-4 flex items-center justify-center md:justify-start gap-4">
+                                        <div
+                                            className="col-span-1 md:col-span-4 flex items-center justify-center md:justify-start gap-4 cursor-pointer"
+                                            onClick={() => navigate(`/profile/${user.username}`)}
+                                        >
                                             {user.avatar_url ? (
                                                 <img className="h-10 w-10 md:h-12 md:w-12 rounded-full border-2 border-gray-800 group-hover:border-gray-700 object-cover shrink-0" src={getAvatarSrc(user.avatar_url) || ''} alt="" />
                                             ) : (
