@@ -32,18 +32,18 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4 glass-card' : 'py-6 bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <span className="text-3xl font-bold tracking-tight text-white -ml-4 -mt-2 cursor-pointer">Code<span className="text-amber-400">Hive</span></span>
+        <span className="text-2xl lg:text-3xl font-bold tracking-tight text-white -mt-2 cursor-pointer">Code<span className="text-amber-400">Hive</span></span>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <button
             onClick={onSignInClick}
-            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300"
+            className="w-20 md:w-24 h-10 md:h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xs md:text-sm font-medium cursor-pointer hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300"
           >
             Sign In
           </button>
           <button
             onClick={onSignUpClick}
-            className="w-24 h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300"
+            className="w-20 md:w-24 h-10 md:h-12 rounded-2xl glass-card border border-white/20 backdrop-blur-sm flex items-center justify-center text-white text-xs md:text-sm font-medium cursor-pointer hover:bg-white/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300"
           >
             Sign Up
           </button>
@@ -57,14 +57,14 @@ const Navbar: React.FC<{ onSignInClick: () => void; onSignUpClick: () => void }>
 
 const HeroSection: React.FC<{ onCodeEditorClick: () => void; onGetStartedClick: () => void }> = ({ onCodeEditorClick, onGetStartedClick }) => {
   return (
-    <section className="relative pt-32 pb-20 overflow-hidden">
+    <section className="relative pt-24 md:pt-32 pb-20 overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] -z-10 animate-pulse"></div>
       <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] -z-10"></div>
 
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
-          <h1 className="text-5xl lg:text-7xl font-extrabold text-white leading-tight mb-8">
+          <h1 className="text-4xl lg:text-7xl font-extrabold text-white leading-tight mb-8">
             AI Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">Coding Hive</span>
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">

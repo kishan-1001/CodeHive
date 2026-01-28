@@ -46,7 +46,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSignUpClick 
       />
 
       {/* Modal */}
-      <div className="relative glass-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-white/10">
+      <div className="relative glass-card rounded-2xl p-6 md:p-8 w-full max-w-md mx-4 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
