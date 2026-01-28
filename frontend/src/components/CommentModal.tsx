@@ -23,7 +23,6 @@ interface CommentModalProps {
   onClose: () => void;
   postId: number;
   postTitle: string;
-  initialComments?: Comment[];
   onCommentAdded?: () => void;
 }
 
@@ -32,7 +31,6 @@ const CommentModal: React.FC<CommentModalProps> = ({
   onClose,
   postId,
   postTitle,
-  initialComments = [],
   onCommentAdded
 }) => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -153,7 +151,7 @@ const CommentModal: React.FC<CommentModalProps> = ({
             >
               {comment.avatar_url ? (
                 <img
-                  src={comment.avatar_url}
+                  src={comment.avatar_url?.startsWith('/uploads') ? `/api${comment.avatar_url}` : comment.avatar_url}
                   alt={comment.author_name}
                   className="w-full h-full object-cover"
                 />

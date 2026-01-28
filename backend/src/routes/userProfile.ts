@@ -409,7 +409,7 @@ router.post('/upload-avatar', authenticateToken, upload.single('avatar'), async 
         // Frontend image source: if starts with http, use as is. If starts with /, prepend API_URL (minus /api).
 
 
-        const avatarUrl = `/uploads/${req.file.filename}`;
+        const avatarUrl = `/api/uploads/${req.file.filename}`;
 
         await pool.query('UPDATE users SET avatar_url = $1 WHERE id = $2', [avatarUrl, userId]);
 
