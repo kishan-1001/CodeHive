@@ -45,7 +45,7 @@ const SolutionManager: React.FC<SolutionManagerProps> = ({ problemId }) => {
     const fetchSolution = async (lang: string, type: string) => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/problems/${problemId}/solutions/${lang}/${type}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -78,7 +78,7 @@ const SolutionManager: React.FC<SolutionManagerProps> = ({ problemId }) => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/problems/${problemId}/solutions`, {
                 method: 'POST',
                 headers: {

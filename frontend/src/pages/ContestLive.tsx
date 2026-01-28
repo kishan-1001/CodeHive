@@ -276,7 +276,7 @@ const ContestLive: React.FC = () => {
         try {
             const res = await fetch(`/api/contests/${id}/enter`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
             });
             if (res.status === 403) {
                 // alert(data.error); 

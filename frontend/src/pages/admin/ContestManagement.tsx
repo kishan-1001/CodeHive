@@ -27,7 +27,7 @@ const ContestManagement: React.FC = () => {
 
     const fetchContests = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/admin/contests', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -51,7 +51,7 @@ const ContestManagement: React.FC = () => {
         if (!contestToDelete) return;
 
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/contests/${contestToDelete.id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }

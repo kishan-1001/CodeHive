@@ -15,7 +15,7 @@ const ContestEdit: React.FC = () => {
 
     const fetchContest = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/contests/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -43,7 +43,7 @@ const ContestEdit: React.FC = () => {
 
     const handleUpdate = async (data: any) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/contests/${id}`, {
                 method: 'PUT',
                 headers: {

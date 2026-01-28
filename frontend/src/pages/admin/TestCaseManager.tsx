@@ -38,7 +38,7 @@ const TestCaseManager: React.FC<TestCaseManagerProps> = ({ problemId }) => {
 
     const fetchTestCases = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/${problemId}/test-cases`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -57,7 +57,7 @@ const TestCaseManager: React.FC<TestCaseManagerProps> = ({ problemId }) => {
         e.preventDefault();
         setAdding(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/${problemId}/test-cases`, {
                 method: 'POST',
                 headers: {
@@ -100,7 +100,7 @@ const TestCaseManager: React.FC<TestCaseManagerProps> = ({ problemId }) => {
     const confirmDelete = async () => {
         if (!testCaseToDelete) return;
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/test-cases/${testCaseToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }

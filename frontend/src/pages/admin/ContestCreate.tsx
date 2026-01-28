@@ -10,7 +10,7 @@ const ContestCreate: React.FC = () => {
 
     const handleCreate = async (data: any) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/admin/contests', {
                 method: 'POST',
                 headers: {

@@ -29,7 +29,7 @@ const ProblemManagement: React.FC = () => {
 
     const fetchProblems = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch('/api/admin/problems', {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -55,7 +55,7 @@ const ProblemManagement: React.FC = () => {
         if (!problemToDelete) return;
 
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/problems/${problemToDelete.id}`, {
                 method: 'DELETE',
                 headers: {

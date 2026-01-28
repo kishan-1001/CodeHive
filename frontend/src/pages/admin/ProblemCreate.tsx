@@ -11,7 +11,7 @@ const ProblemCreate: React.FC = () => {
     const [createdProblemId, setCreatedProblemId] = useState<string | null>(null);
 
     const handleCreateOrUpdate = async (data: any) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
 
         try {
             if (createdProblemId) {

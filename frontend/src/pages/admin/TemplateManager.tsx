@@ -27,7 +27,7 @@ const TemplateManager: React.FC<TemplateManagerProps> = ({ problemId }) => {
     const fetchTemplate = async (lang: string) => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/problems/${problemId}/templates/${lang}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -48,7 +48,7 @@ const TemplateManager: React.FC<TemplateManagerProps> = ({ problemId }) => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/${problemId}/templates`, {
                 method: 'POST',
                 headers: {

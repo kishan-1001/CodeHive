@@ -43,7 +43,7 @@ const ProblemEdit: React.FC = () => {
 
     const handleUpdate = async (data: any) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const res = await fetch(`/api/admin/problems/${id}`, {
                 method: 'PUT',
                 headers: {
