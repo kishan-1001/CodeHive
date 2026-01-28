@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Heart,
   MessageCircle,
@@ -21,6 +21,7 @@ interface Post {
   content: string;
   created_at: string;
   author_name: string;
+  username?: string;
   avatar_url?: string;
   like_count: number;
   comment_count: number;
@@ -95,6 +96,7 @@ const Explore: React.FC = () => {
   const getAvatarSrc = (path: string | undefined) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
+    if (path.startsWith('/api')) return path;
     return `/api${path}`;
   };
 
@@ -210,14 +212,32 @@ const Explore: React.FC = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center overflow-hidden border border-gray-700">
-                          {post.avatar_url ? (
-                            <img src={getAvatarSrc(post.avatar_url) || ''} alt="" className="w-full h-full object-cover" />
+                          {post.username ? (
+                            <Link to={`/profile/${post.username}`} className="w-full h-full block">
+                              {post.avatar_url ? (
+                                <img src={getAvatarSrc(post.avatar_url) || ''} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="w-5 h-5 text-gray-400 m-auto mt-2.5" />
+                              )}
+                            </Link>
                           ) : (
-                            <User className="w-5 h-5 text-gray-400" />
+                            <>
+                              {post.avatar_url ? (
+                                <img src={getAvatarSrc(post.avatar_url) || ''} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="w-5 h-5 text-gray-400" />
+                              )}
+                            </>
                           )}
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-200">{post.author_name}</h3>
+                          {post.username ? (
+                            <Link to={`/profile/${post.username}`} className="font-bold text-gray-200 hover:text-amber-500 transition-colors">
+                              {post.author_name}
+                            </Link>
+                          ) : (
+                            <h3 className="font-bold text-gray-200">{post.author_name}</h3>
+                          )}
                           <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
