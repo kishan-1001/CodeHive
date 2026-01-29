@@ -8,7 +8,7 @@ import {
   Globe,
   ArrowRight,
   Github,
-  Twitter,
+  Linkedin,
   Hexagon,
   Sparkles,
   Database
@@ -279,13 +279,13 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
             CodeHive is a modern coding platform designed to help developers practice, test, and compete through real-time code execution, curated problems, and competitive programming contests.
           </p>
           <div className="flex items-center gap-4 mt-8">
-            <a href="#" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <a href="https://github.com/kishan-1001" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
               <Github className="w-5 h-5" />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-              <Twitter className="w-5 h-5" />
+            <a href="https://www.linkedin.com/in/kishan-roy1001" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+              <Linkedin className="w-5 h-5" />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <a href="https://kishan-1001.github.io/My-Portfolio/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
               <Globe className="w-5 h-5" />
             </a>
           </div>
