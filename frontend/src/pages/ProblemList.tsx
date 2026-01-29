@@ -16,6 +16,7 @@ import {
   Smartphone,
   Trophy
 } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 import Header from '../components/Header';
 import { problemsAPI } from '../services/api';
 
@@ -236,9 +237,21 @@ const ProblemList: React.FC = () => {
 
         {/* Content Area */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-500 text-sm animate-pulse">Loading problems...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="bg-gray-900/40 border border-gray-800 rounded-xl p-5 h-[180px] flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-4">
+                  <Skeleton className="h-6 w-16 rounded bg-gray-800" />
+                  <Skeleton className="h-5 w-16 rounded bg-gray-800" />
+                </div>
+                <Skeleton className="h-7 w-3/4 mb-4 bg-gray-800" />
+                <div className="flex gap-2 mt-auto">
+                  <Skeleton className="h-6 w-16 rounded bg-gray-800" />
+                  <Skeleton className="h-6 w-20 rounded bg-gray-800" />
+                  <Skeleton className="h-6 w-14 rounded bg-gray-800" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredProblems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-gray-900/30 rounded-2xl border border-gray-800 border-dashed">
@@ -330,8 +343,8 @@ const ProblemList: React.FC = () => {
                           <button
                             onClick={() => handlePageChange(page)}
                             className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${currentPage === page
-                                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                                : 'bg-gray-900/50 text-gray-400 border border-gray-800 hover:border-gray-600 hover:text-white'
+                              ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                              : 'bg-gray-900/50 text-gray-400 border border-gray-800 hover:border-gray-600 hover:text-white'
                               }`}
                           >
                             {page}

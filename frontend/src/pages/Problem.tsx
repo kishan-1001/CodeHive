@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { problemsAPI } from '../services/api';
 import { Search, Compass, Share2, Cpu, Database } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 
 interface Topic {
   id: number;
@@ -184,8 +185,30 @@ const Problem: React.FC = () => {
 
         {/* Categories Grid */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="space-y-12">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="flex items-center gap-3 mb-6">
+                  <Skeleton className="w-10 h-10 rounded-lg bg-gray-800" />
+                  <Skeleton className="h-7 w-48 bg-gray-800" />
+                  <Skeleton className="ml-auto h-5 w-32 bg-gray-800" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, j) => (
+                    <div key={j} className="bg-[#11161f] border border-gray-800/60 rounded-xl p-5 h-32 flex flex-col justify-between">
+                      <Skeleton className="h-5 w-3/4 bg-gray-800" />
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <Skeleton className="h-3 w-16 bg-gray-800" />
+                          <Skeleton className="h-3 w-8 bg-gray-800" />
+                        </div>
+                        <Skeleton className="h-1.5 w-full rounded-full bg-gray-800" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="space-y-12">

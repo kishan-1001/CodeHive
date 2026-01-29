@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Edit, GitCommit, Trophy, Eye, Github, Linkedin, Twitter, Globe, X, Save, Image as ImageIcon, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 import Header from '../components/Header';
 import { authAPI, userProfileAPI, leaderboardAPI } from '../services/api';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -275,7 +276,42 @@ const UserProfile = () => {
     };
 
     if (loading) {
-        return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
+        return (
+            <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-amber-500/30">
+                <Header />
+                <div className="max-w-7xl mx-auto px-4 py-8 pt-24 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Left Column Skeleton */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl">
+                            <div className="flex justify-center mb-4"><Skeleton className="w-32 h-32 rounded-2xl bg-gray-800" /></div>
+                            <div className="flex flex-col items-center gap-2 mb-6">
+                                <Skeleton className="h-6 w-3/4 bg-gray-800" />
+                                <Skeleton className="h-4 w-1/2 bg-gray-800" />
+                            </div>
+                            <div className="flex justify-center mb-6"><Skeleton className="h-8 w-24 rounded-full bg-gray-800" /></div>
+                            <div className="space-y-2 mb-6">
+                                <Skeleton className="h-3 w-full bg-gray-800" />
+                                <Skeleton className="h-3 w-5/6 mx-auto bg-gray-800" />
+                            </div>
+                            <div className="flex justify-center gap-3">
+                                <Skeleton className="h-5 w-5 rounded bg-gray-800" />
+                                <Skeleton className="h-5 w-5 rounded bg-gray-800" />
+                                <Skeleton className="h-5 w-5 rounded bg-gray-800" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column Skeleton */}
+                    <div className="lg:col-span-3 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 h-64"><Skeleton className="h-full w-full bg-gray-800 rounded-xl" /></div>
+                            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 h-64"><Skeleton className="h-full w-full bg-gray-800 rounded-xl" /></div>
+                        </div>
+                        <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 h-48"><Skeleton className="h-full w-full bg-gray-800 rounded-xl" /></div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (!user) {
@@ -603,8 +639,19 @@ const UserProfile = () => {
 
                         <div className="space-y-4 min-h-[400px]">
                             {loadingActivity ? (
-                                <div className="flex items-center justify-center h-full py-10">
-                                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="space-y-4">
+                                    {[...Array(5)].map((_, i) => (
+                                        <div key={i} className="flex items-center justify-between p-4 bg-gray-800/20 rounded-xl border border-gray-800">
+                                            <div className="flex items-center gap-4">
+                                                <Skeleton className="w-9 h-9 rounded-lg bg-gray-800" />
+                                                <div className="space-y-2">
+                                                    <Skeleton className="h-4 w-32 bg-gray-800" />
+                                                    <Skeleton className="h-3 w-20 bg-gray-800" />
+                                                </div>
+                                            </div>
+                                            <Skeleton className="h-4 w-16 bg-gray-800" />
+                                        </div>
+                                    ))}
                                 </div>
                             ) : activity.length > 0 ? (
                                 activity.map((sub) => (
