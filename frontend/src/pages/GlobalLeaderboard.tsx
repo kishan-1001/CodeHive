@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, RefreshCw, Layout, Award } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 import { api } from '../services/api';
 import Header from '../components/Header';
 
@@ -226,12 +227,26 @@ const GlobalLeaderboard = () => {
                         {/* Rows */}
                         <div className="divide-y divide-gray-800">
                             {loading ? (
-                                [...Array(5)].map((_, i) => (
-                                    <div key={i} className="px-6 py-6 animate-pulse grid grid-cols-12 gap-4">
-                                        <div className="col-span-1"><div className="h-6 w-8 bg-gray-800 rounded"></div></div>
-                                        <div className="col-span-4"><div className="h-10 w-48 bg-gray-800 rounded"></div></div>
-                                        <div className="col-span-2"><div className="h-6 w-24 bg-gray-800 rounded ml-auto"></div></div>
-                                        <div className="col-span-5"><div className="h-8 w-32 bg-gray-800 rounded mx-auto"></div></div>
+                                [...Array(8)].map((_, i) => (
+                                    <div key={i} className="grid grid-cols-1 md:grid-cols-12 px-6 py-6 items-center gap-4 md:gap-0 border-b border-gray-800 last:border-0 relative overflow-hidden">
+                                        <div className="col-span-1 flex justify-center md:justify-start">
+                                            <Skeleton className="h-8 w-8 rounded-full bg-gray-800" />
+                                        </div>
+                                        <div className="col-span-1 md:col-span-4 flex items-center gap-4 justify-center md:justify-start">
+                                            <Skeleton className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gray-800" />
+                                            <div className="space-y-2">
+                                                <Skeleton className="h-4 w-32 bg-gray-800" />
+                                                <Skeleton className="h-3 w-20 bg-gray-800" />
+                                            </div>
+                                        </div>
+                                        <div className="col-span-1 md:col-span-2 flex justify-center md:justify-end">
+                                            <Skeleton className="h-8 w-24 bg-gray-800" />
+                                        </div>
+                                        <div className="col-span-1 md:col-span-5 flex justify-center md:justify-end gap-2">
+                                            <Skeleton className="h-6 w-16 rounded-full bg-gray-800" />
+                                            <Skeleton className="h-6 w-16 rounded-full bg-gray-800" />
+                                            <Skeleton className="h-6 w-16 rounded-full bg-gray-800" />
+                                        </div>
                                     </div>
                                 ))
                             ) : users.length === 0 ? (

@@ -9,6 +9,7 @@ import {
   Bookmark,
   Trophy
 } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 import Header from '../components/Header';
 import KnowledgeDropModal from '../components/KnowledgeDropModal';
 import CommentModal from '../components/CommentModal';
@@ -187,8 +188,31 @@ const Explore: React.FC = () => {
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-20">
-                <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="space-y-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-[#111] rounded-2xl p-6 border border-gray-800">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Skeleton className="w-10 h-10 rounded-full bg-gray-800" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32 bg-gray-800" />
+                        <Skeleton className="h-3 w-24 bg-gray-800" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-6 w-3/4 mb-4 bg-gray-800" />
+                    <div className="space-y-2 mb-6">
+                      <Skeleton className="h-4 w-full bg-gray-800" />
+                      <Skeleton className="h-4 w-full bg-gray-800" />
+                      <Skeleton className="h-4 w-2/3 bg-gray-800" />
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="flex gap-6">
+                        <Skeleton className="h-5 w-12 bg-gray-800" />
+                        <Skeleton className="h-5 w-12 bg-gray-800" />
+                      </div>
+                      <Skeleton className="h-5 w-5 bg-gray-800" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : posts.length === 0 ? (
               <div className="bg-[#111] rounded-2xl p-10 border border-gray-800 text-center">

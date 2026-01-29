@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Trophy, ArrowRight, Loader2, Search, History } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 import Header from '../components/Header';
 import { api } from '../services/api';
 
@@ -337,7 +338,13 @@ const WeeklyContest: React.FC = () => {
 
 
         {/* Featured Card - Only on 'Upcoming' tab */}
-        {activeTab === 'upcoming' && !loading && <FeaturedCard />}
+        {activeTab === 'upcoming' && (loading ? (
+          <div className="mb-12 h-[400px] rounded-3xl p-[3px] overflow-hidden relative">
+            <Skeleton className="w-full h-full rounded-3xl bg-gray-900/50" />
+          </div>
+        ) : (
+          <FeaturedCard />
+        ))}
 
         {/* Navigation & Filters */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
@@ -380,8 +387,23 @@ const WeeklyContest: React.FC = () => {
 
         {/* Content Grid */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="rounded-3xl p-6 border border-gray-800 bg-gray-900/50 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                  <Skeleton className="h-6 w-20 rounded-full bg-gray-800" />
+                  <Skeleton className="h-4 w-24 bg-gray-800" />
+                </div>
+                <Skeleton className="h-8 w-3/4 mb-4 bg-gray-800" />
+                <div className="space-y-2 mb-8">
+                  <Skeleton className="h-4 w-full bg-gray-800" />
+                  <Skeleton className="h-4 w-2/3 bg-gray-800" />
+                </div>
+                <div className="mt-auto pt-4 border-t border-gray-800">
+                  <Skeleton className="h-12 w-full rounded-xl bg-gray-800" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredContests.length === 0 ? (
           <div className="text-center py-20 bg-gray-900/30 rounded-3xl border border-gray-800/50 border-dashed">

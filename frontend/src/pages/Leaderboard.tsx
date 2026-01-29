@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { Medal, Crown, RefreshCw, Search } from 'lucide-react';
+import { Skeleton } from '../components/ui/Skeleton';
 
 interface LeaderboardUser {
   user_id: number;
@@ -91,7 +92,7 @@ const Leaderboard: React.FC = () => {
     return `/api${path}`;
   };
 
-  if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-amber-500">Loading Leaderboard...</div>;
+
 
   const filteredLeaderboard = leaderboard.filter(user =>
     (user.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
@@ -297,49 +298,72 @@ const Leaderboard: React.FC = () => {
             <div className="col-span-2 text-right">Total Score</div>
           </div>
 
-          {/* Rows */}
           <div className="divide-y divide-gray-800/50">
-            {currentItems.map((user) => (
-              <div key={user.user_id} className="grid grid-cols-12 px-6 py-4 items-center hover:bg-gray-800/30 transition-colors group">
-                <div className={`col-span-1 text-center font-mono font-bold text-lg ${user.rank <= 3 ? 'text-amber-400' : 'text-white'}`}>
-                  #{user.rank}
-                </div>
-                <div className="col-span-5 flex items-center gap-4">
-                  {user.username ? (
-                    <Link to={`/profile/${user.username}`} className="flex items-center gap-4 group/link w-full">
-                      <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
-                        <img src={getAvatarSrc((currentUser && user.user_id === currentUser.id) ? currentUser.avatar_url : user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random&size=256`} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-white truncate group-hover/link:text-amber-400 transition-colors">{user.name || user.username}</div>
-                        <div className="text-xs text-gray-500">@{user.username}</div>
-                      </div>
-                    </Link>
-                  ) : (
-                    <div className="flex items-center gap-4 w-full">
-                      <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent transition-all">
-                        <img src={getAvatarSrc((currentUser && user.user_id === currentUser.id) ? currentUser.avatar_url : user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random&size=256`} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-white truncate">{user.name || "Unknown"}</div>
-                        <div className="text-xs text-gray-500">No Username</div>
-                      </div>
+            {loading ? (
+              [...Array(10)].map((_, i) => (
+                <div key={i} className="grid grid-cols-12 px-6 py-4 items-center">
+                  <div className="col-span-1 flex justify-center">
+                    <Skeleton className="h-6 w-6 rounded-full bg-gray-800" />
+                  </div>
+                  <div className="col-span-1 md:col-span-5 flex items-center gap-4">
+                    <Skeleton className="h-10 w-10 rounded-full bg-gray-800" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-32 bg-gray-800" />
+                      <Skeleton className="h-3 w-20 bg-gray-800" />
                     </div>
-                  )}
+                  </div>
+                  <div className="col-span-2 hidden md:flex justify-center">
+                    <Skeleton className="h-4 w-12 bg-gray-800" />
+                  </div>
+                  <div className="col-span-2 hidden md:flex justify-center">
+                    <Skeleton className="h-4 w-12 bg-gray-800" />
+                  </div>
+                  <div className="col-span-2 flex justify-end">
+                    <Skeleton className="h-6 w-16 bg-gray-800" />
+                  </div>
                 </div>
-                <div className="col-span-2 text-center text-gray-400 font-mono hidden md:block">
-                  {user.practice_score}
+              ))
+            ) : currentItems.length > 0 ? (
+              currentItems.map((user) => (
+                <div key={user.user_id} className="grid grid-cols-12 px-6 py-4 items-center hover:bg-gray-800/30 transition-colors group">
+                  <div className={`col-span-1 text-center font-mono font-bold text-lg ${user.rank <= 3 ? 'text-amber-400' : 'text-white'}`}>
+                    #{user.rank}
+                  </div>
+                  <div className="col-span-5 flex items-center gap-4">
+                    {user.username ? (
+                      <Link to={`/profile/${user.username}`} className="flex items-center gap-4 group/link w-full">
+                        <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
+                          <img src={getAvatarSrc((currentUser && user.user_id === currentUser.id) ? currentUser.avatar_url : user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random&size=256`} alt="" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-white truncate group-hover/link:text-amber-400 transition-colors">{user.name || user.username}</div>
+                          <div className="text-xs text-gray-500">@{user.username}</div>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-4 w-full">
+                        <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden ring-2 ring-transparent transition-all">
+                          <img src={getAvatarSrc((currentUser && user.user_id === currentUser.id) ? currentUser.avatar_url : user.avatar_url) || `https://ui-avatars.com/api/?name=${user.name}&background=random&size=256`} alt="" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-white truncate">{user.name || "Unknown"}</div>
+                          <div className="text-xs text-gray-500">No Username</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-span-2 text-center text-gray-400 font-mono hidden md:block">
+                    {user.practice_score}
+                  </div>
+                  <div className="col-span-2 text-center text-gray-400 font-mono hidden md:block">
+                    {user.arena_score}
+                  </div>
+                  <div className="col-span-2 text-right font-black text-amber-400 font-mono text-lg">
+                    {user.total_score}
+                  </div>
                 </div>
-                <div className="col-span-2 text-center text-gray-400 font-mono hidden md:block">
-                  {user.arena_score}
-                </div>
-                <div className="col-span-2 text-right font-black text-amber-400 font-mono text-lg">
-                  {user.total_score}
-                </div>
-              </div>
-            ))}
-
-            {currentItems.length === 0 && (
+              ))
+            ) : (
               <div className="p-12 text-center text-gray-500">
                 No players found.
               </div>
