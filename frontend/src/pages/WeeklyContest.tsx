@@ -164,7 +164,7 @@ const WeeklyContest: React.FC = () => {
     return (
       <div className="mb-12 relative group h-[400px] overflow-hidden rounded-3xl p-[3px]">
         {/* Revolving Light Beam Border */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vmax] h-[200vmax] animate-border-spin bg-[conic-gradient(from_0deg,transparent_0_340deg,#fbbf24_360deg)]"></div>
+        <div className="absolute inset-[-100%] animate-border-spin bg-[conic-gradient(from_0deg,transparent_0deg,transparent_80deg,white_180deg,transparent_180deg)]"></div>
 
         {/* Static Border Fallback */}
         <div className="absolute inset-0 border border-gray-700 rounded-3xl group-hover:border-transparent transition-colors duration-500"></div>
@@ -186,8 +186,8 @@ const WeeklyContest: React.FC = () => {
 
           <div className="grid md:grid-cols-2 gap-8 p-8 md:p-12 relative z-10 w-full h-full items-center">
             <div className="space-y-6 flex flex-col justify-center h-full">
-              <div>
-                <span className={`px-4 py-1.5 rounded-full font-bold text-sm tracking-wide ${status === 'live' ? 'bg-green-500 text-black animate-pulse' : 'bg-amber-500 text-black'}`}>
+              <div className="mb-8">
+                <span className={`px-4 py-1.5 rounded-full font-bold text-sm tracking-wide ${status === 'live' ? 'bg-green-500 text-black animate-pulse' : 'text-white/50 bg-gray-900/50 border border-white/10 backdrop-blur-md'}`}>
                   {status === 'live' ? 'LIVE NOW' : 'COMING SOON'}
                 </span>
               </div>
@@ -242,11 +242,11 @@ const WeeklyContest: React.FC = () => {
                 disabled={status !== 'live'}
                 className={`px-10 py-4 font-black text-lg rounded-2xl transition-all shadow-xl flex items-center gap-3 transform hover:scale-105
                 ${status === 'live'
-                    ? 'bg-green-500 hover:bg-green-400 text-black shadow-green-500/20 cursor-pointer'
-                    : 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-50'
+                    ? 'bg-white hover:bg-gray-100 text-black border-2 border-white shadow-lg shadow-white/20 cursor-pointer'
+                    : 'bg-gray-800 text-gray-400 border-2 border-gray-600 cursor-not-allowed'
                   }`}
               >
-                Enter Arena
+                Enter Contest
                 {status === 'live' && <ArrowRight className="w-6 h-6" />}
               </button>
             </div>
@@ -262,54 +262,66 @@ const WeeklyContest: React.FC = () => {
     const status = getContestStatus(contest.start_time, contest.end_time);
 
     return (
-      <div className="group bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl p-6 hover:border-amber-500/30 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-6">
-          <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5
+      <div className="group bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl p-6 hover:border-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col h-full relative overflow-hidden">
+        {/* Pictorial Background */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/boxback.png"
+            alt="Contest Background"
+            className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-300 group-hover:scale-105 transform"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
+        </div>
+
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex justify-between items-start mb-6">
+            <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5
                     ${status === 'live' ? 'bg-green-500/10 text-green-400 border border-green-500/20 animate-pulse' :
-              status === 'upcoming' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                'bg-gray-800 text-gray-400 border border-gray-700'
-            }`}>
-            {status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
-            {status === 'live' ? 'LIVE NOW' : status}
-          </div>
-          {activeTab === 'my-history' && (
-            <div className="px-3 py-1 bg-gray-800 rounded-full border border-gray-700 text-xs text-gray-400 flex items-center gap-1">
-              <History className="w-3 h-3" />
-              Participated
+                status === 'upcoming' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                  'bg-gray-800 text-gray-400 border border-gray-700'
+              }`}>
+              {status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+              {status === 'live' ? 'LIVE NOW' : status}
             </div>
-          )}
-        </div>
-
-        <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-amber-400 transition-colors line-clamp-1">
-          {contest.title}
-        </h3>
-        <p className="text-gray-400 mb-6 line-clamp-2 flex-grow text-sm">
-          {contest.description}
-        </p>
-
-        <div className="space-y-3 mb-8 text-sm text-gray-500 border-t border-gray-800 pt-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-amber-500/50" />
-            <span>{new Date(contest.start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            {activeTab === 'my-history' && (
+              <div className="px-3 py-1 bg-gray-800 rounded-full border border-gray-700 text-xs text-gray-400 flex items-center gap-1">
+                <History className="w-3 h-3" />
+                Participated
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-500/50" />
-            <span>{new Date(contest.start_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} - {new Date(contest.end_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
-          </div>
-        </div>
 
-        <button
-          onClick={() => navigate(`/weekly-contest/${contest.id}`)}
-          disabled={status === 'upcoming' && activeTab !== 'upcoming' /* Allows pre-register/view in upcoming tab mostly */}
-          className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all
+          <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-amber-400 transition-colors line-clamp-1">
+            {contest.title}
+          </h3>
+          <p className="text-gray-400 mb-6 line-clamp-2 flex-grow text-sm">
+            {contest.description}
+          </p>
+
+          <div className="space-y-3 mb-8 text-sm text-gray-500 border-t border-gray-800 pt-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-amber-500/50" />
+              <span>{new Date(contest.start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-500/50" />
+              <span>{new Date(contest.start_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} - {new Date(contest.end_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate(`/weekly-contest/${contest.id}`)}
+            disabled={status === 'upcoming' && activeTab !== 'upcoming' /* Allows pre-register/view in upcoming tab mostly */}
+            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all
                     ${status === 'live'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:shadow-lg hover:shadow-amber-500/20'
-              : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-700'
-            }`}
-        >
-          {status === 'live' ? 'Enter Contest' : 'View Details'}
-          <ArrowRight className="w-4 h-4" />
-        </button>
+                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:shadow-lg hover:shadow-amber-500/20'
+                : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-700'
+              }`}
+          >
+            {status === 'live' ? 'Enter Contest' : 'View Details'}
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     );
   };
