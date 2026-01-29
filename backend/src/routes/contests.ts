@@ -169,6 +169,28 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get User's Contest History
+router.get('/my-history', authenticateToken, async (req: any, res) => {
+    try {
+        const userId = req.user.id;
+        const result = await pool.query(`
+            SELECT c.id, c.title, c.description,
+                   c.start_time AT TIME ZONE 'UTC' as start_time,
+                   c.end_time AT TIME ZONE 'UTC' as end_time,
+                   cp.status as participation_status,
+                   cp.finished_at
+            FROM contest_participation cp
+            JOIN contests c ON cp.contest_id = c.id
+            WHERE cp.user_id = $1
+            ORDER BY c.start_time DESC
+        `, [userId]);
+        res.json(result.rows);
+    } catch (err: any) {
+        console.error('Error fetching contest history:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Get Published Contest Details
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
@@ -307,21 +329,23 @@ router.post('/:id/submit', authenticateToken, async (req, res) => {
         console.error('Contest Submit Error:', error);
         res.status(500).json({ error: 'Server error during submission' });
     }
-    // Get User's Contest Results (for AI Feedback)
-    router.get('/:id/my-results', authenticateToken, async (req, res) => {
-        const { id } = req.params;
-        const user_id = (req as any).user.id;
+});
 
-        try {
-            // 1. Fetch Contest Basic Info
-            const contestRes = await pool.query('SELECT title, description FROM contests WHERE id = $1', [id]);
-            if (contestRes.rows.length === 0) {
-                return res.status(404).json({ error: 'Contest not found' });
-            }
-            const contest = contestRes.rows[0];
+// Get User's Contest Results (for AI Feedback)
+router.get('/:id/my-results', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const user_id = (req as any).user.id;
 
-            // 2. Fetch Problems with Points
-            const problemsRes = await pool.query(`
+    try {
+        // 1. Fetch Contest Basic Info
+        const contestRes = await pool.query('SELECT title, description FROM contests WHERE id = $1', [id]);
+        if (contestRes.rows.length === 0) {
+            return res.status(404).json({ error: 'Contest not found' });
+        }
+        const contest = contestRes.rows[0];
+
+        // 2. Fetch Problems with Points
+        const problemsRes = await pool.query(`
             SELECT p.id, p.title, p.description, p.difficulty, cp.points
             FROM contest_problems cp
             JOIN problems p ON cp.problem_id = p.id
@@ -329,10 +353,10 @@ router.post('/:id/submit', authenticateToken, async (req, res) => {
             ORDER BY cp.problem_order ASC
         `, [id]);
 
-            // 3. Fetch User's Best Submissions (AC preferred)
-            // We want to know if they solved it, and get their code.
-            const results = await Promise.all(problemsRes.rows.map(async (problem) => {
-                const subRes = await pool.query(`
+        // 3. Fetch User's Best Submissions (AC preferred)
+        // We want to know if they solved it, and get their code.
+        const results = await Promise.all(problemsRes.rows.map(async (problem) => {
+            const subRes = await pool.query(`
                 SELECT verdict, code, language, runtime_ms
                 FROM contest_submissions
                 WHERE contest_id = $1 AND user_id = $2 AND problem_id = $3
@@ -342,37 +366,37 @@ router.post('/:id/submit', authenticateToken, async (req, res) => {
                 LIMIT 1
             `, [id, user_id, problem.id]);
 
-                const submission = subRes.rows[0];
+            const submission = subRes.rows[0];
 
-                return {
-                    ...problem,
-                    is_solved: submission?.verdict === 'AC',
-                    user_code: submission?.code || '',
-                    language: submission?.language || 'javascript',
-                    verdict: submission?.verdict || 'Not Attempted'
-                };
-            }));
+            return {
+                ...problem,
+                is_solved: submission?.verdict === 'AC',
+                user_code: submission?.code || '',
+                language: submission?.language || 'javascript',
+                verdict: submission?.verdict || 'Not Attempted'
+            };
+        }));
 
-            // Calculate User Score (Dynamic based on contest_problems points)
-            const score = results.reduce((acc, curr) => {
-                if (curr.is_solved) {
-                    return acc + (curr.points || 0);
-                }
-                return acc;
-            }, 0);
+        // Calculate User Score (Dynamic based on contest_problems points)
+        const score = results.reduce((acc, curr) => {
+            if (curr.is_solved) {
+                return acc + (curr.points || 0);
+            }
+            return acc;
+        }, 0);
 
-            res.json({
-                session: { id, score }, // Mocking session structure for compatibility
-                problems: results
-            });
+        res.json({
+            session: { id, score }, // Mocking session structure for compatibility
+            problems: results
+        });
 
-        } catch (error) {
-            console.error('Error fetching contest results:', error);
-            res.status(500).json({ error: 'Failed to fetch results' });
-        }
-    });
-
+    } catch (error) {
+        console.error('Error fetching contest results:', error);
+        res.status(500).json({ error: 'Failed to fetch results' });
+    }
 });
+
+
 
 // Helper to log submission to DB
 async function logSubmission(contestId: string, userId: number, problemId: number, lang: string, code: string, verdict: string, runtime: number) {

@@ -131,12 +131,29 @@ input[type=number] {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
   }
 }
 
+
 .animate-slide-in-right {
   animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+@keyframes border-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border-spin {
+  animation: border-spin 4s linear infinite;
 }
