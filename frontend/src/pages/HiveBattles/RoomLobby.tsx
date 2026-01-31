@@ -134,7 +134,8 @@ const RoomLobby: React.FC = () => {
                                         )}
                                     </div>
                                 </div>
-                            ))}
+                            );
+                        })}
 
                         {/* Empty Slots Placeholders */}
                         {[...Array(Math.max(0, 4 - participants.length))].map((_, i) => (
