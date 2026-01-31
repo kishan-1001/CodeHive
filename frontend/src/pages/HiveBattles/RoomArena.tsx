@@ -842,13 +842,24 @@ const RoomArena: React.FC = () => {
                         <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
                             {participants.map((p, idx) => (
                                 <div key={p.id} className="flex items-center gap-4 p-4 rounded-xl bg-gray-800/50 border border-gray-800">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg relative
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg relative overflow-hidden
                                         ${idx === 0 ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' :
                                             idx === 1 ? 'bg-gray-400/20 text-gray-400 border border-gray-400/30' :
                                                 idx === 2 ? 'bg-orange-700/20 text-orange-600 border border-orange-700/30' : 'bg-gray-700 text-gray-400'}
                                    `}>
-                                        {idx + 1}
-                                        {idx === 0 && <Trophy className="absolute -top-4 -right-2 w-5 h-5 text-yellow-500 fill-current drop-shadow-md" />}
+                                        {p.avatar_url ? (
+                                            <img
+                                                src={p.avatar_url.startsWith('http') ? p.avatar_url : `http://localhost:3001${p.avatar_url}`}
+                                                alt={p.username}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`;
+                                                }}
+                                            />
+                                        ) : (
+                                            idx + 1
+                                        )}
+                                        {idx === 0 && <Trophy className="absolute -top-4 -right-2 w-5 h-5 text-yellow-500 fill-current drop-shadow-md z-10" />}
                                     </div>
                                     <div className="flex-grow">
                                         <div className="font-bold text-white text-lg">{p.username}</div>

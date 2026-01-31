@@ -114,9 +114,20 @@ const RoomLobby: React.FC = () => {
                             <div key={p.id} className="bg-gray-900/50 p-4 rounded-xl border border-gray-800 flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                                     {p.avatar_url ? (
-                                        <img src={p.avatar_url} alt={p.username} className="w-full h-full object-cover" />
+                                        <img
+                                            src={p.avatar_url.startsWith('http') ? p.avatar_url : `http://localhost:3001${p.avatar_url}`}
+                                            alt={p.username}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`;
+                                            }}
+                                        />
                                     ) : (
-                                        <span className="text-lg font-bold text-gray-400">{p.username[0].toUpperCase()}</span>
+                                        <img
+                                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`}
+                                            alt={p.username}
+                                            className="w-full h-full object-cover"
+                                        />
                                     )}
                                 </div>
                                 <div className="min-w-0">

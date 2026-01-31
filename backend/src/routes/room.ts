@@ -313,7 +313,14 @@ router.get('/:roomId', authenticateToken, async (req: any, res) => {
         let problems: any[] = [];
         if (room.status !== 'waiting') {
             const problemsRes = await pool.query(`
-                SELECT p.id, p.title, p.slug, p.difficulty, rp.order_index
+                SELECT 
+                    p.id, p.title, p.slug, p.difficulty, rp.order_index,
+                    CASE 
+                        WHEN p.difficulty = 'Easy' THEN 10
+                        WHEN p.difficulty = 'Medium' THEN 30
+                        WHEN p.difficulty = 'Hard' THEN 50
+                        ELSE 0
+                    END as points
                 FROM room_problems rp
                 JOIN problems p ON rp.problem_id = p.id
                 WHERE rp.room_id = $1

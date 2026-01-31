@@ -17,6 +17,7 @@ interface Problem {
     title: string;
     difficulty: string;
     order_index: number;
+    points?: number;
 }
 
 interface RoomDetails {
@@ -130,11 +131,20 @@ const BattleDetails: React.FC = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                                                     {participant.avatar_url ? (
-                                                        <img src={participant.avatar_url} alt={participant.username} className="w-full h-full object-cover" />
+                                                        <img
+                                                            src={participant.avatar_url.startsWith('http') ? participant.avatar_url : `http://localhost:3001${participant.avatar_url}`}
+                                                            alt={participant.username}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${participant.username}`;
+                                                            }}
+                                                        />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                                                            {participant.username.substring(0, 2).toUpperCase()}
-                                                        </div>
+                                                        <img
+                                                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${participant.username}`}
+                                                            alt={participant.username}
+                                                            className="w-full h-full object-cover"
+                                                        />
                                                     )}
                                                 </div>
 
@@ -180,6 +190,7 @@ const BattleDetails: React.FC = () => {
                                             `}>
                                                 {problem.difficulty}
                                             </span>
+                                            <span className="text-gray-500 text-xs">• {problem.points || 0} pts</span>
                                         </div>
                                     </div>
                                 ))}
