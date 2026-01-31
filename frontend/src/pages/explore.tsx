@@ -46,8 +46,8 @@ const Explore: React.FC = () => {
     fetchTopContributors();
   }, [activeTab]);
 
-  const fetchPosts = async () => {
-    setLoading(true);
+  const fetchPosts = async (skipLoading = false) => {
+    if (!skipLoading) setLoading(true);
     try {
       let fetchedPosts;
       if (activeTab === 'saved') {
@@ -66,7 +66,7 @@ const Explore: React.FC = () => {
   const handleLike = async (postId: number) => {
     try {
       await postsAPI.likePost(postId);
-      fetchPosts();
+      fetchPosts(true);
     } catch (error) {
       console.error('Error liking post:', error);
     }
