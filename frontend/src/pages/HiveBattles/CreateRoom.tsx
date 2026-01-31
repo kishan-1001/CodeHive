@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { roomAPI, problemsAPI } from '../../services/api';
-import { Box, Code2, Clock, List, LayoutGrid, Search, Loader2 } from 'lucide-react';
+import { Box, Code2, Clock, List, LayoutGrid, Search, Loader2, AlertTriangle } from 'lucide-react';
+import Modal from '../../components/Modal';
 
 const CreateRoom: React.FC = () => {
     const navigate = useNavigate();
@@ -10,6 +11,7 @@ const CreateRoom: React.FC = () => {
     const [problemCount, setProblemCount] = useState<number>(3);
     const [timeLimit, setTimeLimit] = useState<number>(30);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
     // Dynamic Topics State
     const [availableTopics, setAvailableTopics] = useState<any[]>([]);
@@ -61,7 +63,7 @@ const CreateRoom: React.FC = () => {
             navigate(`/hive-battles/${response.roomId}`);
         } catch (error: any) {
             console.error('Failed to create room:', error);
-            alert(error.message || 'Failed to create room');
+            setErrorModal({ isOpen: true, message: error.message || 'Failed to create room' });
         } finally {
             setIsSubmitting(false);
         }
@@ -209,6 +211,30 @@ const CreateRoom: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            <Modal
+                isOpen={errorModal.isOpen}
+                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                title="Creation Failed"
+            >
+                <div className="flex flex-col items-center text-center gap-4">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center">
+                        <AlertTriangle className="w-8 h-8 text-red-500" />
+                    </div>
+                    <div>
+                        <p className="text-gray-300 text-lg mb-2">{errorModal.message}</p>
+                        <p className="text-gray-500 text-sm">
+                            Please check your connection and try again.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+                        className="mt-2 text-gray-400 hover:text-white underline text-sm"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            </Modal>
         </div>
     );
 };
