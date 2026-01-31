@@ -59,6 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
 
   const navItems = [
     { name: 'Problem', path: '/problem' },
+    { name: 'HiveBattles', path: '/hive-battles' }, // New HiveBattles Room Feature
     { name: 'Instant Arena', path: '/contest' },
     { name: 'Weekly Contest', path: '/weekly-contest' },
     { name: 'Knowledge Drop', path: '/explore', isAction: true },

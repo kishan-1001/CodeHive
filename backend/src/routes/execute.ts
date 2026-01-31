@@ -137,7 +137,7 @@ router.post('/', async (req, res) => {
         }
 
         const shellCommand = `echo "${encodedCode}" | base64 -d > ${sourceFile} && (${compileCmd} || exit ${COMPILATION_ERROR_CODE}) && ${finalRunCmd}`;
-        const dockerCommand = `docker run --rm -i ${image} sh -c "${shellCommand}"`;
+        const dockerCommand = `docker run --rm --network none -i ${image} sh -c "${shellCommand}"`;
 
         try {
           const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 }); // 10s runtime limit
@@ -191,7 +191,7 @@ router.post('/', async (req, res) => {
           }
         }
 
-        const dockerCommand = `docker run --rm -i ${image} sh -c "${command}"`;
+        const dockerCommand = `docker run --rm --network none -i ${image} sh -c "${command}"`;
 
         try {
           const { stdout, stderr } = await execAsync(dockerCommand, { timeout: 10000 });

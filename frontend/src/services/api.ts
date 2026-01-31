@@ -270,3 +270,35 @@ export const leaderboardAPI = {
     return api.get('/leaderboard/my-rank');
   }
 };
+
+export const roomAPI = {
+  async createRoom(topics: string[], problemCount: number, timeLimitMinutes: number) {
+    return api.post('/rooms/create', { topics, problemCount, timeLimitMinutes });
+  },
+
+  async joinRoom(roomCode: string) {
+    return api.post('/rooms/join', { roomCode });
+  },
+
+  async getRoom(roomId: string) {
+    return api.get(`/rooms/${roomId}`);
+  },
+
+  async startRoom(roomId: string) {
+    return api.post(`/rooms/${roomId}/start`, {});
+  },
+
+
+
+  async submitSolution(data: { roomId: number; problemId: number; code: string; language: string }) {
+    return api.post('/rooms/submit', data);
+  },
+
+  async runCode(data: { code: string; language: string; problemId: number }) {
+    return api.post('/rooms/run', data);
+  },
+
+  async getRoomHistory() {
+    return api.get('/rooms/history');
+  }
+};

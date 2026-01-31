@@ -351,7 +351,11 @@ const Home: React.FC = () => {
 
   // Prevent flash of landing page if logged in
   if (sessionStorage.getItem('token')) {
-    return null; // Or a loading spinner
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a]">
+        <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
 

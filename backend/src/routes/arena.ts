@@ -92,7 +92,7 @@ async function runTestCase(code: string, language: string, input: string, timeLi
     }
 
     return new Promise((resolve, reject) => {
-        const child = spawn('docker', ['run', '--rm', '-i', image, 'sh']);
+        const child = spawn('docker', ['run', '--rm', '--network', 'none', '-i', image, 'sh']);
 
         let stdoutData = '';
         let stderrData = '';

@@ -5,6 +5,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import WebSocket from 'ws';
 import { pool } from './config/db';
+import { joinRoomSocket } from './services/roomSocket';
 
 const execAsync = promisify(exec);
 
@@ -35,7 +36,12 @@ wss.on('connection', (ws) => {
     try {
       const data = JSON.parse(message.toString());
 
-      if (data.type === 'run') {
+      if (data.type === 'join_room') {
+        const { userId, roomId } = data;
+        if (userId && roomId) {
+          joinRoomSocket(ws, userId, roomId);
+        }
+      } else if (data.type === 'run') {
         // Start execution
         const { code, language, input, problem_id } = data;
 
@@ -151,7 +157,7 @@ wss.on('connection', (ws) => {
 
         console.log('🛠️ Spawning Docker process with image:', image, 'and command:', dockerCommand);
 
-        currentProcess = spawn('docker', ['run', '--rm', '-i', image, 'sh', '-c', dockerCommand], {
+        currentProcess = spawn('docker', ['run', '--rm', '--network', 'none', '-i', image, 'sh', '-c', dockerCommand], {
           stdio: ['pipe', 'pipe', 'pipe']
         });
 

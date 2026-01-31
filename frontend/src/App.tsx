@@ -20,6 +20,12 @@ import CodingProfile from "./pages/CodingProfile.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Legal from "./pages/Legal.tsx";
 
+import HiveBattlesLanding from "./pages/HiveBattles/HiveBattlesLanding.tsx";
+import CreateRoom from "./pages/HiveBattles/CreateRoom.tsx";
+import RoomLobby from "./pages/HiveBattles/RoomLobby.tsx";
+import RoomArena from "./pages/HiveBattles/RoomArena.tsx";
+import BattleDetails from "./pages/HiveBattles/BattleDetails.tsx";
+
 
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 import AdminRoute from "./components/auth/AdminRoute.tsx";
@@ -62,6 +68,13 @@ const App: React.FC = () => {
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/profile/:username" element={<UserProfile />} />
         <Route path="/coding-profile" element={<CodingProfile />} />
+
+        {/* HiveBattles Routes */}
+        <Route path="/hive-battles" element={<HiveBattlesLanding />} />
+        <Route path="/hive-battles/create" element={<CreateRoom />} />
+        <Route path="/hive-battles/:roomId" element={<RoomLobby />} />
+        <Route path="/hive-battles/:roomId/arena" element={<RoomArena />} />
+        <Route path="/hive-battles/history/:roomId" element={<BattleDetails />} />
 
       </Route>
 
