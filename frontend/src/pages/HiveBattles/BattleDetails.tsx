@@ -179,8 +179,12 @@ const BattleDetails: React.FC = () => {
 
                             <div className="p-4 space-y-3">
                                 {details.problems.map((problem) => (
-                                    <div key={problem.id} className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-                                        <h3 className="font-medium mb-2">{problem.title}</h3>
+                                    <div
+                                        key={problem.id}
+                                        onClick={() => navigate(`/problems/${problem.id}`)}
+                                        className="bg-gray-900/50 p-4 rounded-xl border border-gray-800 cursor-pointer hover:border-amber-500/50 hover:bg-gray-800 transition-all group"
+                                    >
+                                        <h3 className="font-medium mb-2 group-hover:text-amber-400 transition-colors">{problem.title}</h3>
                                         <div className="flex items-center gap-2">
                                             <span className={`
                                                 text-[10px] px-2 py-0.5 rounded border
