@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { roomAPI } from '../../services/api';
-import { PlusSquare, LogIn, Users, Zap, Shield, Trophy } from 'lucide-react';
+import { PlusSquare, LogIn, Users, Zap, Shield, Trophy, AlertTriangle } from 'lucide-react';
 import BattleHistory from './BattleHistory';
+import Modal from '../../components/Modal';
 
 const HiveBattlesLanding: React.FC = () => {
     const navigate = useNavigate();
     const [joinCode, setJoinCode] = useState('');
     const [isJoining, setIsJoining] = useState(false);
+    const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
     // Auto-fill code from URL query param
     useEffect(() => {
@@ -21,7 +23,7 @@ const HiveBattlesLanding: React.FC = () => {
 
     const handleJoin = async () => {
         if (!joinCode.trim()) {
-            alert('Please enter a room code');
+            setErrorModal({ isOpen: true, message: 'Please enter a room code' });
             return;
         }
 
@@ -30,7 +32,9 @@ const HiveBattlesLanding: React.FC = () => {
             const response = await roomAPI.joinRoom(joinCode.toUpperCase().trim());
             navigate(`/hive-battles/${response.roomId}`);
         } catch (error: any) {
-            alert(error.message || 'Failed to join room. Check the code and try again.');
+            // Extract plain message if possible
+            const msg = error.message || 'Failed to join room. Check the code and try again.';
+            setErrorModal({ isOpen: true, message: msg });
         } finally {
             setIsJoining(false);
         }
@@ -42,7 +46,7 @@ const HiveBattlesLanding: React.FC = () => {
 
             <div className="pt-32 px-6 pb-20 max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-3 gap-8">
-                    {/* Left Column: Hero & Actions */}
+                    {/* ... (Existing Layout) ... */}
                     <div className="lg:col-span-2">
                         {/* Hero Section */}
                         <div className="text-left mb-12 relative">
@@ -128,6 +132,30 @@ const HiveBattlesLanding: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <Modal
+                isOpen={errorModal.isOpen}
+                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                title="Unable to Join"
+            >
+                <div className="flex flex-col items-center text-center gap-4">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center">
+                        <AlertTriangle className="w-8 h-8 text-red-500" />
+                    </div>
+                    <div>
+                        <p className="text-gray-300 text-lg mb-2">{errorModal.message}</p>
+                        <p className="text-gray-500 text-sm">
+                            Please check the room code or try creating a new room.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+                        className="mt-2 text-gray-400 hover:text-white underline text-sm"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            </Modal>
         </div>
     );
 };
