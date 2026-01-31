@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { roomAPI } from '../../services/api';
-import { Trophy, Clock, Hash } from 'lucide-react';
+
 
 interface BattleHistoryItem {
     id: number;
@@ -39,58 +39,70 @@ const BattleHistory: React.FC = () => {
     const totalBattles = history.length;
 
     return (
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 overflow-hidden w-full flex flex-col">
-            <div className="p-4 border-b border-gray-700 bg-gray-800/50">
-                <div className="flex items-center justify-between mb-1">
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                        <Trophy className="w-4 h-4 text-amber-500" />
-                        My Battle History
-                    </h2>
-                    <span className="text-xs bg-gray-700 px-2 py-0.5 rounded-full text-gray-300">
-                        Total: {totalBattles}
-                    </span>
+        <div className="bg-[#0a0a0a] rounded-xl border border-gray-800 shadow-2xl shadow-black/50 overflow-hidden w-full flex flex-col h-full">
+            {/* Window Bar */}
+            <div className="h-9 bg-white/5 border-b border-white/5 px-4 flex items-center justify-between select-none shrink-0">
+                <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/20" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/20" />
                 </div>
-                <p className="text-gray-400 text-[10px]">Your recent performance in arenas.</p>
+                <div className="text-[10px] font-mono text-gray-600">
+                    battle_history.log
+                </div>
             </div>
 
-            <div className="overflow-y-auto flex-1 p-3 space-y-2 custom-scrollbar max-h-[300px]">
-                {history.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                        <p className="text-sm">No battles played yet.</p>
-                        <p className="text-xs mt-1">Join or create a room to start!</p>
-                    </div>
-                ) : (
-                    history.map((battle) => (
-                        <div
-                            key={battle.id}
-                            onClick={() => navigate(`/hive-battles/history/${battle.id}`)}
-                            className="bg-gray-800/50 p-3 rounded-lg border border-gray-700 hover:border-gray-600 hover:bg-gray-800 transition-all cursor-pointer group"
-                        >
-                            <div className="flex justify-between items-start mb-1">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="font-mono text-amber-400 font-bold text-sm">#{battle.rank}</span>
-                                        <span className="text-gray-400 text-[10px]">/ {battle.totalParticipants} Players</span>
-                                    </div>
-                                    <div className="text-xs font-bold text-white bg-gray-700/50 px-1.5 py-0.5 rounded text-[10px]">{battle.score} pts</div>
-                                </div>
-                                <span className="text-[10px] text-gray-500 flex items-center gap-1">
-                                    <Clock className="w-2.5 h-2.5" />
-                                    {new Date(battle.date).toLocaleDateString()}
-                                </span>
-                            </div>
+            <div className="flex flex-col flex-1 min-h-0 bg-[#0a0a0a] p-4">
+                <div className="flex items-center justify-between mb-4 px-1 shrink-0">
+                    <h2 className="text-sm font-bold font-mono text-gray-400 flex items-center gap-2">
+                        <span className="text-green-500">$</span> cat history.log
+                    </h2>
+                    <span className="text-[10px] font-mono text-gray-600">
+                        {totalBattles} records
+                    </span>
+                </div>
 
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400 group-hover:text-amber-400/80 transition-colors">
-                                        <Hash className="w-2.5 h-2.5" />
-                                        <span className="font-mono">{battle.roomCode}</span>
+                <div className="overflow-y-auto flex-1 space-y-1 custom-scrollbar pr-2 min-h-0">
+                    {history.length === 0 ? (
+                        <div className="text-center py-12 text-gray-600 font-mono text-xs">
+                            <p>No records found.</p>
+                            <p className="mt-2 opacity-50">Run ./create_battle.sh to start</p>
+                        </div>
+                    ) : (
+                        history.map((battle) => (
+                            <div
+                                key={battle.id}
+                                onClick={() => navigate(`/hive-battles/history/${battle.id}`)}
+                                className="group flex items-center justify-between p-2 rounded hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-gray-800"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="font-mono text-xs text-gray-500 w-20 shrink-0">
+                                        {new Date(battle.date).toLocaleDateString()}
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-amber-500 font-mono text-sm font-bold">
+                                                #{battle.rank}
+                                            </span>
+                                            <span className="text-gray-600 text-[10px] font-mono">
+                                                of {battle.totalParticipants}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 shrink-0">
+                                    <div className="font-mono text-xs text-gray-400 group-hover:text-green-400 transition-colors">
+                                        {battle.score}pts
+                                    </div>
+                                    <div className="text-[10px] font-mono text-gray-700 group-hover:text-gray-500">
+                                        ID:{battle.roomCode}
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
-                )}
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );
