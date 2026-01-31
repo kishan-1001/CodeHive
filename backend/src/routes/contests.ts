@@ -467,4 +467,36 @@ router.post('/:id/finish', authenticateToken, async (req: any, res) => {
     }
 });
 
+// Get Contest Leaderboard
+router.get('/:id/leaderboard', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT 
+                u.id as user_id,
+                u.username,
+                u.name,
+                u.avatar_url,
+                SUM(cp.points) as total_score,
+                MAX(cs.submitted_at) as last_submission_time
+            FROM contest_submissions cs
+            JOIN users u ON cs.user_id = u.id
+            JOIN contest_problems cp ON cs.problem_id = cp.problem_id AND cs.contest_id = cp.contest_id
+            WHERE cs.contest_id = $1 AND cs.verdict = 'AC'
+            GROUP BY u.id, u.username, u.name, u.avatar_url
+            ORDER BY total_score DESC, last_submission_time ASC
+        `, [id]);
+
+        const leaderboard = result.rows.map((row, index) => ({
+            rank: index + 1,
+            ...row
+        }));
+
+        res.json(leaderboard);
+    } catch (err: any) {
+        console.error('Error fetching contest leaderboard:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 export default router;

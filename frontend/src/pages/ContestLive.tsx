@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { Play, Terminal, Check, Timer, Trophy, ArrowRight, ShieldAlert, BadgeCheck, AlertTriangle, Maximize } from 'lucide-react';
 import { problemsAPI } from '../services/api';
 import ContestAlreadyFinishedModal from '../components/ContestAlreadyFinishedModal';
+import ContestLeaderboard from '../components/ContestLeaderboard';
 
 // Types
 interface Problem {
@@ -67,6 +68,7 @@ const ContestLive: React.FC = () => {
     const [showProctorModal, setShowProctorModal] = useState(false);
     const [showFinishedModal, setShowFinishedModal] = useState(false);
     const [isFinishing, setIsFinishing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'questions' | 'leaderboard'>('questions');
 
     // Refs
     const editorRef = useRef<any>(null);
@@ -532,37 +534,60 @@ const ContestLive: React.FC = () => {
                             </div>
                         ) : status === 'ended' ? (
                             <div className="w-full text-left">
-                                <h3 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
-                                    <BadgeCheck className="w-6 h-6 text-amber-500" />
-                                    Contest Questions
-                                </h3>
-                                <div className="grid gap-4 mb-8">
-                                    {contestProblems.map((p, idx) => (
-                                        <button
-                                            key={p.problem_id}
-                                            onClick={() => navigate(`/problems/${p.problem_id}`)}
-                                            className="w-full bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-amber-500/50 rounded-xl p-5 flex items-center justify-between transition-all group text-left"
-                                        >
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center font-mono text-lg font-bold text-gray-500 group-hover:text-amber-400 group-hover:border-amber-500/30 transition-all">
-                                                    {idx + 1}
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-lg text-white group-hover:text-amber-400 transition-colors mb-1">{p.title}</h4>
-                                                    <div className="flex items-center gap-3 text-sm">
-                                                        <span className={`px-2 py-0.5 rounded-md bg-gray-900 border ${p.difficulty === 'Easy' ? 'text-green-400 border-green-500/20' : p.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-500/20' : 'text-red-400 border-red-500/20'}`}>
-                                                            {p.difficulty}
-                                                        </span>
-                                                        <span className="text-gray-500">{p.points} points</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-gray-600 group-hover:bg-amber-500/10 group-hover:text-amber-400 transition-all">
-                                                <ArrowRight className="w-5 h-5" />
-                                            </div>
-                                        </button>
-                                    ))}
+                                {/* Tab Navigation */}
+                                <div className="flex items-center gap-4 border-b border-gray-800 mb-6">
+                                    <button
+                                        onClick={() => setActiveTab('questions')}
+                                        className={`pb-3 font-bold text-sm transition-colors border-b-2 ${activeTab === 'questions' ? 'text-white border-amber-500' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                                    >
+                                        Questions
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('leaderboard')}
+                                        className={`pb-3 font-bold text-sm transition-colors border-b-2 ${activeTab === 'leaderboard' ? 'text-white border-amber-500' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                                    >
+                                        Leaderboard
+                                    </button>
                                 </div>
+
+                                {activeTab === 'questions' ? (
+                                    <>
+                                        <h3 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
+                                            <BadgeCheck className="w-6 h-6 text-amber-500" />
+                                            Contest Questions
+                                        </h3>
+                                        <div className="grid gap-4 mb-8">
+                                            {contestProblems.map((p, idx) => (
+                                                <button
+                                                    key={p.problem_id}
+                                                    onClick={() => navigate(`/problems/${p.problem_id}`)}
+                                                    className="w-full bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-amber-500/50 rounded-xl p-5 flex items-center justify-between transition-all group text-left"
+                                                >
+                                                    <div className="flex items-center gap-5">
+                                                        <div className="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center font-mono text-lg font-bold text-gray-500 group-hover:text-amber-400 group-hover:border-amber-500/30 transition-all">
+                                                            {idx + 1}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-lg text-white group-hover:text-amber-400 transition-colors mb-1">{p.title}</h4>
+                                                            <div className="flex items-center gap-3 text-sm">
+                                                                <span className={`px-2 py-0.5 rounded-md bg-gray-900 border ${p.difficulty === 'Easy' ? 'text-green-400 border-green-500/20' : p.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-500/20' : 'text-red-400 border-red-500/20'}`}>
+                                                                    {p.difficulty}
+                                                                </span>
+                                                                <span className="text-gray-500">{p.points} points</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-gray-600 group-hover:bg-amber-500/10 group-hover:text-amber-400 transition-all">
+                                                        <ArrowRight className="w-5 h-5" />
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <ContestLeaderboard contestId={id!} />
+                                )}
+
                                 <div className="border-t border-gray-800 pt-6 text-center">
                                     <button onClick={() => navigate('/weekly-contest')} className="text-gray-500 hover:text-white font-semibold transition-colors">
                                         Back to Contests
