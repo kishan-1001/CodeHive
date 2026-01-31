@@ -119,15 +119,13 @@ const RoomLobby: React.FC = () => {
                                             alt={p.username}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
-                                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`;
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement!.innerText = p.username.substring(0, 2).toUpperCase();
+                                                e.currentTarget.parentElement!.classList.add('text-lg', 'font-bold', 'text-gray-400');
                                             }}
                                         />
                                     ) : (
-                                        <img
-                                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`}
-                                            alt={p.username}
-                                            className="w-full h-full object-cover"
-                                        />
+                                        <span className="text-lg font-bold text-gray-400">{p.username.substring(0, 2).toUpperCase()}</span>
                                     )}
                                 </div>
                                 <div className="min-w-0">

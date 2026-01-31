@@ -136,15 +136,15 @@ const BattleDetails: React.FC = () => {
                                                             alt={participant.username}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${participant.username}`;
+                                                                e.currentTarget.style.display = 'none';
+                                                                e.currentTarget.parentElement!.innerText = participant.username.substring(0, 2).toUpperCase();
+                                                                e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center', 'text-gray-400', 'font-bold');
                                                             }}
                                                         />
                                                     ) : (
-                                                        <img
-                                                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${participant.username}`}
-                                                            alt={participant.username}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold">
+                                                            {participant.username.substring(0, 2).toUpperCase()}
+                                                        </div>
                                                     )}
                                                 </div>
 

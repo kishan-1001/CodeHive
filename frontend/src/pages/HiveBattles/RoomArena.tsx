@@ -853,7 +853,9 @@ const RoomArena: React.FC = () => {
                                                 alt={p.username}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`;
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.parentElement!.innerText = String(idx + 1);
+                                                    e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center');
                                                 }}
                                             />
                                         ) : (
