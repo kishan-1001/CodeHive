@@ -849,7 +849,7 @@ const RoomArena: React.FC = () => {
                                    `}>
                                         {p.avatar_url ? (
                                             <img
-                                                src={p.avatar_url.startsWith('http') ? p.avatar_url : `http://localhost:3001${p.avatar_url}`}
+                                                src={p.avatar_url.startsWith('http') ? p.avatar_url : `/api${p.avatar_url}`}
                                                 alt={p.username}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {

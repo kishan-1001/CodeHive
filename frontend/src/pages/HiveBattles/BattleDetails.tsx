@@ -132,7 +132,7 @@ const BattleDetails: React.FC = () => {
                                                 <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                                                     {participant.avatar_url ? (
                                                         <img
-                                                            src={participant.avatar_url.startsWith('http') ? participant.avatar_url : `http://localhost:3001${participant.avatar_url}`}
+                                                            src={participant.avatar_url.startsWith('http') ? participant.avatar_url : `/api${participant.avatar_url}`}
                                                             alt={participant.username}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {

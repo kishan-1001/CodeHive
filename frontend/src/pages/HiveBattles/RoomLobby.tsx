@@ -4,6 +4,8 @@ import Header from '../../components/Header';
 import { roomAPI } from '../../services/api';
 import { Users, Copy, Play, Loader2, Crown } from 'lucide-react';
 
+import Toast from '../../components/Toast';
+
 const RoomLobby: React.FC = () => {
     const { roomId } = useParams<{ roomId: string }>();
     const navigate = useNavigate();
@@ -11,15 +13,9 @@ const RoomLobby: React.FC = () => {
     const [participants, setParticipants] = useState<any[]>([]);
     const [isHost, setIsHost] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showToast, setShowToast] = useState(false);
 
-    // WebSocket Connection (Mocked refresh for now, or actual WS if we implement hook)
-    // Ideally we should use a custom hook `useRoomSocket` to listen for events.
-    // For this MVP step, I'll poll every 3 seconds if not using WS yet on frontend.
-    // BUT the prompt asked for WS events.
-    // I will implement a basic poller for simplicity in this file, 
-    // OR ideally we connect to WS.
-    // Let's use Polling for the Lobby to be robust, transitioning to WS for the Arena.
-    // Polling is acceptable for Lobby updates (participants joining).
+    // ... (rest of fetch logic) ...
 
     const fetchRoomData = async () => {
         try {
@@ -49,14 +45,13 @@ const RoomLobby: React.FC = () => {
     const handleCopyCode = () => {
         if (room?.room_code) {
             navigator.clipboard.writeText(room.room_code);
-            alert('Room Code copied!');
+            setShowToast(true);
         }
     };
 
     const handleStart = async () => {
         try {
             await roomAPI.startRoom(roomId!);
-            // The polling will catch the status change and redirect, or we can redirect immediately
             navigate(`/hive-battles/${roomId}/arena`);
         } catch (error) {
             alert('Failed to start match');
@@ -110,34 +105,36 @@ const RoomLobby: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {participants.map((p) => (
-                            <div key={p.id} className="bg-gray-900/50 p-4 rounded-xl border border-gray-800 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                                    {p.avatar_url ? (
-                                        <img
-                                            src={p.avatar_url.startsWith('http') ? p.avatar_url : `http://localhost:3001${p.avatar_url}`}
-                                            alt={p.username}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
-                                                e.currentTarget.parentElement!.innerText = p.username.substring(0, 2).toUpperCase();
-                                                e.currentTarget.parentElement!.classList.add('text-lg', 'font-bold', 'text-gray-400');
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="text-lg font-bold text-gray-400">{p.username.substring(0, 2).toUpperCase()}</span>
-                                    )}
+                        {participants.map((p) => {
+                            console.log('Participant:', p.username, 'Avatar:', p.avatar_url);
+                            return (
+                                <div key={p.id} className="bg-gray-900/50 p-4 rounded-xl border border-gray-800 flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+                                        {p.avatar_url ? (
+                                            <img
+                                                src={p.avatar_url.startsWith('http') ? p.avatar_url : `/api${p.avatar_url}`}
+                                                alt={p.username}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.parentElement!.innerText = p.username.substring(0, 2).toUpperCase();
+                                                    e.currentTarget.parentElement!.classList.add('text-lg', 'font-bold', 'text-gray-400');
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="text-lg font-bold text-gray-400">{p.username.substring(0, 2).toUpperCase()}</span>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-medium truncate">{p.username}</p>
+                                        {p.id === room.host_id && (
+                                            <span className="text-xs text-amber-500 flex items-center gap-1">
+                                                <Crown className="w-3 h-3" /> Host
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="font-medium truncate">{p.username}</p>
-                                    {p.id === room.host_id && (
-                                        <span className="text-xs text-amber-500 flex items-center gap-1">
-                                            <Crown className="w-3 h-3" /> Host
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
 
                         {/* Empty Slots Placeholders */}
                         {[...Array(Math.max(0, 4 - participants.length))].map((_, i) => (
@@ -166,6 +163,13 @@ const RoomLobby: React.FC = () => {
                     </div>
                 )}
 
+
+                {showToast && (
+                    <Toast
+                        message="Room Code copied to clipboard!"
+                        onClose={() => setShowToast(false)}
+                    />
+                )}
             </div>
         </div>
     );

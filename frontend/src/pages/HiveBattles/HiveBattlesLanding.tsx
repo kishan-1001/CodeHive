@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { roomAPI } from '../../services/api';
@@ -9,6 +9,15 @@ const HiveBattlesLanding: React.FC = () => {
     const navigate = useNavigate();
     const [joinCode, setJoinCode] = useState('');
     const [isJoining, setIsJoining] = useState(false);
+
+    // Auto-fill code from URL query param
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) {
+            setJoinCode(code.toUpperCase());
+        }
+    }, []);
 
     const handleJoin = async () => {
         if (!joinCode.trim()) {
