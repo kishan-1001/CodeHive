@@ -62,6 +62,7 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
     { name: 'HiveBattles', path: '/hive-battles' }, // New HiveBattles Room Feature
     { name: 'Instant Arena', path: '/contest' },
     { name: 'Weekly Contest', path: '/weekly-contest' },
+    { name: 'Resources', path: '/resources' },
     { name: 'Knowledge Drop', path: '/explore', isAction: true },
   ];
 

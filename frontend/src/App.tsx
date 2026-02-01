@@ -19,6 +19,8 @@ import UserProfile from "./pages/UserProfile.tsx";
 import CodingProfile from "./pages/CodingProfile.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Legal from "./pages/Legal.tsx";
+import Resources from "./pages/Resources.tsx";
+import ResourceViewer from "./pages/ResourceViewer.tsx";
 
 import HiveBattlesLanding from "./pages/HiveBattles/HiveBattlesLanding.tsx";
 import CreateRoom from "./pages/HiveBattles/CreateRoom.tsx";
@@ -61,6 +63,8 @@ const App: React.FC = () => {
         <Route path="/arena/:sessionId" element={<ArenaSession />} />
         <Route path="/arena/:sessionId/feedback" element={<ArenaFeedback />} />
         <Route path="/weekly-contest" element={<WeeklyContest />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/resources/:type/:id" element={<ResourceViewer />} />
         <Route path="/weekly-contest/:id" element={<ContestLive />} />
         <Route path="/weekly-contest/:id/feedback" element={<ContestFeedback />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
