@@ -36,11 +36,10 @@ const HomeCodeEditor: React.FC = () => {
       wsRef.current.close();
     }
 
-    // Use Localhost for development, otherwise use our NEW Secure Backend directly.
-    // This bypasses Vercel entirely.
+    // Use Localhost for development, otherwise use our NEW Secure Backend.
     const wsUrl = window.location.hostname === 'localhost'
       ? 'ws://localhost:3001'
-      : 'wss://16.170.220.100.nip.io/ws';
+      : 'wss://api.mycodehive.in';
 
     console.log('🔌 Attempting SECURE WebSocket connection to:', wsUrl);
     wsRef.current = new WebSocket(wsUrl);
