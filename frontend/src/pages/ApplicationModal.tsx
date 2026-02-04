@@ -27,7 +27,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose, jo
         setStatus('idle');
 
         try {
-            const response = await fetch('http://localhost:3001/api/career/apply', {
+            const response = await fetch('/api/career/apply', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

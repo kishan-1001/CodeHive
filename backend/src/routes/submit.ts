@@ -129,6 +129,11 @@ async function runTestCase(code: string, language: string, input: string, timeLi
         ).join('\n').trim();
       }
 
+      if (stderrData.includes('no space left on device') || stderrData.includes('No space left on device')) {
+        resolve({ output: '', error: 'SYSTEM_ERROR', runtime: 0 });
+        return;
+      }
+
       // Check exit codes
       if (code === 124) { // Timeout specific exit code
         resolve({ output: stdoutData.trim(), error: 'TLE', runtime });
@@ -263,6 +268,10 @@ router.post('/', authenticateToken, async (req, res) => {
         console.log(`[DEBUG] executing test case input: ${testCase.input}`);
         console.log(`[DEBUG] Full Code being executed:\n${fullCode}`);
         const result = await runTestCase(fullCode, language, testCase.input, finalTimeLimitMs);
+
+        if (result.error === 'SYSTEM_ERROR') {
+          return res.status(503).json({ error: 'Server resource exhausted. Please try again later.' });
+        }
 
         if (result.error === 'CE') {
           // Compilation Error

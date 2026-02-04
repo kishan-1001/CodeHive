@@ -218,6 +218,15 @@ router.post('/', async (req, res) => {
           }
 
           const stderr = error.stderr || error.message || '';
+
+          // Check for infrastructure errors
+          if (stderr.includes('no space left on device') || stderr.includes('No space left on device')) {
+            console.error('Docker Error: No space left on device');
+            return res.status(503).json({
+              error: { type: 'SYSTEM_ERROR', message: 'Server resource exhausted. Please try again later.' }
+            });
+          }
+
           let filteredStderr = cleanStderr(stderr);
 
           // Distinguish checking logic?
