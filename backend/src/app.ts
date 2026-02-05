@@ -36,6 +36,7 @@ app.use(cors({
     'http://localhost:5173',
     'https://mycodehive.in',
     'https://www.mycodehive.in',
+    'https://code-hive-iota.vercel.app',
     process.env.FRONTEND_URL || ''
   ].filter(Boolean),
   credentials: true
