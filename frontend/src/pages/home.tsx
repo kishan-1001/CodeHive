@@ -275,25 +275,25 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
             <Hexagon className="w-8 h-8 text-amber-400" />
             <span className="text-2xl font-bold text-white tracking-tight">Code<span className="text-amber-400">Hive</span></span>
           </div>
-          <p className="text-gray-500 max-w-sm leading-relaxed">
+          <p className="text-gray-400 max-w-sm leading-relaxed">
             CodeHive is a modern coding platform designed to help developers practice, test, and compete through real-time code execution, curated problems, and competitive programming contests.
           </p>
           <div className="flex items-center gap-4 mt-8">
-            <a href="https://github.com/kishan-1001" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <a href="https://github.com/kishan-1001" target="_blank" rel="noopener noreferrer" aria-label="GitHub Profile" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
               <Github className="w-5 h-5" />
             </a>
-            <a href="https://www.linkedin.com/in/kishan-roy1001" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <a href="https://www.linkedin.com/in/kishan-roy1001" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
               <Linkedin className="w-5 h-5" />
             </a>
-            <a href="https://kishan-1001.github.io/My-Portfolio/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <a href="https://kishan-1001.github.io/My-Portfolio/" target="_blank" rel="noopener noreferrer" aria-label="Portfolio Website" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-colors">
               <Globe className="w-5 h-5" />
             </a>
           </div>
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-6">Platform</h4>
-          <ul className="space-y-4 text-gray-500 text-sm">
+          <h3 className="text-white font-bold mb-6">Platform</h3>
+          <ul className="space-y-4 text-gray-400 text-sm">
             <li><Link to="/editor" className="hover:text-amber-400 transition-colors">Code Editor</Link></li>
             <li><a href="#" className="hover:text-amber-400 transition-colors">Coding Contests</a></li>
             <li><Link to="/editor" className="hover:text-amber-400 transition-colors">Try Sandbox</Link></li>
@@ -302,8 +302,8 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-6">Resources</h4>
-          <ul className="space-y-4 text-gray-500 text-sm">
+          <h3 className="text-white font-bold mb-6">Resources</h3>
+          <ul className="space-y-4 text-gray-400 text-sm">
             <li><a href="#" className="hover:text-amber-400 transition-colors">Getting Started</a></li>
             <li><a href="#" className="hover:text-amber-400 transition-colors">Problem Library</a></li>
             <li><a href="#" className="hover:text-amber-400 transition-colors">Interview Prep</a></li>
@@ -312,17 +312,17 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
         </div>
 
         <div>
-          <h4 className="text-white font-bold mb-6">Company</h4>
-          <ul className="space-y-4 text-gray-500 text-sm">
+          <h3 className="text-white font-bold mb-6">Company</h3>
+          <ul className="space-y-4 text-gray-400 text-sm">
             <li><Link to="/about" className="hover:text-amber-400 transition-colors">About Us</Link></li>
             <li><Link to="/career" className="hover:text-amber-400 transition-colors">Careers</Link></li>
-            <li><button onClick={onContactClick} className="text-gray-500 hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer text-sm p-0">Contact</button></li>
+            <li><button onClick={onContactClick} aria-label="Contact Us" className="text-gray-400 hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer text-sm p-0">Contact</button></li>
             <li><Link to="/legal" className="hover:text-amber-400 transition-colors">Legal</Link></li>
           </ul>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-10 text-xs text-gray-600">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-10 text-xs text-gray-500">
         <p>© 2024 CodeHive Inc. Built with passion for the developer community.</p>
         <div className="flex gap-8">
           <a href="/legal#privacy" className="hover:text-gray-400 transition-colors">Privacy Policy</a>

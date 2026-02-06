@@ -153,6 +153,8 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
           <button
             className="md:hidden text-gray-300 hover:text-white"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close Menu" : "Open Menu"}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -161,6 +163,9 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
             <button
               onClick={toggleDropdown}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors overflow-hidden border border-gray-700"
+              aria-label="User Menu"
+              aria-expanded={isDropdownOpen}
+              aria-haspopup="true"
             >
               {user?.avatar_url ? (
                 <img
