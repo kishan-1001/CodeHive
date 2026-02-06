@@ -68,7 +68,7 @@ const HeroSection: React.FC<{ onCodeEditorClick: () => void; onGetStartedClick: 
             AI Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">Coding Hive</span>
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
-            Connect, code, and compete on CodeHive — a unified platform to practice DSA, run real-time coding contests, test solutions instantly, and grow as a developer in a production-grade environment.
+            Connect, code, and compete on CodeHive (KiRi) — the ultimate coding platform and LeetCode alternative to practice DSA, run real-time contests, and master algorithms.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
