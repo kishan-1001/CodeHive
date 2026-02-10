@@ -9,3 +9,5 @@ coverage/
 .DS_Store
 domain_setup_hostinger.md
 domain_setup_v2_split.md
+authworkflow.md
+homecodeeditor.md

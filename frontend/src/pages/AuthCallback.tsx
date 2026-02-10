@@ -13,16 +13,34 @@ const AuthCallback: React.FC = () => {
             const token = searchParams.get('token');
 
             if (token) {
-                sessionStorage.setItem('token', token);
-                try {
-                    const user = await authAPI.getMe();
-                    // Store user info if needed, e.g. for header
-                    sessionStorage.setItem('user', JSON.stringify(user));
-                    navigate('/explore', { replace: true });
-                } catch (err: any) {
-                    console.error('Auth verification failed', err);
-                    setError(err.message || 'Authentication failed. Please try again.');
-                    // Optional: navigate('/login') after delay
+                // Determine if we need to retry
+                let attempts = 0;
+                const maxAttempts = 3;
+
+                while (attempts < maxAttempts) {
+                    try {
+                        // Store token first
+                        sessionStorage.setItem('token', token);
+
+                        // Small delay on first attempt to allow storage to settle/browser to be ready
+                        if (attempts === 0) await new Promise(resolve => setTimeout(resolve, 100));
+
+                        const user = await authAPI.getMe();
+                        // Store user info
+                        sessionStorage.setItem('user', JSON.stringify(user));
+                        navigate('/explore', { replace: true });
+                        return; // Success, exit
+                    } catch (err: any) {
+                        console.error(`Auth verification attempt ${attempts + 1} failed`, err);
+                        attempts++;
+
+                        if (attempts >= maxAttempts) {
+                            setError(err.message || 'Authentication failed. Please try again.');
+                        } else {
+                            // Wait before retrying (exponential backoff: 300ms, 600ms...)
+                            await new Promise(resolve => setTimeout(resolve, 300 * attempts));
+                        }
+                    }
                 }
             } else {
                 navigate('/login');
@@ -34,8 +52,14 @@ const AuthCallback: React.FC = () => {
 
     if (error) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-black text-white">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white gap-4">
                 <div className="text-red-500">{error}</div>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-amber-500 rounded text-black font-bold hover:bg-amber-600 transition"
+                >
+                    Retry Login
+                </button>
             </div>
         );
     }

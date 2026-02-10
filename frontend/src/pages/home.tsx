@@ -17,6 +17,8 @@ import {
 import LoginModal from './login';
 import RegisterModal from './registered';
 import ContactModal from './ContactModal';
+import BuyMeACoffee from '../components/BuyMeACoffee';
+
 
 // --- Components ---
 
@@ -416,6 +418,9 @@ const Home: React.FC = () => {
       <LoginModal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} onSignUpClick={handleSignUpClick} />
       <RegisterModal isOpen={isRegisterModalOpen} onClose={handleCloseRegisterModal} onSignInClick={handleSignInClick} />
       <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+
+      {/* Support Button */}
+      <BuyMeACoffee />
     </div>
   );
 };
