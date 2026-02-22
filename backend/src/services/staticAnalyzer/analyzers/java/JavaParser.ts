@@ -103,6 +103,22 @@ export class JavaAnalyzer implements IStaticAnalyzer {
             spaceComplexity = 'O(n)';
         }
 
-        return { timeComplexity, spaceComplexity };
+        // --- Safety Checks ---
+        const blockedPatterns = [
+            'java.io', 'java.nio', 'java.net', 'java.lang.Process', 'java.lang.Runtime',
+            'new File(', 'System.exit(', 'Runtime.getRuntime().exec(', 'ProcessBuilder',
+            'Socket(', 'ServerSocket(', 'DatagramSocket('
+        ];
+        const warnings: string[] = [];
+        let isSafe = true;
+
+        blockedPatterns.forEach(pattern => {
+            if (code.includes(pattern)) {
+                isSafe = false;
+                warnings.push(`Potentially dangerous pattern detected: ${pattern}`);
+            }
+        });
+
+        return { timeComplexity, spaceComplexity, isSafe, warnings };
     }
 }

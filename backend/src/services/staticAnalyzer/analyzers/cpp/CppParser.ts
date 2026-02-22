@@ -96,6 +96,22 @@ export class CppAnalyzer implements IStaticAnalyzer {
             spaceComplexity = 'O(n)';
         }
 
-        return { timeComplexity, spaceComplexity };
+        // --- Safety Checks ---
+        const blockedPatterns = [
+            'system(', 'fork(', 'exec(', 'socket(', 'connect(', 'bind(',
+            '#include <fstream>', '#include <filesystem>', '#include <cstdlib>',
+            'remove(', 'rename(', 'std::ifstream', 'std::ofstream'
+        ];
+        const warnings: string[] = [];
+        let isSafe = true;
+
+        blockedPatterns.forEach(pattern => {
+            if (code.includes(pattern)) {
+                isSafe = false;
+                warnings.push(`Potentially dangerous pattern detected: ${pattern}`);
+            }
+        });
+
+        return { timeComplexity, spaceComplexity, isSafe, warnings };
     }
 }

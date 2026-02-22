@@ -4,6 +4,7 @@ import { authenticateToken } from '../middleware/auth';
 import { spawn } from 'child_process';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import { StaticAnalyzerService } from '../services/staticAnalyzer';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -232,6 +233,16 @@ router.post('/:id/submit', authenticateToken, async (req, res) => {
     }
 
     try {
+        // --- 🛡️ Static Analysis Bouncer ---
+        const analysis = await StaticAnalyzerService.analyze(code, language);
+        if (!analysis.isSafe) {
+            return res.json({
+                verdict: 'security_violation',
+                message: 'Security Violation: Malicious code detected.',
+                warnings: analysis.warnings
+            });
+        }
+
         // 1. Check Contest Status & Time
         const contestRes = await pool.query(`
             SELECT id, title, description, 

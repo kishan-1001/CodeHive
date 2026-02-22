@@ -176,8 +176,16 @@ router.post('/', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Code, language, and problem_id are required' });
   }
 
-
   try {
+    // --- 🛡️ Static Analysis Bouncer ---
+    const analysis = await StaticAnalyzerService.analyze(code, language);
+    if (!analysis.isSafe) {
+      return res.json({
+        verdict: 'security_violation',
+        message: 'Security Violation: Malicious code detected.',
+        warnings: analysis.warnings
+      });
+    }
     // Check Concurrency Limit
     if (!executionLimiter.tryAcquire()) {
       return res.status(429).json({

@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { pool } from '../config/db';
 import { executionLimiter } from '../utils/executionLimiter';
+import { StaticAnalyzerService } from '../services/staticAnalyzer';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -33,6 +34,18 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    // --- 🛡️ Static Analysis Bouncer ---
+    const analysis = await StaticAnalyzerService.analyze(code, language);
+    if (!analysis.isSafe) {
+      return res.json({
+        output: '',
+        error: {
+          type: 'SECURITY_VIOLATION',
+          message: 'Security Violation: Malicious code detected.',
+          warnings: analysis.warnings
+        }
+      });
+    }
     // Fetch wrapper code if problem_id is provided
     let wrapperCode = '';
     if (problem_id) {

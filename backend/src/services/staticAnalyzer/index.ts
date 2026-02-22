@@ -16,8 +16,8 @@ export class StaticAnalyzerService {
     static async analyze(code: string, language: string): Promise<StaticAnalysisResult> {
         const analyzer = this.analyzers[language.toLowerCase()];
         if (!analyzer) {
-            // Default fallback or error
-            return { timeComplexity: 'Unknown', spaceComplexity: 'Unknown' };
+            // Default fallback
+            return { timeComplexity: 'Unknown', spaceComplexity: 'Unknown', isSafe: true, warnings: [] };
         }
         return analyzer.analyze(code);
     }

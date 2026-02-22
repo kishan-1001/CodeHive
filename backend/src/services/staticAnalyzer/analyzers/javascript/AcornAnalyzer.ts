@@ -10,7 +10,7 @@ export class AcornAnalyzer implements IStaticAnalyzer {
         } catch (e) {
             console.error("Acorn parsing failed:", e);
             // Fallback object
-            return { timeComplexity: 'Error', spaceComplexity: 'Error' };
+            return { timeComplexity: 'Error', spaceComplexity: 'Error', isSafe: false, warnings: ['Parsing failed'] };
         }
     }
 
@@ -71,6 +71,22 @@ export class AcornAnalyzer implements IStaticAnalyzer {
             spaceComplexity = 'O(n^2)'; // Conservatively
         }
 
-        return { timeComplexity, spaceComplexity };
+        // --- Safety Checks ---
+        const blockedKeywords = ['require', 'process', 'fs', 'child_process', 'path', 'os', 'eval', 'Function'];
+        const warnings: string[] = [];
+        let isSafe = true;
+
+        blockedKeywords.forEach(kw => {
+            if (code.includes(kw)) {
+                // More specific check to avoid common false positives if necessary, but keep it strict for now
+                const regex = new RegExp(`\\b${kw}\\b`, 'g');
+                if (regex.test(code)) {
+                    isSafe = false;
+                    warnings.push(`Use of blocked keyword/module detected: ${kw}`);
+                }
+            }
+        });
+
+        return { timeComplexity, spaceComplexity, isSafe, warnings };
     }
 }

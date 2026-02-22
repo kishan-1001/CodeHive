@@ -42,6 +42,8 @@ export class PythonAnalyzer implements IStaticAnalyzer {
 
     private analyzeAst(node: AstNode, code: string): StaticAnalysisResult {
         let maxDepth = 0;
+        const warnings: string[] = [];
+        let isSafe = true;
 
         const traverse = (n: AstNode, depth: number) => {
             let d = depth;
@@ -52,6 +54,40 @@ export class PythonAnalyzer implements IStaticAnalyzer {
             n.children.forEach(c => traverse(c, d));
         };
         traverse(node, 0);
+
+        // --- Safety Checks (The Bouncer) ---
+        const blockedModules = [
+            'os', 'subprocess', 'sys', 'shutil', 'socket', 'requests', 'urllib',
+            'ftplib', 'smtplib', 'telnetlib', 'pickle', 'marshal', 'shelve',
+            'sqlite3', 'pysqlite2', 'ctypes', 'winreg', 'msvcrt'
+        ];
+
+        const blockedFunctions = [
+            'eval', 'exec', 'open', 'compile', 'input', 'breakpoint',
+            '__import__', 'globals', 'locals', 'vars', 'exit', 'quit'
+        ];
+
+        // 1. Simple Regex Checks (Fast & catches many basic attempts)
+        blockedModules.forEach(mod => {
+            const regex = new RegExp(`(import\\s+${mod}|from\\s+${mod}\\s+import)`, 'g');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Import of blocked module detected: ${mod}`);
+            }
+        });
+
+        blockedFunctions.forEach(fn => {
+            const regex = new RegExp(`\\b${fn}\\s*\\(`, 'g');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Use of blocked function detected: ${fn}`);
+            }
+        });
+
+        // 2. Obfuscation detection (Heuristic)
+        if (code.includes('getattr') || (code.includes('base64') && code.includes('decode'))) {
+            warnings.push('Potentially obfuscated code detected (getattr/base64).');
+        }
 
         let timeComplexity = 'O(1)';
         if (maxDepth === 1) timeComplexity = 'O(n)';
@@ -66,6 +102,6 @@ export class PythonAnalyzer implements IStaticAnalyzer {
             spaceComplexity = 'O(n)';
         }
 
-        return { timeComplexity, spaceComplexity };
+        return { timeComplexity, spaceComplexity, isSafe, warnings };
     }
 }
