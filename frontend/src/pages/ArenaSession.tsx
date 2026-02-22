@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { Play, Terminal, Check, List, Clock, Maximize, AlertTriangle, ShieldAlert, Cpu } from 'lucide-react';
@@ -806,9 +807,7 @@ const ArenaSession: React.FC = () => {
                         ) : (
                             <div className="max-w-3xl mx-auto space-y-6">
                                 <div className="prose prose-invert max-w-none">
-                                    <p className="whitespace-pre-wrap leading-relaxed text-gray-300">
-                                        {currentProblem.description}
-                                    </p>
+                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentProblem.description) }} />
                                 </div>
 
                                 {/* Sample Test Cases */}

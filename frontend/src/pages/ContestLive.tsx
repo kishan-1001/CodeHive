@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { Play, Terminal, Check, Timer, Trophy, ArrowRight, ShieldAlert, BadgeCheck, AlertTriangle, Maximize } from 'lucide-react';
@@ -858,7 +859,7 @@ const ContestLive: React.FC = () => {
                             {/* Description */}
                             <div className="w-1/2 h-full overflow-y-auto bg-gray-900 p-8 border-r border-gray-800 custom-scrollbar">
                                 <div className="prose prose-invert max-w-none">
-                                    <p className="whitespace-pre-wrap text-gray-300 leading-relaxed text-base">{currentProblem.description}</p>
+                                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentProblem.description) }} />
                                 </div>
 
                                 {/* Examples */}

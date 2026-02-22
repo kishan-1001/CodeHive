@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, useNavigate } from 'react-router-dom';
 // @ts-ignore
 import { SplitPane } from 'react-split-pane';
@@ -606,7 +607,7 @@ const RoomArena: React.FC = () => {
                             {fullProblem ? (
                                 <div className="max-w-3xl mx-auto space-y-6">
                                     <div className="prose prose-invert max-w-none">
-                                        <div dangerouslySetInnerHTML={{ __html: fullProblem.description }} />
+                                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fullProblem.description) }} />
                                     </div>
 
                                     {/* Sample Test Cases (Examples) */}

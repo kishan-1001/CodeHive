@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { ArrowLeft, Play, Terminal, Check } from 'lucide-react';
@@ -492,9 +493,7 @@ const ProblemDetail: React.FC = () => {
                                 </div>
                             </div>
                             <div className="prose prose-invert max-w-none">
-                                <p className="whitespace-pre-wrap leading-relaxed text-gray-300">
-                                    {problem.description}
-                                </p>
+                                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(problem.description) }} />
                             </div>
 
                             {/* Sample Test Cases */}

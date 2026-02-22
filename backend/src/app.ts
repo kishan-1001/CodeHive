@@ -26,9 +26,16 @@ import leaderboardRoutes from './routes/leaderboard';
 import userProfileRoutes from './routes/userProfile';
 import roomRoutes from './routes/room';
 
+import helmet from 'helmet';
+import { xssSanitize } from './middleware/security';
+
 const app = express();
 
 // Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false, // Disable CSP for now as it might block monaco editor or other external resources if not configured carefully.
+}));
 app.use(cors({
   origin: [
     'http://localhost:3000',
@@ -42,6 +49,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(xssSanitize);
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'keyboard cat',
