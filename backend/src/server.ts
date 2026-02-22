@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import WebSocket from 'ws';
 import { pool } from './config/db';
 import { joinRoomSocket } from './services/roomSocket';
+import { StaticAnalyzerService } from './services/staticAnalyzer';
 
 const execAsync = promisify(exec);
 
@@ -44,6 +45,17 @@ wss.on('connection', (ws) => {
       } else if (data.type === 'run') {
         // Start execution
         const { code, language, input, problem_id } = data;
+
+        // --- 🛡️ Static Analysis Bouncer ---
+        const analysis = await StaticAnalyzerService.analyze(code, language);
+        if (!analysis.isSafe) {
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Security Violation: Malicious code detected.',
+            warnings: analysis.warnings
+          }));
+          return;
+        }
 
         // Kill any existing process
         if (currentProcess) {
