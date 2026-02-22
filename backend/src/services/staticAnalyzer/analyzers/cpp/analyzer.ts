@@ -14,7 +14,9 @@ export class CppAnalyzer implements IStaticAnalyzer {
 
         return {
             timeComplexity,
-            spaceComplexity
+            spaceComplexity,
+            isSafe: true,
+            warnings: []
         };
     }
 }

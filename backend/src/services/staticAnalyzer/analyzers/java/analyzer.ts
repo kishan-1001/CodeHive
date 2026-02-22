@@ -12,7 +12,9 @@ export class JavaAnalyzer implements IStaticAnalyzer {
 
         return {
             timeComplexity,
-            spaceComplexity
+            spaceComplexity,
+            isSafe: true,
+            warnings: []
         };
     }
 }

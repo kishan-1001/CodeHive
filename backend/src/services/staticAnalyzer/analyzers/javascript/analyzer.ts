@@ -8,7 +8,9 @@ export class JavaScriptAnalyzer implements IStaticAnalyzer {
 
         return {
             timeComplexity,
-            spaceComplexity
+            spaceComplexity,
+            isSafe: true,
+            warnings: []
         };
     }
 }
