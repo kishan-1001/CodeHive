@@ -101,7 +101,7 @@ export class JavaAnalyzer implements IStaticAnalyzer {
         }
 
         const blockedApis = [
-            'System\\.exit', 'Runtime\\.getRuntime', 'ProcessBuilder', 'Thread', 'ThreadGroup',
+            'System\\.exit', 'Runtime\\.getRuntime', 'ProcessBuilder',
             'ClassLoader', 'Method\\.invoke', 'Field\\.set', 'Constructor\\.newInstance',
             'Socket', 'ServerSocket', 'DatagramSocket', 'URL', 'HttpURLConnection',
             'FileOutputStream', 'FileInputStream', 'FileChannel', 'Path', 'Files\\.'

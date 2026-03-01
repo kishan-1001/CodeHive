@@ -62,8 +62,8 @@ export class AcornAnalyzer implements IStaticAnalyzer {
 
         traverse(ast, 0);
 
-        // --- Additional Regex Safety Checks ---
-        const blockedKeywords = ['eval', 'setTimeout', 'setInterval', 'setImmediate', 'fs', 'child_process', 'path', 'os', 'http', 'https', 'net', 'dns', 'cluster'];
+        // Regex checks for keywords that can't be caught by AST identifier matching
+        const blockedKeywords = ['eval', 'child_process'];
         blockedKeywords.forEach(kw => {
             const regex = new RegExp(`\\b${kw}\\b`, 'g');
             if (regex.test(code)) {

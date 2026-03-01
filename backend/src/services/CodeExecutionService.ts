@@ -70,19 +70,22 @@ export class CodeExecutionService {
         language: string,
         input?: string,
         timeLimitMs: number = 10000,
-        lineOffset: number = 0
+        lineOffset: number = 0,
+        skipAnalysis: boolean = false
     ): Promise<ExecutionResult> {
-        // 1. Static Analysis Check
-        const analysis = await StaticAnalyzerService.analyze(code, language);
-        if (!analysis.isSafe) {
-            return {
-                output: '',
-                error: {
-                    type: 'SECURITY_VIOLATION',
-                    message: 'Security Violation: Malicious code detected.',
-                    warnings: analysis.warnings
-                }
-            };
+        // 1. Static Analysis Check (skip if caller already analyzed user code separately)
+        if (!skipAnalysis) {
+            const analysis = await StaticAnalyzerService.analyze(code, language);
+            if (!analysis.isSafe) {
+                return {
+                    output: '',
+                    error: {
+                        type: 'SECURITY_VIOLATION',
+                        message: 'Security Violation: Malicious code detected.',
+                        warnings: analysis.warnings
+                    }
+                };
+            }
         }
 
         // Auto-prepend standard headers for C/C++ if missing (LeetCode-style class-only solutions)

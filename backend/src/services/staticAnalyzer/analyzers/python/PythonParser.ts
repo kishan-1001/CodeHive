@@ -56,7 +56,7 @@ export class PythonAnalyzer implements IStaticAnalyzer {
         // --- Safety Checks (The Hardened Bouncer) ---
 
         const blockedModules = [
-            'os', 'subprocess', 'sys', 'shutil', 'socket', 'requests', 'urllib',
+            'os', 'subprocess', 'shutil', 'socket', 'requests', 'urllib',
             'ftplib', 'smtplib', 'telnetlib', 'pickle', 'marshal', 'shelve',
             'sqlite3', 'pysqlite2', 'ctypes', 'winreg', 'msvcrt', 'platform', 'pty', 'builtins'
         ];
@@ -70,7 +70,7 @@ export class PythonAnalyzer implements IStaticAnalyzer {
         }
 
         const blockedFunctions = [
-            'eval', 'exec', 'open', 'compile', 'input', 'breakpoint',
+            'eval', 'exec', 'open', 'compile', 'breakpoint',
             '__import__', 'globals', 'locals', 'vars', 'exit', 'quit', 'getattr', 'setattr', 'delattr'
         ];
 
