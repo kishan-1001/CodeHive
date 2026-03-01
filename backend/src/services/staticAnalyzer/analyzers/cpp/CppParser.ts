@@ -87,7 +87,7 @@ export class CppAnalyzer implements IStaticAnalyzer {
         // --- Hardened Safety Checks ---
 
         const blockedIncludes = [
-            'fstream', 'filesystem', 'cstdlib', 'bits/stdc\\+\\+\\.h',
+            'fstream', 'filesystem', 'cstdlib',
             'unistd.h', 'sys/types.h', 'sys/socket.h', 'netinet/in.h',
             'arpa/inet.h', 'dirent.h', 'sys/stat.h', 'fcntl.h'
         ];

@@ -85,6 +85,16 @@ export class CodeExecutionService {
             };
         }
 
+        // Auto-prepend standard headers for C/C++ if missing (LeetCode-style class-only solutions)
+        const lang = language.toLowerCase();
+        if ((lang === 'cpp' || lang === 'c') && !code.includes('#include')) {
+            const stdHeader = lang === 'cpp'
+                ? '#include <bits/stdc++.h>\nusing namespace std;\n\n'
+                : '#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n';
+            code = stdHeader + code;
+            lineOffset = (stdHeader.split('\n').length - 1) + lineOffset;
+        }
+
         // 2. Concurrency Limit
         if (!executionLimiter.tryAcquire()) {
             return {
@@ -180,7 +190,7 @@ export class CodeExecutionService {
                 '--ulimit', 'nproc=32:32',
                 '--ulimit', 'fsize=1048576:1048576',
                 '-i', image,
-                'sh', '-c', `"${shellCommand}"`
+                'sh', '-c', shellCommand
             ];
 
             return await new Promise((resolve) => {
