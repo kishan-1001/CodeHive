@@ -34,20 +34,40 @@ const app = express();
 // Middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: false, // Disable CSP for now as it might block monaco editor or other external resources if not configured carefully.
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*"],
+      connectSrc: ["'self'", "https://*", "wss://*"],
+      frameSrc: ["'self'", "https://accounts.google.com"],
+    },
+  },
 }));
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://codehive.vercel.app',
+  'http://localhost:5173',
+  'https://mycodehive.in',
+  'https://www.mycodehive.in',
+  'https://code-hive-iota.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://codehive.vercel.app',
-    'http://localhost:5173',
-    'https://mycodehive.in',
-    'https://www.mycodehive.in',
-    'https://code-hive-iota.vercel.app',
-    process.env.FRONTEND_URL || ''
-  ].filter(Boolean),
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json());
 app.use(xssSanitize);
 app.use(
@@ -55,6 +75,12 @@ app.use(
     secret: process.env.SESSION_SECRET || 'keyboard cat',
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
   })
 );
 app.use(passport.initialize());

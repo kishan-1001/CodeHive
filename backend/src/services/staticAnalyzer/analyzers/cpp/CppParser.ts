@@ -1,7 +1,6 @@
 import { AbstractParser, AstNode } from '../ast/AbstractParser';
 import { IStaticAnalyzer, StaticAnalysisResult } from '../interface';
 
-// Reusing Java logic but can be specialized if needed
 export class CppParser extends AbstractParser {
     parse(): AstNode {
         const root: AstNode = { type: 'Program', start: 0, end: this.code.length, children: [] };
@@ -25,7 +24,7 @@ export class CppParser extends AbstractParser {
 
     private parseLoop(type: string): AstNode {
         const start = this.pos;
-        this.consumeWhile(c => c !== '{');
+        this.consumeWhile(c => c !== '{' && c !== ';');
 
         const node: AstNode = { type, start, end: 0, children: [] };
 
@@ -72,6 +71,8 @@ export class CppAnalyzer implements IStaticAnalyzer {
 
     private analyzeAst(node: AstNode, code: string): StaticAnalysisResult {
         let maxDepth = 0;
+        const warnings: string[] = [];
+        let isSafe = true;
 
         const traverse = (n: AstNode, depth: number) => {
             let d = depth;
@@ -83,34 +84,61 @@ export class CppAnalyzer implements IStaticAnalyzer {
         };
         traverse(node, 0);
 
+        // --- Hardened Safety Checks ---
+
+        const blockedIncludes = [
+            'fstream', 'filesystem', 'cstdlib', 'bits/stdc\\+\\+\\.h',
+            'unistd.h', 'sys/types.h', 'sys/socket.h', 'netinet/in.h',
+            'arpa/inet.h', 'dirent.h', 'sys/stat.h', 'fcntl.h'
+        ];
+
+        for (const inc of blockedIncludes) {
+            const regex = new RegExp(`#include\\s*<${inc}>`, 'i');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Blocked include detected: ${inc.replace(/\\\\/g, '')}`);
+            }
+        }
+
+        const blockedNamespaces = ['std::filesystem', 'std::chrono'];
+        const blockedFunctions = [
+            'system', 'fork', 'exec', 'socket', 'connect', 'bind', 'listen', 'accept',
+            'remove', 'rename', 'fopen', 'freopen', 'tmpfile', 'tmpnam', 'chmod', 'chown'
+        ];
+
+        for (const ns of blockedNamespaces) {
+            if (code.includes(ns)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Use of blocked namespace: ${ns}`);
+            }
+        }
+
+        for (const fn of blockedFunctions) {
+            const regex = new RegExp(`\\b${fn}\\s*\\(`, 'g');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Use of blocked function: ${fn}`);
+            }
+        }
+
+        if (code.match(/\b(__asm__|asm)\b/i)) {
+            isSafe = false;
+            warnings.push('Security Violation: Inline assembly detected.');
+        }
+
+        // Complexity Estimation
         let timeComplexity = 'O(1)';
         if (maxDepth === 1) timeComplexity = 'O(n)';
         else if (maxDepth === 2) timeComplexity = 'O(n^2)';
         else if (maxDepth >= 3) timeComplexity = `O(n^${maxDepth})`;
 
         let spaceComplexity = 'O(1)';
-        if (code.match(/new\s+\w+\[.*[a-zA-Z].*\]/)) { // new int[n]
+        if (code.match(/new\s+\w+\[.*[a-zA-Z].*\]/)) {
             spaceComplexity = 'O(n)';
         }
-        if (code.match(/vector<.*>\s+\w+\(.*\)/)) { // vector<int> v(n)
+        if (code.match(/vector<.*>\s+\w+\(.*\)/)) {
             spaceComplexity = 'O(n)';
         }
-
-        // --- Safety Checks ---
-        const blockedPatterns = [
-            'system(', 'fork(', 'exec(', 'socket(', 'connect(', 'bind(',
-            '#include <fstream>', '#include <filesystem>', '#include <cstdlib>',
-            'remove(', 'rename(', 'std::ifstream', 'std::ofstream'
-        ];
-        const warnings: string[] = [];
-        let isSafe = true;
-
-        blockedPatterns.forEach(pattern => {
-            if (code.includes(pattern)) {
-                isSafe = false;
-                warnings.push(`Potentially dangerous pattern detected: ${pattern}`);
-            }
-        });
 
         return { timeComplexity, spaceComplexity, isSafe, warnings };
     }

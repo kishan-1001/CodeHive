@@ -24,16 +24,25 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: {
+        fileSize: 2 * 1024 * 1024, // Reduced to 2MB for avatars
+        files: 1
+    },
     fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|gif|webp/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-
-        if (mimetype && extname) {
-            return cb(null, true);
+        // 1. Check extension
+        const allowedExtensions = /^\.(jpe?g|png|gif|webp)$/i;
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (!allowedExtensions.test(ext)) {
+            return cb(new Error('Invalid file extension. Only images (jpg, png, gif, webp) are allowed.'));
         }
-        cb(new Error('Only images are allowed'));
+
+        // 2. Check MIME type
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(new Error('Invalid MIME type. Only images are allowed.'));
+        }
+
+        cb(null, true);
     }
 });
 

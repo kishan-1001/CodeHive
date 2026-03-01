@@ -16,7 +16,6 @@ export class JavaParser extends AbstractParser {
             } else if (this.match('{')) {
                 root.children.push(this.parseBlock());
             } else {
-                // Consume other tokens safely
                 this.consume();
             }
         }
@@ -25,7 +24,7 @@ export class JavaParser extends AbstractParser {
 
     private parseLoop(type: string): AstNode {
         const start = this.pos;
-        this.consumeWhile(c => c !== '{'); // Skip condition until '{'
+        this.consumeWhile(c => c !== '{' && c !== ';');
 
         const node: AstNode = { type, start, end: 0, children: [] };
 
@@ -34,8 +33,6 @@ export class JavaParser extends AbstractParser {
             node.children.push(block);
             node.end = block.end;
         } else {
-            // Single line loop - not fully supported for nesting depth in this simple parser without full statement parsing
-            // Check for next byte
             this.consume();
             node.end = this.pos;
         }
@@ -59,7 +56,7 @@ export class JavaParser extends AbstractParser {
                 this.consume();
             }
         }
-        this.consume(); // eat '}'
+        this.consume();
         node.end = this.pos;
         return node;
     }
@@ -75,6 +72,8 @@ export class JavaAnalyzer implements IStaticAnalyzer {
 
     private analyzeAst(node: AstNode, code: string): StaticAnalysisResult {
         let maxDepth = 0;
+        const warnings: string[] = [];
+        let isSafe = true;
 
         const traverse = (n: AstNode, depth: number) => {
             let d = depth;
@@ -86,38 +85,50 @@ export class JavaAnalyzer implements IStaticAnalyzer {
         };
         traverse(node, 0);
 
+        // --- Hardened Safety Checks ---
+
+        const blockedPackages = [
+            'java\\.io', 'java\\.nio', 'java\\.net', 'java\\.sql', 'java\\.rmi', 'java\\.lang\\.reflect',
+            'java\\.lang\\.management', 'javax\\.net', 'javax\\.crypto', 'java\\.security'
+        ];
+
+        for (const pkg of blockedPackages) {
+            const regex = new RegExp(`import\\s+${pkg}`, 'i');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Blocked package import detected: ${pkg.replace(/\\/g, '')}`);
+            }
+        }
+
+        const blockedApis = [
+            'System\\.exit', 'Runtime\\.getRuntime', 'ProcessBuilder', 'Thread', 'ThreadGroup',
+            'ClassLoader', 'Method\\.invoke', 'Field\\.set', 'Constructor\\.newInstance',
+            'Socket', 'ServerSocket', 'DatagramSocket', 'URL', 'HttpURLConnection',
+            'FileOutputStream', 'FileInputStream', 'FileChannel', 'Path', 'Files\\.'
+        ];
+
+        for (const api of blockedApis) {
+            const regex = new RegExp(`\\b${api}\\b`, 'g');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Use of blocked API component: ${api.replace(/\\/g, '')}`);
+            }
+        }
+
+        if (code.match(/\bnative\b/)) {
+            isSafe = false;
+            warnings.push('Security Violation: Native method declaration detected.');
+        }
+
+        // Complexity Estimation
         let timeComplexity = 'O(1)';
         if (maxDepth === 1) timeComplexity = 'O(n)';
         else if (maxDepth === 2) timeComplexity = 'O(n^2)';
         else if (maxDepth >= 3) timeComplexity = `O(n^${maxDepth})`;
 
         let spaceComplexity = 'O(1)';
-        // Check for allocations using regex on the raw code as a fallback/hybrid
-        // A true AST for allocations is hard without full type resolution
-        if (code.match(/new\s+\w+\[.*[a-zA-Z].*\]/)) { // new int[n]
-            spaceComplexity = 'O(n)';
-        }
-        if (code.match(/ArrayList.*\(/)) { // ArrayList dynamic
-            // Heuristic: check if this line is inside a loop? 
-            // Without accurate line mapping, we'll simpler assume O(n) if present.
-            spaceComplexity = 'O(n)';
-        }
-
-        // --- Safety Checks ---
-        const blockedPatterns = [
-            'java.io', 'java.nio', 'java.net', 'java.lang.Process', 'java.lang.Runtime',
-            'new File(', 'System.exit(', 'Runtime.getRuntime().exec(', 'ProcessBuilder',
-            'Socket(', 'ServerSocket(', 'DatagramSocket('
-        ];
-        const warnings: string[] = [];
-        let isSafe = true;
-
-        blockedPatterns.forEach(pattern => {
-            if (code.includes(pattern)) {
-                isSafe = false;
-                warnings.push(`Potentially dangerous pattern detected: ${pattern}`);
-            }
-        });
+        if (code.match(/new\s+\w+\[.*[a-zA-Z].*\]/)) spaceComplexity = 'O(n)';
+        if (code.match(/ArrayList.*\(/) || code.match(/HashMap.*\(/)) spaceComplexity = 'O(n)';
 
         return { timeComplexity, spaceComplexity, isSafe, warnings };
     }

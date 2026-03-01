@@ -14,7 +14,6 @@ export class PythonParser extends AbstractParser {
 
             const indent = line.search(/\S/); // Count leading spaces
 
-            // Pop stack if indentation decreases
             while (stack.length > 1 && indent <= stack[stack.length - 1].indent) {
                 stack.pop();
             }
@@ -24,7 +23,6 @@ export class PythonParser extends AbstractParser {
             if (trimmed.startsWith('for ') || trimmed.startsWith('while ')) {
                 const loopNode: AstNode = { type: 'Loop', start: 0, end: 0, children: [] };
                 currentParent.children.push(loopNode);
-                // Push to stack to capture children
                 stack.push({ node: loopNode, indent });
             }
         }
@@ -55,50 +53,68 @@ export class PythonAnalyzer implements IStaticAnalyzer {
         };
         traverse(node, 0);
 
-        // --- Safety Checks (The Bouncer) ---
+        // --- Safety Checks (The Hardened Bouncer) ---
+
         const blockedModules = [
             'os', 'subprocess', 'sys', 'shutil', 'socket', 'requests', 'urllib',
             'ftplib', 'smtplib', 'telnetlib', 'pickle', 'marshal', 'shelve',
-            'sqlite3', 'pysqlite2', 'ctypes', 'winreg', 'msvcrt'
+            'sqlite3', 'pysqlite2', 'ctypes', 'winreg', 'msvcrt', 'platform', 'pty', 'builtins'
         ];
+
+        for (const mod of blockedModules) {
+            const regex = new RegExp(`\\b(import\\s+${mod}|from\\s+${mod}\\b)`, 'i');
+            if (regex.test(code)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Import of blocked module detected: ${mod}`);
+            }
+        }
 
         const blockedFunctions = [
             'eval', 'exec', 'open', 'compile', 'input', 'breakpoint',
-            '__import__', 'globals', 'locals', 'vars', 'exit', 'quit'
+            '__import__', 'globals', 'locals', 'vars', 'exit', 'quit', 'getattr', 'setattr', 'delattr'
         ];
 
-        // 1. Simple Regex Checks (Fast & catches many basic attempts)
-        blockedModules.forEach(mod => {
-            const regex = new RegExp(`(import\\s+${mod}|from\\s+${mod}\\s+import)`, 'g');
+        for (const fn of blockedFunctions) {
+            const regex = new RegExp(`\\b${fn}\\s*\\(`, 'i');
             if (regex.test(code)) {
                 isSafe = false;
-                warnings.push(`Import of blocked module detected: ${mod}`);
+                warnings.push(`Security Violation: Use of blocked function detected: ${fn}`);
             }
-        });
-
-        blockedFunctions.forEach(fn => {
-            const regex = new RegExp(`\\b${fn}\\s*\\(`, 'g');
-            if (regex.test(code)) {
-                isSafe = false;
-                warnings.push(`Use of blocked function detected: ${fn}`);
-            }
-        });
-
-        // 2. Obfuscation detection (Heuristic)
-        if (code.includes('getattr') || (code.includes('base64') && code.includes('decode'))) {
-            warnings.push('Potentially obfuscated code detected (getattr/base64).');
         }
 
+        const suspiciousPatterns = [
+            { pattern: /__subclasses__/i, name: 'class hierarchy exploration' },
+            { pattern: /__builtins__/i, name: 'builtins access' },
+            { pattern: /__getattribute__/i, name: 'low-level attribute access' },
+            { pattern: /base64\s*\.\s*b64decode/i, name: 'obfuscated code' },
+            { pattern: /codec\s*\.\s*decode/i, name: 'obfuscated code' },
+            { pattern: /\\\s*\n/i, name: 'excessive line continuation' },
+            { pattern: /chr\s*\(/i, name: 'character-based obfuscation' }
+        ];
+
+        suspiciousPatterns.forEach(sp => {
+            if (sp.pattern.test(code)) {
+                isSafe = false;
+                warnings.push(`Security Violation: Suspicious pattern detected: ${sp.name}`);
+            }
+        });
+
+        if (code.includes('__builtins__') && (code.includes('open') || code.includes('exec'))) {
+            isSafe = false;
+            warnings.push('Security Violation: Attempt to bypass bouncer via __builtins__');
+        }
+
+        // Complexity Estimation
         let timeComplexity = 'O(1)';
         if (maxDepth === 1) timeComplexity = 'O(n)';
         else if (maxDepth === 2) timeComplexity = 'O(n^2)';
         else if (maxDepth >= 3) timeComplexity = `O(n^${maxDepth})`;
 
         let spaceComplexity = 'O(1)';
-        if (code.match(/\[.*for.*in.*\]/)) { // List comprehension
+        if (code.match(/\[.*for.*in.*\]/)) {
             spaceComplexity = 'O(n)';
         }
-        if (code.match(/\[0\]\s*\*\s*[a-zA-Z]/)) { // [0] * n
+        if (code.match(/\[0\]\s*\*\s*[a-zA-Z]/)) {
             spaceComplexity = 'O(n)';
         }
 
