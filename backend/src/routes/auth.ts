@@ -10,6 +10,7 @@ import path from 'path';
 import { LeaderboardService } from '../services/leaderboardService';
 import { GlobalLeaderboardService } from '../services/globalLeaderboard';
 import { PlatformFetcherService } from '../services/platformFetcher';
+import { authLimiter } from '../middleware/rateLimiters';
 
 const router = Router();
 
@@ -130,8 +131,8 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Verify OTP
-router.post('/verify-otp', async (req, res) => {
+// Verify OTP (rate limited - OTP brute force protection)
+router.post('/verify-otp', authLimiter, async (req, res) => {
   try {
     const { email, otp } = req.body;
 
@@ -200,8 +201,8 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-// Login
-router.post('/login', async (req, res) => {
+// Login (rate limited - brute force protection)
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 

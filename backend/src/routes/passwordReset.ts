@@ -3,11 +3,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/db';
 import { emailService } from '../services/emailService';
+import { authLimiter } from '../middleware/rateLimiters';
 
 const router = Router();
 
-// Forgot Password - Send OTP
-router.post('/forgot-password', async (req, res) => {
+// Forgot Password - Send OTP (rate limited)
+router.post('/forgot-password', authLimiter, async (req, res) => {
   try {
     const { email } = req.body;
 
