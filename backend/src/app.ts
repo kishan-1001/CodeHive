@@ -28,8 +28,26 @@ import roomRoutes from './routes/room';
 
 import helmet from 'helmet';
 import { xssSanitize } from './middleware/security';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
+
+// --- Rate Limiters ---
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { error: 'Too many requests from this IP. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const executeLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30,
+  message: { error: 'Code execution rate limit exceeded. Please wait a moment.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Middleware
 app.use(helmet({
@@ -88,9 +106,9 @@ app.use(passport.session());
 
 // Routes
 app.use('/api/uploads', express.static('uploads'));
-app.use('/api/auth', authRoutes);
-app.use('/api/auth', passwordResetRoutes);
-app.use('/api/execute', executeRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authLimiter, passwordResetRoutes);
+app.use('/api/execute', executeLimiter, executeRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/problems', problemsRoutes);
 app.use('/api/submit', submitRoutes);

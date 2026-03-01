@@ -230,7 +230,7 @@ router.post('/:id/save', authenticateToken, async (req: AuthRequest, res) => {
 // Get comments for a post
 router.get('/:id/comments', async (req, res) => {
     const postId = req.params.id;
-    let currentUserId = null;
+    let currentUserId: number | null = null;
     const authHeader = req.headers['authorization'];
     if (authHeader) {
         try {
@@ -244,6 +244,18 @@ router.get('/:id/comments', async (req, res) => {
     }
 
     try {
+        // SECURITY FIX: Use parameterized query to prevent SQL injection.
+        // Previously, currentUserId was directly interpolated into the SQL string.
+        const queryParams: any[] = [postId];
+        let likedJoin = '';
+        let likedSelect = 'false';
+
+        if (currentUserId !== null) {
+            queryParams.push(currentUserId);
+            likedJoin = `LEFT JOIN comment_likes cl ON c.id = cl.comment_id AND cl.user_id = $${queryParams.length}`;
+            likedSelect = 'CASE WHEN cl.user_id IS NOT NULL THEN true ELSE false END';
+        }
+
         const result = await pool.query(`
             SELECT 
                 c.*, 
@@ -251,13 +263,13 @@ router.get('/:id/comments', async (req, res) => {
                 u.username,
                 u.avatar_url,
                 (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count,
-                 ${currentUserId ? `CASE WHEN cl.user_id IS NOT NULL THEN true ELSE false END` : 'false'} as is_liked
+                ${likedSelect} as is_liked
             FROM comments c
             JOIN users u ON c.user_id = u.id
-            ${currentUserId ? `LEFT JOIN comment_likes cl ON c.id = cl.comment_id AND cl.user_id = ${currentUserId}` : ''}
+            ${likedJoin}
             WHERE c.post_id = $1
             ORDER BY c.created_at ASC
-        `, [postId]);
+        `, queryParams);
         res.json(result.rows);
     } catch (err: any) {
         console.error(err);

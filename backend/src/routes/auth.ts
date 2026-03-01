@@ -178,9 +178,11 @@ router.post('/verify-otp', async (req, res) => {
     const user = userResult.rows[0];
 
     // Generate JWT
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) throw new Error('SERVER CONFIG ERROR: JWT_SECRET is missing.');
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      jwtSecret,
       { expiresIn: '24h' }
     );
 
@@ -228,9 +230,11 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate JWT
+    const jwtSecret2 = process.env.JWT_SECRET;
+    if (!jwtSecret2) throw new Error('SERVER CONFIG ERROR: JWT_SECRET is missing.');
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      jwtSecret2,
       { expiresIn: '24h' }
     );
 
@@ -257,9 +261,11 @@ router.get(
     // Successful authentication
     const user = req.user as any;
 
+    const jwtSecret3 = process.env.JWT_SECRET;
+    if (!jwtSecret3) throw new Error('SERVER CONFIG ERROR: JWT_SECRET is missing.');
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      jwtSecret3,
       { expiresIn: '24h' }
     );
 
@@ -286,9 +292,11 @@ router.get(
     // Successful authentication
     const user = req.user as any;
 
+    const jwtSecret4 = process.env.JWT_SECRET;
+    if (!jwtSecret4) throw new Error('SERVER CONFIG ERROR: JWT_SECRET is missing.');
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      jwtSecret4,
       { expiresIn: '24h' }
     );
 

@@ -134,9 +134,11 @@ router.post('/reset-password', async (req, res) => {
     const user = userResult.rows[0];
 
     // Generate JWT token
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) throw new Error('SERVER CONFIG ERROR: JWT_SECRET is missing.');
     const token = jwt.sign(
       { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      jwtSecret,
       { expiresIn: '7d' }
     );
 
