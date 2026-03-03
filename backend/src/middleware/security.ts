@@ -23,10 +23,11 @@ const sanitizeObject = (obj: any): any => {
         return obj.map((item) => sanitizeObject(item));
     }
 
+    const whitelistedFields = ['code', 'starter_code', 'wrapper_code', 'input', 'expected_output', 'explanation', 'description', 'constraints'];
     const sanitized: any = {};
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            if (key === 'code') {
+            if (whitelistedFields.includes(key)) {
                 sanitized[key] = obj[key];
             } else {
                 sanitized[key] = sanitizeObject(obj[key]);
