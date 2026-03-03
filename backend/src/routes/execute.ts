@@ -2,6 +2,8 @@ import express from 'express';
 import { pool } from '../config/db';
 import { CodeExecutionService } from '../services/CodeExecutionService';
 import { StaticAnalyzerService } from '../services/staticAnalyzer';
+import { decodeHTMLEntities } from '../utils/htmlUtils';
+import { preprocessInput } from '../utils/inputUtils';
 
 const router = express.Router();
 
@@ -39,7 +41,7 @@ router.post('/', async (req, res) => {
         [resolvedProblemId, language]
       );
       if (rows.length > 0 && rows[0].wrapper_code) {
-        const wrapperCode: string = rows[0].wrapper_code;
+        const wrapperCode: string = decodeHTMLEntities(rows[0].wrapper_code);
         const placeholder = '// <<< INSERT USER CODE HERE >>>';
         const pyPlaceholder = '# <<< INSERT USER CODE HERE >>>';
         if (wrapperCode.includes(placeholder) || wrapperCode.includes(pyPlaceholder)) {
@@ -55,20 +57,12 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // 3. Preprocess input — same transformations as submit.ts
-    let processedInput = input !== undefined && input !== null ? input.toString() : '';
-    if (processedInput && (language === 'cpp' || language === 'c' || language === 'java' || language === 'python' || language === 'javascript')) {
-      if (processedInput.startsWith('nums = [')) {
-        const match = processedInput.match(/nums = \[([^\]]+)\], target = (-?\d+)/);
-        if (match) {
-          const nums = match[1].split(',').map((s: string) => s.trim());
-          processedInput = nums.join(' ') + '\n' + match[2];
-        }
-      }
-    }
+    // 3. Preprocess input — use robust utility for LeetCode format strings
+    let processedInput = preprocessInput(input !== undefined && input !== null ? input.toString() : '');
 
-    // 4. Execute with skipAnalysis=true (analysis already done on raw user code above)
-    const result = await CodeExecutionService.execute(fullCode, language, processedInput, 10000, lineOffset, true);
+    // 4. Execute after decoding any HTML entities (robustness for legacy data)
+    const decodedCode = decodeHTMLEntities(fullCode);
+    const result = await CodeExecutionService.execute(decodedCode, language, processedInput, 10000, lineOffset, true);
 
     if (result.error) {
       return res.json({

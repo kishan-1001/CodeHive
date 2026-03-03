@@ -2,6 +2,7 @@ import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
 import { StaticAnalyzerService } from './staticAnalyzer';
 import { executionLimiter } from '../utils/executionLimiter';
+import { decodeHTMLEntities } from '../utils/htmlUtils';
 
 const execAsync = promisify(exec);
 
@@ -118,9 +119,10 @@ export class CodeExecutionService {
                 };
             }
 
+            const decodedCode = decodeHTMLEntities(code);
             const startTime = Date.now();
             const timeLimitSec = Math.max(1, Math.ceil(timeLimitMs / 1000));
-            const encodedCode = Buffer.from(code).toString('base64');
+            const encodedCode = Buffer.from(decodedCode).toString('base64');
             const encodedInput = input ? Buffer.from(input).toString('base64') : null;
 
             let image = '';

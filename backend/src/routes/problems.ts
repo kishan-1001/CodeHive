@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { pool } from '../config/db';
 import jwt from 'jsonwebtoken';
+import { decodeHTMLEntities } from '../utils/htmlUtils';
 
 const router = Router();
 
@@ -228,7 +229,11 @@ router.get('/:id/templates/:language', async (req, res) => {
             return res.status(404).json({ error: 'Template not found for this problem and language' });
         }
 
-        res.json(result.rows[0]);
+        const template = result.rows[0];
+        res.json({
+            starter_code: decodeHTMLEntities(template.starter_code),
+            wrapper_code: decodeHTMLEntities(template.wrapper_code)
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });

@@ -7,6 +7,8 @@ import WebSocket from 'ws';
 import { pool } from './config/db';
 import { joinRoomSocket } from './services/roomSocket';
 import { StaticAnalyzerService } from './services/staticAnalyzer';
+import { decodeHTMLEntities } from './utils/htmlUtils';
+import { preprocessInput } from './utils/inputUtils';
 
 const execAsync = promisify(exec);
 
@@ -77,7 +79,7 @@ wss.on('connection', (ws) => {
           `, [problem_id, language]);
 
           if (templateResult.rows.length > 0) {
-            wrapperCode = templateResult.rows[0].wrapper_code;
+            wrapperCode = decodeHTMLEntities(templateResult.rows[0].wrapper_code);
           }
         }
 
@@ -88,23 +90,12 @@ wss.on('connection', (ws) => {
           fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code);
         }
 
-        const encodedFullCode = Buffer.from(fullCode).toString('base64');
+        const decodedFullCode = decodeHTMLEntities(fullCode);
+        const encodedFullCode = Buffer.from(decodedFullCode).toString('base64');
 
-        let processedInput = input;
-        if (language === 'cpp' && input) {
-          const inputStr = Buffer.from(input, 'base64').toString();
-          if (inputStr.startsWith('nums = [')) {
-            const match = inputStr.match(/nums = \[([^\]]+)\], target = (\d+)/);
-            if (match) {
-              const numsStr = match[1];
-              const target = match[2];
-              const nums = numsStr.split(',').map(s => s.trim());
-              const newInput = nums.join(' ') + '\n' + target;
-              processedInput = Buffer.from(newInput).toString('base64');
-            }
-          }
-        }
-        const encodedInput = processedInput ? Buffer.from(processedInput).toString('base64') : null;
+        let cleanedInput = input ? Buffer.from(input, 'base64').toString() : '';
+        cleanedInput = preprocessInput(cleanedInput);
+        const encodedInput = cleanedInput ? Buffer.from(cleanedInput).toString('base64') : null;
 
         let dockerCommand: string;
         let image: string;

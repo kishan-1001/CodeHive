@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { pool } from '../config/db';
 import { authenticateToken } from '../middleware/auth';
 import { isAdmin } from '../middleware/adminMiddleware';
+import { decodeHTMLEntities } from '../utils/htmlUtils';
 
 const router = Router();
 
@@ -16,7 +17,12 @@ router.get('/:problemId/templates', async (req, res) => {
             'SELECT * FROM problem_templates WHERE problem_id = $1 ORDER BY language ASC',
             [problemId]
         );
-        res.json(result.rows);
+        const rows = result.rows.map(row => ({
+            ...row,
+            starter_code: decodeHTMLEntities(row.starter_code),
+            wrapper_code: decodeHTMLEntities(row.wrapper_code)
+        }));
+        res.json(rows);
     } catch (err: any) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -59,7 +65,11 @@ router.post('/:problemId/templates', async (req, res) => {
             );
         }
 
-        res.json(result.rows[0]);
+        res.json({
+            ...result.rows[0],
+            starter_code: decodeHTMLEntities(result.rows[0].starter_code),
+            wrapper_code: decodeHTMLEntities(result.rows[0].wrapper_code)
+        });
     } catch (err: any) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });

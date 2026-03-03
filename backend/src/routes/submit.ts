@@ -5,6 +5,8 @@ import { pool } from '../config/db';
 import { authenticateToken } from '../middleware/auth';
 import { StaticAnalyzerService } from '../services/staticAnalyzer';
 import { executionLimiter } from '../utils/executionLimiter';
+import { decodeHTMLEntities } from '../utils/htmlUtils';
+import { preprocessInput } from '../utils/inputUtils';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -32,20 +34,8 @@ async function runTestCase(code: string, language: string, input: string, timeLi
 
   const encodedCode = Buffer.from(code).toString('base64');
 
-  // Process input for special cases
-  let processedInput = input;
-  if ((language === 'cpp' || language === 'c' || language === 'java' || language === 'python' || language === 'javascript') && input) {
-    if (input.startsWith('nums = [')) {
-      const match = input.match(/nums = \[([^\]]+)\], target = (\d+)/);
-      if (match) {
-        const numsStr = match[1];
-        const target = match[2];
-        const nums = numsStr.split(',').map(s => s.trim());
-        const newInput = nums.join(' ') + '\n' + target;
-        processedInput = newInput;
-      }
-    }
-  }
+  // Process input for special cases (LeetCode format)
+  const processedInput = preprocessInput(input);
   const encodedInput = (processedInput !== undefined && processedInput !== null) ? Buffer.from(processedInput).toString('base64') : null;
 
   let image: string;
@@ -209,7 +199,7 @@ router.post('/', authenticateToken, async (req, res) => {
         `, [problem_id, language]);
 
         if (templateResult.rows.length > 0) {
-          wrapperCode = templateResult.rows[0].wrapper_code;
+          wrapperCode = decodeHTMLEntities(templateResult.rows[0].wrapper_code);
         }
       } catch (dbError) {
         console.warn('Could not fetch wrapper code:', dbError);
@@ -220,6 +210,9 @@ router.post('/', authenticateToken, async (req, res) => {
       if (wrapperCode) {
         fullCode = wrapperCode.replace('// <<< INSERT USER CODE HERE >>>', code).replace('# <<< INSERT USER CODE HERE >>>', code);
       }
+
+      // Robustness: Decode HTML entities from legacy data
+      const decodedFullCode = decodeHTMLEntities(fullCode);
 
       // Fetch all test cases
       const testCasesResult = await pool.query(`
@@ -274,8 +267,8 @@ router.post('/', authenticateToken, async (req, res) => {
       // Run code against each test case
       for (const testCase of testCases) {
         console.log(`[DEBUG] executing test case input: ${testCase.input}`);
-        console.log(`[DEBUG] Full Code being executed:\n${fullCode}`);
-        const result = await runTestCase(fullCode, language, testCase.input, finalTimeLimitMs);
+        console.log(`[DEBUG] Full Code being executed:\n${decodedFullCode}`);
+        const result = await runTestCase(decodedFullCode, language, testCase.input, finalTimeLimitMs);
 
         if (result.error === 'SYSTEM_ERROR') {
           return res.status(503).json({ error: 'Server resource exhausted. Please try again later.' });
