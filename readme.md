@@ -78,12 +78,13 @@ Comprehensive tools for administrators to manage problems, contests, and users.
 <p align="center">
   <img src="frontend/public/admin problem.png" width="800" alt="Admin Problem Management" />
 </p>
-<p align="center">
+<!-- <p align="center">
   <img src="frontend/public/Screenshot 2026-01-26 015357.png" width="800" alt="Admin Contest Management" />
 </p>
 <p align="center">
   <img src="frontend/public/Screenshot 2026-01-26 015418.png" width="800" alt="Admin User Management" />
-</p>
+</p> -->
+
 
 ---
 
@@ -105,97 +106,14 @@ Comprehensive tools for administrators to manage problems, contests, and users.
 *   **[Socket.io](https://socket.io/)** - Real-time bidirectional communication.
 *   **[Docker](https://docs.docker.com/)** - Containerization for secure code execution.
 *   **[Brevo](https://developers.brevo.com/)** - Email API for transactional emails.
-
 ---
 
-## ⚡ Getting Started (Local Installation)
-
-Follow these steps to set up CodeHive on your local machine.
-
-### Prerequisites
-Ensure you have the following installed:
-*   **[Node.js](https://nodejs.org/en/download/)** (v18 or higher)
-*   **[PostgreSQL](https://www.postgresql.org/download/)** (Latest version)
-*   **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Required for the Instant Arena & Code Execution)
-*   **git**
-
-### 1. Clone the Repository
-    ```bash
-git clone https://github.com/kishan-1001/CodeHive.git
-    cd CodeHive
-    ```
-
-### 2. Backend Setup
-
-**Install Dependencies:**
-    ```bash
-    cd backend
-    npm install
-    ```
-
-**Environment Configuration:**
-Create a `.env` file in the `backend` directory with the following variables:
-
-```env
-# Server Configuration
-PORT=3001
-
-# Database Configuration
-DB_USER=postgres
-DB_HOST=localhost
-DB_NAME=codehive
-DB_PASSWORD=your_password
-DB_PORT=5432
-
-# Authentication Secrets
-JWT_SECRET=your_super_secret_jwt_key
-
-# OAuth Providers (Optional for local dev, needed for Google/GitHub login)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-
-# Email Service (Brevo)
-BREVO_API_KEY=your_brevo_api_key
-```
-
-**Run the Backend:**
-    ```bash
-    npm run dev
-    ```
-*Note: Ensure Docker Desktop is running before executing code challenges.*
-
-### 3. Frontend Setup
-
-Open a new terminal window and navigate to the frontend directory.
-
-**Install Dependencies:**
-    ```bash
-cd frontend
-    npm install
-    ```
-
-**Run the Frontend:**
-    ```bash
-    npm start
-# OR
-npm run dev
-```
-
-### 4. Visit the App
-Open your browser and navigate to:
-`http://localhost:5173`
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## 📄 License
 
-MIT License.
+Copyright (c) 2026 Kishan Roy. All rights reserved.
+
+This project is proprietary. Unauthorized copying, modification, distribution, or use of this software, via any medium, is strictly prohibited. For more details, see the [LICENSE](LICENSE) file.
 
 
 
