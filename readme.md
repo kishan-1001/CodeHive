@@ -1,10 +1,12 @@
-# CodeHive 🐝 <sub>[🔗 Click here for Live Demo](https://code-hive-iota.vercel.app)</sub>
+# CodeHive 🐝 <sub>[🔗 Click here for Live Demo](https://code-hive-iota.vercel.app)</sub> | <sub>[📄 Read Our Research Paper](https://researchpaper-three.vercel.app/)</sub>
 
 **The Ultimate Competitive Programming & Coding Platform**
 
 ![CodeHive Home](frontend/public/CodeHive%20home%20page%20.png)
 
 CodeHive is a modern, feature-rich coding platform designed to help developers master data structures and algorithms, compete in contests, and showcase their skills to the world.
+
+> 📚 **Interested in the architecture and research behind CodeHive?** Check out our dedicated [Research Paper Website](https://researchpaper-three.vercel.app/) to read and download the full paper.
 
 ---
 
