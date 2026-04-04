@@ -316,7 +316,7 @@ const Footer: React.FC<{ onContactClick: () => void }> = ({ onContactClick }) =>
         <div>
           <h3 className="text-white font-bold mb-6">Company</h3>
           <ul className="space-y-4 text-gray-400 text-sm">
-            <li><Link to="/about" className="hover:text-amber-400 transition-colors">About Us</Link></li>
+            <li><Link to="#" className="hover:text-amber-400 transition-colors">About Us</Link></li>
             <li><Link to="/career" className="hover:text-amber-400 transition-colors">Careers</Link></li>
             <li><button onClick={onContactClick} aria-label="Contact Us" className="text-gray-400 hover:text-amber-400 transition-colors bg-transparent border-none cursor-pointer text-sm p-0">Contact</button></li>
             <li><Link to="/legal" className="hover:text-amber-400 transition-colors">Legal</Link></li>
