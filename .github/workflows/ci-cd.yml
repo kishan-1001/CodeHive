@@ -25,11 +25,11 @@ jobs:
       - name: Install Frontend Dependencies
         working-directory: ./frontend
         run: |
-          npm ci || npm install # fallback to install if package-lock is out of sync
+          npm ci || npm install 
 
       - name: Lint Frontend
         working-directory: ./frontend
-        run: npm run lint || true # Prevent lint errors from blocking deployment for now
+        run: npm run lint || true # Prevent lint errors from blocking deployment
 
       - name: Build Frontend
         working-directory: ./frontend
@@ -60,22 +60,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./frontend
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Build Project Artifacts for Vercel
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./frontend
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel (Remote Build)
+        # Using direct deployment to avoid environment shell errors (ENOENT) during local build
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: ./frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -94,29 +81,33 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Navigate to the project directory
             PROJECT_DIR="~/CodeHive"
             
-            if [ -d "$PROJECT_DIR" ]; then
-              cd $PROJECT_DIR
-              
-              # Pull the latest code
-              git pull origin main
-              
-              # Build execution engine docker image locally on the EC2 server
-              cd execution-engine/docker
-              docker build -t execution-engine-python:latest -f python.Dockerfile ..
-              cd ../..
-              
-              # Setup backend
-              cd backend
-              npm ci || npm install
-              npm run build
-              
-              # Restart the backend service. We assume you run the backend using pm2.
-              pm2 restart codehive-backend || pm2 start dist/server.js --name "codehive-backend"
-            else
-              echo "Project directory $PROJECT_DIR not found on EC2 instance."
-              echo "Please clone the repository initially into ~/CodeHive to enable deployments."
-              exit 1
+            # --- AUTO-SETUP LOGIC ---
+            if [ ! -d "$PROJECT_DIR" ]; then
+              echo "Project directory not found. Performing initial clone..."
+              git clone https://github.com/kishan-1001/CodeHive.git $PROJECT_DIR
             fi
+            
+            cd $PROJECT_DIR
+            
+            # Update code
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # --- EXECUTION ENGINE ---
+            echo "Building Docker execution engine..."
+            cd execution-engine/docker
+            docker build -t execution-engine-python:latest -f python.Dockerfile ..
+            cd ../..
+            
+            # --- BACKEND ---
+            echo "Setting up backend..."
+            cd backend
+            npm ci || npm install
+            npm run build
+            
+            # Restart or Start service
+            # We assume 'codehive-backend' is the name in pm2
+            pm2 restart codehive-backend || pm2 start dist/server.js --name "codehive-backend"
+            pm2 save
