@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password    # Hardcoded test password for easy local setup
+      POSTGRES_DB: CodeHive_Local
+    ports:
+      - "5432:5432"
+    volumes:
+      - codehive_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      # We override the DB env vars to point exactly to the 'database' container
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=CodeHive_Local
+      - DB_PORT=5432
+      - DATABASE_URL=postgres://postgres:password@database:5432/CodeHive_Local
+      # Other necessary backend variables
+      - SESSION_SECRET=supersecretkey_local
+      - JWT_SECRET=supersecretjwtkey_local
+    volumes:
+      # Crucial: Mount Docker socket so CodeExecutionService can spawn containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - database
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"  # Mapping port 80 of Nginx to 5173 to match your existing workflow
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  codehive_pgdata:
