@@ -61,9 +61,8 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Deploy to Vercel (Remote Build)
-        # Using direct deployment to avoid environment shell errors (ENOENT) during local build
+        # Using direct deployment from the root. Vercel automatically finds the frontend folder based on Project Settings.
         run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
