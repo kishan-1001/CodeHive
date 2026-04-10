@@ -80,8 +80,8 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onKnowledgeDropClick }) => {
   const getAvatarSrc = (path: string | null) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    // If it's a relative path from uploads, prepend /api base path (which is proxied/rewritten)
-    return `/api${path}`;
+    if (path.startsWith('/api')) return path;
+    return `/api${path.startsWith('/') ? path : `/${path}`}`;
   };
 
   return (

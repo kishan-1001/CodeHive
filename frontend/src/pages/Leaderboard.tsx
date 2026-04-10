@@ -89,7 +89,8 @@ const Leaderboard: React.FC = () => {
   const getAvatarSrc = (path: string | null) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    return `/api${path}`;
+    if (path.startsWith('/api')) return path;
+    return `/api${path.startsWith('/') ? path : `/${path}`}`;
   };
 
 
