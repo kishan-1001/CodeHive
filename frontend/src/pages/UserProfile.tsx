@@ -260,8 +260,14 @@ const UserProfile = () => {
             }
             return path;
         }
+        
+        // Prevent double '/api' prefix if the path already includes it
+        if (path.startsWith('/api')) {
+            return path;
+        }
+        
         // If it's a relative path from uploads, prepend /api base path (which is proxied/rewritten)
-        return `/api${path}`;
+        return `/api${path.startsWith('/') ? path : `/${path}`}`;
     };
 
     const formatDate = (dateString: string) => {
